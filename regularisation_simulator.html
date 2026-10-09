@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulateur — Régularisation λ (Ridge)</title>
+<style>
+  :root{
+    --accent:#4d6bfe;
+    --ink:#0d0d0d;
+    --muted:#6b7280;
+    --border:#e5e5e5;
+    --border-strong:#d1d5db;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    padding:28px 18px 60px;
+    background:#fafafa;
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    color:var(--ink);
+    display:flex;
+    justify-content:center;
+  }
+  .wrap{width:100%;max-width:1080px}
+
+  h1{
+    font-size:20px;
+    font-weight:600;
+    margin:0 0 6px;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    font-size:13px;
+    color:var(--muted);
+    margin:0 0 22px;
+    line-height:1.5;
+  }
+
+  .card{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px;
+    box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.03);
+  }
+
+  .title{
+    font-size:15px;
+    font-weight:600;
+    padding-bottom:10px;
+    margin-bottom:14px;
+    border-bottom:1px solid var(--border);
+  }
+
+  .row{
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+  canvas{
+    display:block;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:#fff;
+  }
+  #bdsFit{flex:1 1 360px;min-width:300px;width:100%;max-width:660px;height:auto}
+  #bdsCurve{flex:1 1 260px;min-width:260px;width:100%;max-width:430px;height:auto}
+
+  .control-group{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-top:16px;
+  }
+  .label{
+    font-size:12px;
+    font-weight:600;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .stat{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    font-size:12px;
+    background:rgba(77,107,254,.08);
+    color:var(--accent);
+    padding:2px 8px;
+    border-radius:6px;
+    font-weight:600;
+  }
+  .stat-dark{
+    background:#f3f4f6;
+    color:#374151;
+  }
+
+  input[type="range"]{
+    -webkit-appearance:none;
+    appearance:none;
+    width:100%;
+    height:6px;
+    border-radius:999px;
+    background:linear-gradient(90deg,var(--accent),#c7d2fe);
+    outline:none;
+    cursor:pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    appearance:none;
+    width:20px;height:20px;
+    border-radius:50%;
+    background:#fff;
+    border:3px solid var(--accent);
+    box-shadow:0 1px 4px rgba(0,0,0,.18);
+    cursor:grab;
+  }
+  input[type="range"]::-webkit-slider-thumb:active{cursor:grabbing}
+  input[type="range"]::-moz-range-thumb{
+    width:20px;height:20px;
+    border-radius:50%;
+    background:#fff;
+    border:3px solid var(--accent);
+    box-shadow:0 1px 4px rgba(0,0,0,.18);
+    cursor:grab;
+  }
+
+  .stats-row{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  .legend{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    font-size:12px;
+    color:var(--muted);
+    margin-top:14px;
+    padding-top:12px;
+    border-top:1px solid var(--border);
+  }
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .tri{
+    width:0;height:0;
+    border-left:5px solid transparent;
+    border-right:5px solid transparent;
+    border-bottom:8px solid var(--muted);
+    display:inline-block;
+  }
+  .line{width:20px;height:3px;border-radius:2px;display:inline-block}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>🎮 Le bouton de volume de la complexité</h1>
+  <p class="sub">
+    Polynôme de degré 10 · 25 points d'entraînement <strong>●</strong> · 70 points de validation <strong>△</strong>.
+    Petit λ → la courbe devient folle (variance). Grand λ → elle s'aplatit (biais).
+  </p>
+
+  <div class="card">
+    <div class="title">Régularisation Ridge — λ en échelle log</div>
+
+    <div class="row">
+      <canvas id="bdsFit" width="660" height="370"></canvas>
+      <canvas id="bdsCurve" width="430" height="370"></canvas>
+    </div>
+
+    <div class="legend">
+      <span><span class="line" style="background:#cfcfcf"></span> vraie fonction</span>
+      <span><span class="dot" style="background:#1f2937"></span> points d'entraînement</span>
+      <span><span class="tri"></span> validation</span>
+      <span><span class="line" style="background:#4d6bfe"></span> modèle ajusté</span>
+    </div>
+
+    <div class="control-group">
+      <label class="label">log₁₀ λ = <span class="stat" id="bdsLam">0.00</span></label>
+      <input id="bdsSlider" type="range" min="-4" max="3" step="0.05" value="0">
+      <div class="stats-row">
+        <span class="stat stat-dark" id="bdsTrain">train MSE …</span>
+        <span class="stat stat-dark" id="bdsVal">val MSE …</span>
+        <span class="stat" id="bdsBest">meilleur λ …</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const cvF = document.getElementById('bdsFit');
+  const cvC = document.getElementById('bdsCurve');
+  const gF = cvF.getContext('2d');
+  const gC = cvC.getContext('2d');
+  const slider = document.getElementById('bdsSlider');
+  const lamEl  = document.getElementById('bdsLam');
+  const trEl   = document.getElementById('bdsTrain');
+  const vaEl   = document.getElementById('bdsVal');
+  const beEl   = document.getElementById('bdsBest');
+
+  const D = 10, N = D + 1;
+  const XMIN = -3.6, XMAX = 3.6, YMIN = -5, YMAX = 4.5;
+
+  function rng(seed){
+    return function(){
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  const R = rng(7);
+  const ftrue = x => 1.7 * Math.sin(1.25 * x) + 0.28 * x * x - 1.7;
+
+  const xTr = [], yTr = [], xVa = [], yVa = [];
+  for (let i = 0; i < 25; i++){
+    const x = -3 + 6 * i / 24 + (R() - 0.5) * 0.15;
+    xTr.push(x); yTr.push(ftrue(x) + (R() - 0.5) * 1.0);
+  }
+  for (let i = 0; i < 70; i++){
+    const x = -3.3 + 6.6 * R();
+    xVa.push(x); yVa.push(ftrue(x) + (R() - 0.5) * 1.0);
+  }
+
+  function design(xs){
+    return xs.map(x => {
+      const t = x / 3, row = [];
+      let p = 1;
+      for (let j = 0; j < N; j++){ row.push(p); p *= t; }
+      return row;
+    });
+  }
+
+  const Xtr = design(xTr), Xva = design(xVa);
+  const mu = new Array(N).fill(0), sd = new Array(N).fill(1);
+  for (let j = 1; j < N; j++){
+    let m = 0; for (const r of Xtr) m += r[j]; m /= Xtr.length;
+    let v = 0; for (const r of Xtr) v += (r[j] - m) * (r[j] - m); v /= Xtr.length;
+    mu[j] = m; sd[j] = Math.sqrt(v) || 1;
+  }
+  const std = M => M.map(r => {
+    const o = r.slice();
+    for (let j = 1; j < N; j++) o[j] = (o[j] - mu[j]) / sd[j];
+    return o;
+  });
+  const Ztr = std(Xtr), Zva = std(Xva);
+
+  const A0 = Array.from({length: N}, () => new Array(N).fill(0));
+  const b0 = new Array(N).fill(0);
+  for (let i = 0; i < Ztr.length; i++){
+    const r = Ztr[i];
+    for (let j = 0; j < N; j++){
+      b0[j] += r[j] * yTr[i];
+      for (let k = 0; k < N; k++) A0[j][k] += r[j] * r[k];
+    }
+  }
+
+  function solve(Ain, bin){
+    const M = Ain.map((row, i) => row.concat([bin[i]]));
+    for (let c = 0; c < N; c++){
+      let p = c;
+      for (let r = c + 1; r < N; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+      if (p !== c){ const tmp = M[c]; M[c] = M[p]; M[p] = tmp; }
+      const pv = M[c][c];
+      if (Math.abs(pv) < 1e-14) continue;
+      for (let r = 0; r < N; r++){
+        if (r === c) continue;
+        const fac = M[r][c] / pv;
+        if (!fac) continue;
+        for (let k = c; k <= N; k++) M[r][k] -= fac * M[c][k];
+      }
+    }
+    const out = new Array(N).fill(0);
+    for (let i = 0; i < N; i++) if (Math.abs(M[i][i]) > 1e-14) out[i] = M[i][N] / M[i][i];
+    return out;
+  }
+
+  function fitLambda(lam){
+    const A = A0.map((row, j) => row.map((v, k) => (j === k && j > 0) ? v + lam : v));
+    return solve(A, b0);
+  }
+
+  function predict(Z, w){
+    return Z.map(r => { let p = 0; for (let j = 0; j < N; j++) p += r[j] * w[j]; return p; });
+  }
+  function mse(y, yh){
+    let s = 0; for (let i = 0; i < y.length; i++) s += (y[i] - yh[i]) * (y[i] - yh[i]);
+    return s / y.length;
+  }
+
+  const gridX = [];
+  for (let i = 0; i <= 400; i++) gridX.push(XMIN + (XMAX - XMIN) * i / 400);
+  const Zgrid = std(design(gridX));
+
+  // ---- sweep over lambda ----
+  const LMIN = -4, LMAX = 3, NPT = 49;
+  const lamGrid = [];
+  for (let i = 0; i < NPT; i++) lamGrid.push(LMIN + (LMAX - LMIN) * i / (NPT - 1));
+  const trainCurve = [], valCurve = [];
+  let bestI = 0, bestV = Infinity;
+  lamGrid.forEach((lg, i) => {
+    const w = fitLambda(Math.pow(10, lg));
+    const tm = mse(yTr, predict(Ztr, w));
+    const vm = mse(yVa, predict(Zva, w));
+    trainCurve.push(Math.log10(Math.max(tm, 1e-8)));
+    valCurve.push(Math.log10(Math.max(vm, 1e-8)));
+    if (vm < bestV){ bestV = vm; bestI = i; }
+  });
+
+  // ---- fit canvas ----
+  const MF = {l: 46, r: 14, t: 14, b: 28};
+  const Wf = cvF.width, Hf = cvF.height;
+  const iwf = Wf - MF.l - MF.r, ihf = Hf - MF.t - MF.b;
+  const px = x => MF.l + (x - XMIN) / (XMAX - XMIN) * iwf;
+  const py = y => MF.t + ihf - (y - YMIN) / (YMAX - YMIN) * ihf;
+
+  function drawFit(w){
+    gF.clearRect(0, 0, Wf, Hf);
+    gF.fillStyle = '#fff'; gF.fillRect(0, 0, Wf, Hf);
+    gF.strokeStyle = '#f2f2f2'; gF.lineWidth = 1;
+    for (let x = -3; x <= 3; x++){ gF.beginPath(); gF.moveTo(px(x), py(YMIN)); gF.lineTo(px(x), py(YMAX)); gF.stroke(); }
+    for (let y = -4; y <= 4; y += 2){ gF.beginPath(); gF.moveTo(px(XMIN), py(y)); gF.lineTo(px(XMAX), py(y)); gF.stroke(); }
+    gF.strokeStyle = '#d1d5db';
+    gF.beginPath(); gF.moveTo(px(XMIN), py(0)); gF.lineTo(px(XMAX), py(0)); gF.stroke();
+    gF.beginPath(); gF.moveTo(px(0), py(YMIN)); gF.lineTo(px(0), py(YMAX)); gF.stroke();
+    gF.fillStyle = '#9aa0a6'; gF.font = '10px system-ui';
+    gF.fillText('-3', px(-3) - 5, py(YMIN) + 16);
+    gF.fillText('0', px(0) - 3, py(YMIN) + 16);
+    gF.fillText('3', px(3) - 3, py(YMIN) + 16);
+
+    // true function
+    gF.strokeStyle = '#cfcfcf'; gF.lineWidth = 3.5;
+    gF.beginPath();
+    for (let i = 0; i <= 300; i++){
+      const x = XMIN + (XMAX - XMIN) * i / 300, y = ftrue(x);
+      i ? gF.lineTo(px(x), py(y)) : gF.moveTo(px(x), py(y));
+    }
+    gF.stroke();
+
+    // validation triangles
+    gF.strokeStyle = '#9aa0a6'; gF.lineWidth = 1.4;
+    for (let i = 0; i < xVa.length; i++){
+      const X = px(xVa[i]), Y = py(yVa[i]);
+      gF.beginPath(); gF.moveTo(X, Y - 3.5); gF.lineTo(X - 3.4, Y + 2.8); gF.lineTo(X + 3.4, Y + 2.8);
+      gF.closePath(); gF.stroke();
+    }
+    // train points
+    gF.fillStyle = '#1f2937';
+    for (let i = 0; i < xTr.length; i++){
+      gF.beginPath(); gF.arc(px(xTr[i]), py(yTr[i]), 3.3, 0, 7); gF.fill();
+    }
+    // model
+    gF.save();
+    gF.beginPath(); gF.rect(MF.l, MF.t, iwf, ihf); gF.clip();
+    gF.strokeStyle = '#4d6bfe'; gF.lineWidth = 2.6;
+    gF.beginPath();
+    const yh = predict(Zgrid, w);
+    for (let i = 0; i < gridX.length; i++){
+      const X = px(gridX[i]), Y = py(yh[i]);
+      i ? gF.lineTo(X, Y) : gF.moveTo(X, Y);
+    }
+    gF.stroke();
+    gF.restore();
+  }
+
+  // ---- error curve canvas ----
+  const MC = {l: 46, r: 14, t: 14, b: 34};
+  const Wc = cvC.width, Hc = cvC.height;
+  const iwc = Wc - MC.l - MC.r, ihc = Hc - MC.t - MC.b;
+  let loY = Infinity, hiY = -Infinity;
+  trainCurve.concat(valCurve).forEach(v => { if (v < loY) loY = v; if (v > hiY) hiY = v; });
+  loY = Math.floor(loY - 0.3); hiY = Math.ceil(hiY + 0.3);
+  const cpx = lg => MC.l + (lg - LMIN) / (LMAX - LMIN) * iwc;
+  const cpy = v => MC.t + ihc - (v - loY) / (hiY - loY) * ihc;
+
+  function drawCurve(curLg){
+    gC.clearRect(0, 0, Wc, Hc);
+    gC.fillStyle = '#fff'; gC.fillRect(0, 0, Wc, Hc);
+    // grid
+    gC.strokeStyle = '#f2f2f2'; gC.lineWidth = 1;
+    for (let lg = LMIN; lg <= LMAX; lg++){ gC.beginPath(); gC.moveTo(cpx(lg), cpy(hiY)); gC.lineTo(cpx(lg), cpy(loY)); gC.stroke(); }
+    for (let v = loY; v <= hiY; v++){ gC.beginPath(); gC.moveTo(cpx(LMIN), cpy(v)); gC.lineTo(cpx(LMAX), cpy(v)); gC.stroke(); }
+    gC.strokeStyle = '#d1d5db';
+    gC.beginPath(); gC.moveTo(cpx(LMIN), cpy(loY)); gC.lineTo(cpx(LMAX), cpy(loY)); gC.stroke();
+
+    // best lambda line
+    gC.setLineDash([4, 4]);
+    gC.strokeStyle = '#c7d2fe'; gC.lineWidth = 1.6;
+    gC.beginPath(); gC.moveTo(cpx(lamGrid[bestI]), cpy(hiY)); gC.lineTo(cpx(lamGrid[bestI]), cpy(loY)); gC.stroke();
+    gC.setLineDash([]);
+
+    // train curve
+    gC.strokeStyle = '#c0c0c0'; gC.lineWidth = 2.2;
+    gC.beginPath();
+    lamGrid.forEach((lg, i) => { i ? gC.lineTo(cpx(lg), cpy(trainCurve[i])) : gC.moveTo(cpx(lg), cpy(trainCurve[i])); });
+    gC.stroke();
+
+    // val curve
+    gC.strokeStyle = '#1f2937'; gC.lineWidth = 2.8;
+    gC.beginPath();
+    lamGrid.forEach((lg, i) => { i ? gC.lineTo(cpx(lg), cpy(valCurve[i])) : gC.moveTo(cpx(lg), cpy(valCurve[i])); });
+    gC.stroke();
+
+    // current marker
+    const idx = Math.max(0, Math.min(NPT - 1, Math.round((curLg - LMIN) / (LMAX - LMIN) * (NPT - 1))));
+    const curX = cpx(curLg);
+    const curY = cpy(valCurve[idx]);
+    gC.strokeStyle = '#4d6bfe'; gC.lineWidth = 1.6;
+    gC.beginPath(); gC.moveTo(curX, cpy(hiY)); gC.lineTo(curX, cpy(loY)); gC.stroke();
+    gC.fillStyle = '#4d6bfe';
+    gC.beginPath(); gC.arc(curX, curY, 5, 0, 7); gC.fill();
+    gC.fillStyle = '#fff';
+    gC.beginPath(); gC.arc(curX, curY, 2, 0, 7); gC.fill();
+
+    // labels
+    gC.fillStyle = '#9aa0a6'; gC.font = '10px system-ui';
+    gC.fillText('10⁻⁴', cpx(-4) - 10, cpy(loY) + 15);
+    gC.fillText('10⁻²', cpx(-2) - 10, cpy(loY) + 15);
+    gC.fillText('10⁰',  cpx(0)  - 8,  cpy(loY) + 15);
+    gC.fillText('10²',  cpx(2)  - 8,  cpy(loY) + 15);
+    gC.fillStyle = '#6b7280';
+    gC.fillText('← complexe', cpx(LMIN), cpy(loY) + 30);
+    gC.fillText('simple →', cpx(LMAX) - 48, cpy(loY) + 30);
+    gC.fillStyle = '#c0c0c0'; gC.fillText('train', cpx(LMAX) - 70, cpy(trainCurve[NPT - 1]) - 6);
+    gC.fillStyle = '#1f2937'; gC.fillText('validation', cpx(LMAX) - 100, cpy(valCurve[NPT - 1]) - 6);
+  }
+
+  function update(){
+    const lg = parseFloat(slider.value);
+    lamEl.textContent = lg.toFixed(2);
+    const w = fitLambda(Math.pow(10, lg));
+    const tm = mse(yTr, predict(Ztr, w));
+    const vm = mse(yVa, predict(Zva, w));
+    trEl.textContent = 'train MSE ' + tm.toFixed(2);
+    vaEl.textContent = 'val MSE ' + vm.toFixed(2);
+    drawFit(w);
+    drawCurve(lg);
+  }
+
+  beEl.textContent = 'meilleur λ ≈ ' + Math.pow(10, lamGrid[bestI]).toFixed(3);
+  slider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>
