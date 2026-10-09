@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lois des probabilités — Exploration interactive</title>
+
+<!-- KaTeX : rendu typographique des formules -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+
+<!-- Chart.js : graphiques -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+  :root{
+    --bg:#f7f8fa;
+    --card:#ffffff;
+    --text:#0d0d0d;
+    --muted:#6b7280;
+    --border:#e5e7eb;
+    --accent:#4d6bfe;
+    --accent-soft:#eef1ff;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- NAV ---------- */
+  nav{
+    position:sticky;top:0;z-index:50;
+    background:rgba(247,248,250,.88);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .nav-inner{
+    max-width:1080px;margin:0 auto;padding:.6rem 1.25rem;
+    display:flex;gap:.4rem;overflow-x:auto;align-items:center;
+  }
+  .nav-inner a{
+    color:var(--muted);text-decoration:none;font-size:.85rem;font-weight:500;
+    padding:.35rem .7rem;border-radius:8px;white-space:nowrap;transition:.15s;
+  }
+  .nav-inner a:hover{background:var(--accent-soft);color:var(--accent);}
+
+  /* ---------- LAYOUT ---------- */
+  .wrap{max-width:1080px;margin:0 auto;padding:0 1.25rem 5rem;}
+
+  header.hero{padding:3.5rem 0 2.5rem;text-align:center;}
+  header.hero .kicker{
+    display:inline-block;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);background:var(--accent-soft);
+    padding:.3rem .8rem;border-radius:999px;font-weight:600;margin-bottom:1rem;
+  }
+  header.hero h1{
+    font-size:clamp(1.9rem,4.5vw,3rem);
+    line-height:1.15;margin:0 0 .8rem;letter-spacing:-.02em;font-weight:700;
+  }
+  header.hero p{max-width:660px;margin:0 auto;color:var(--muted);font-size:1.05rem;}
+
+  section{margin-bottom:3.5rem;scroll-margin-top:70px;}
+  section > h2{
+    font-size:1.5rem;margin:0 0 .35rem;letter-spacing:-.01em;font-weight:700;
+    display:flex;align-items:center;gap:.6rem;
+  }
+  section > h2 .num{
+    font-size:.8rem;font-weight:700;color:var(--accent);
+    background:var(--accent-soft);border-radius:8px;
+    width:28px;height:28px;display:grid;place-items:center;flex:none;
+  }
+  section > .lead{color:var(--muted);margin:0 0 1.25rem;max-width:760px;}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:1.25rem;
+    box-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 18px -10px rgba(16,24,40,.10);
+  }
+  .card + .card{margin-top:1rem;}
+  .card h3{font-size:1.05rem;margin:0 0 .5rem;}
+
+  .grid{display:grid;gap:1rem;}
+  @media(min-width:820px){ .grid.two{grid-template-columns:1fr 1fr;} }
+
+  /* ---------- CONTROLS ---------- */
+  .controls{
+    display:flex;flex-wrap:wrap;gap:1rem 1.5rem;align-items:flex-end;
+    margin-bottom:1rem;
+  }
+  .ctl{display:flex;flex-direction:column;gap:.35rem;min-width:170px;flex:1;}
+  .ctl label{font-size:.78rem;font-weight:600;color:var(--muted);letter-spacing:.01em;}
+  .ctl label span{color:var(--accent);font-variant-numeric:tabular-nums;}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:99px;
+    background:var(--border);outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:17px;height:17px;border-radius:50%;
+    background:var(--accent);cursor:pointer;border:3px solid #fff;
+    box-shadow:0 1px 4px rgba(0,0,0,.25);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:17px;height:17px;border-radius:50%;background:var(--accent);
+    cursor:pointer;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25);
+  }
+  button{
+    font-family:inherit;font-size:.86rem;font-weight:600;
+    background:var(--accent);color:#fff;border:none;
+    padding:.6rem 1.1rem;border-radius:9px;cursor:pointer;transition:.15s;
+  }
+  button:hover{filter:brightness(1.08);}
+  button:active{transform:translateY(1px);}
+  button.ghost{background:#fff;color:var(--accent);border:1px solid var(--accent);}
+  button.ghost:hover{background:var(--accent-soft);}
+
+  .chart-box{position:relative;height:320px;width:100%;}
+  .chart-box.tall{height:360px;}
+
+  /* ---------- STATS ---------- */
+  .stats{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem;}
+  .stat{
+    background:var(--accent-soft);border-radius:10px;padding:.5rem .85rem;
+    font-size:.8rem;color:var(--muted);
+  }
+  .stat b{
+    display:block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:1.05rem;color:var(--accent);font-weight:600;
+  }
+
+  /* ---------- FORMULES (KaTeX) ---------- */
+  .formula{
+    background:#fbfcff;
+    border:1px solid var(--border);
+    border-left:3px solid var(--accent);
+    border-radius:0 10px 10px 0;
+    padding:.95rem 1.1rem;
+    margin:1rem 0;
+    overflow-x:auto;
+    overflow-y:hidden;
+    color:var(--text);
+  }
+  .formula .katex{font-size:1.02em;}
+  .formula .katex-display{margin:.3em 0;}
+  .formula .katex-display:first-child{margin-top:0;}
+  .formula .katex-display:last-child{margin-bottom:0;}
+
+  /* ---------- LÉGENDE DE NOTATION ---------- */
+  .notation{
+    display:grid;
+    grid-template-columns:max-content minmax(0,1fr);
+    gap:.5rem 1.1rem;
+    align-items:baseline;
+    margin:1rem 0 0;
+    padding-top:.9rem;
+    border-top:1px dashed var(--border);
+  }
+  .nt-title{
+    grid-column:1 / -1;
+    font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;margin-bottom:.15rem;
+  }
+  .nt-sym{
+    color:var(--accent);
+    text-align:right;
+    white-space:nowrap;
+    font-size:.92rem;
+  }
+  .nt-sym .katex{font-size:1em;}
+  .nt-def{
+    color:var(--muted);
+    font-size:.875rem;
+    line-height:1.55;
+  }
+  .nt-def b{color:var(--text);font-weight:600;}
+
+  .note{
+    border-left:3px solid var(--accent);
+    background:var(--accent-soft);
+    padding:.8rem 1rem;border-radius:0 10px 10px 0;
+    font-size:.9rem;margin:1rem 0;
+  }
+  .note strong{color:var(--accent);}
+  .note .formula{background:#fff;}
+
+  /* ---------- BAYES ICON ARRAY ---------- */
+  .iconarray{
+    display:grid;
+    grid-template-columns:repeat(50,1fr);
+    gap:2px;
+    margin:1rem 0;
+  }
+  .iconarray i{display:block;padding-bottom:100%;border-radius:2px;background:#e5e7eb;}
+  .legend{display:flex;flex-wrap:wrap;gap:1rem;font-size:.8rem;color:var(--muted);}
+  .legend span{display:flex;align-items:center;gap:.4rem;}
+  .legend i{width:12px;height:12px;border-radius:3px;display:inline-block;}
+
+  /* ---------- DÉ ---------- */
+  .die-face{
+    font-size:5rem;line-height:1;text-align:center;
+    user-select:none;color:var(--text);
+    transition:transform .12s ease;
+  }
+  .die-face.rolling{transform:scale(.88) rotate(-8deg);}
+
+  footer{
+    text-align:center;color:var(--muted);font-size:.85rem;
+    padding:2rem 0 0;border-top:1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#intro">Introduction</a>
+    <a href="#de">Le dé</a>
+    <a href="#grands-nombres">Loi des grands nombres</a>
+    <a href="#bayes">Conditionnelle &amp; Bayes</a>
+    <a href="#tcl">Théorème central limite</a>
+    <a href="#distributions">Distributions</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker">Exploration interactive</div>
+    <h1>Comprendre les lois des probabilités</h1>
+    <p>
+      Le hasard n'est pas le désordre. Derrière chaque phénomène aléatoire se cachent des
+      régularités mesurables. Faites varier les paramètres, lancez les simulations, et
+      observez ces lois émerger sous vos yeux.
+    </p>
+  </header>
+
+  <!-- ============================================================ -->
+  <section id="intro">
+    <h2><span class="num">0</span> Qu'est-ce qu'un phénomène aléatoire ?</h2>
+    <p class="lead">
+      Un phénomène est <strong>aléatoire</strong> lorsqu'on connaît l'ensemble des issues
+      possibles, mais pas celle qui se produira. On ne peut pas prédire le résultat d'un
+      seul essai — mais on peut décrire précisément la <em>fréquence</em> des résultats
+      sur un grand nombre d'essais.
+    </p>
+
+    <div class="grid two">
+      <div class="card">
+        <h3>Le vocabulaire de base</h3>
+        <p style="font-size:.92rem;color:var(--muted);margin:0 0 .25rem;">
+          On modélise une expérience aléatoire par un espace probabilisé
+          \((\Omega,\ \mathcal{F},\ \mathbb{P})\). Les axiomes de Kolmogorov en fixent les règles :
+        </p>
+
+        <div class="formula">
+          $$\mathbb{P}(\Omega)=1 \qquad\qquad \mathbb{P}(A)\ \ge\ 0$$
+          $$A\cap B=\varnothing \quad\Longrightarrow\quad \mathbb{P}(A\cup B)=\mathbb{P}(A)+\mathbb{P}(B)$$
+          $$\mathbb{P}(A)=\lim_{n\to\infty}\frac{n_A}{n}$$
+        </div>
+
+        <div class="notation">
+          <div class="nt-title">Légende</div>
+          <span class="nt-sym">\(\Omega\)</span>
+          <span class="nt-def"><b>Univers</b> — ensemble de toutes les issues possibles d'une expérience.</span>
+
+          <span class="nt-sym">\(\mathcal{F}\)</span>
+          <span class="nt-def"><b>Tribu</b> — collection des événements auxquels on sait attribuer une probabilité.</span>
+
+          <span class="nt-sym">\(\mathbb{P}\)</span>
+          <span class="nt-def"><b>Mesure de probabilité</b> — fonction qui à chaque événement associe un nombre entre 0 et 1.</span>
+
+          <span class="nt-sym">\(A,\ B\)</span>
+          <span class="nt-def"><b>Événements</b> — sous-ensembles de \(\Omega\).</span>
+
+          <span class="nt-sym">\(\mathbb{P}(A)\)</span>
+          <span class="nt-def"><b>Probabilité de \(A\)</b> — entre 0 (impossible) et 1 (certain).</span>
+
+          <span class="nt-sym">\(A\cap B=\varnothing\)</span>
+          <span class="nt-def"><b>Incompatibles</b> — \(A\) et \(B\) ne peuvent pas se produire ensemble.</span>
+
+          <span class="nt-sym">\(n_A,\ n\)</span>
+          <span class="nt-def"><b>Fréquences</b> — \(n_A\) : nombre de réalisations de \(A\) ; \(n\) : nombre total d'essais.</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>La probabilité comme limite</h3>
+        <p style="font-size:.92rem;color:var(--muted);margin:0 0 .25rem;">
+          La définition <em>fréquentiste</em> identifie la probabilité à la limite de la
+          fréquence relative lorsque le nombre d'essais tend vers l'infini :
+        </p>
+
+        <div class="formula">
+          $$\mathbb{P}(A)\;=\;\lim_{n\to\infty}\frac{n_A}{n}$$
+        </div>
+
+        <div class="notation">
+          <div class="nt-title">Légende</div>
+          <span class="nt-sym">\(n\)</span>
+          <span class="nt-def">Nombre total d'essais identiques et indépendants.</span>
+          <span class="nt-sym">\(n_A\)</span>
+          <span class="nt-def">Nombre de fois où l'événement \(A\) s'est produit parmi ces \(n\) essais.</span>
+          <span class="nt-sym">\(n_A/n\)</span>
+          <span class="nt-def"><b>Fréquence relative</b> observée de \(A\).</span>
+          <span class="nt-sym">\(\displaystyle\lim_{n\to\infty}\)</span>
+          <span class="nt-def">Valeur vers laquelle la fréquence converge, presque sûrement.</span>
+        </div>
+
+        <div class="note" style="margin-bottom:0;">
+          C'est exactement ce que la <strong>loi des grands nombres</strong> formalise — et ce
+          que vous allez vérifier par vous-même juste en dessous.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="de">
+    <h2><span class="num">1</span> Le dé : hasard et équiprobabilité</h2>
+    <p class="lead">
+      Un dé équilibré à 6 faces est le modèle le plus simple : chaque face a la même
+      probabilité \(1/6 \approx 16{,}67\,\%\). Lancez-le quelques fois — puis beaucoup de
+      fois — et regardez l'histogramme se stabiliser.
+    </p>
+
+    <div class="card">
+      <div class="formula">
+        $$\mathbb{P}\big(\{i\}\big)=\frac{1}{6},\qquad i\in\{1,2,3,4,5,6\}$$
+      </div>
+
+      <div class="notation" style="margin-top:0;border-top:none;padding-top:0;">
+        <div class="nt-title">Légende</div>
+        <span class="nt-sym">\(i\)</span>
+        <span class="nt-def">Numéro d'une face du dé, entier de 1 à 6.</span>
+        <span class="nt-sym">\(\{i\}\)</span>
+        <span class="nt-def">Événement élémentaire « la face \(i\) sort ».</span>
+        <span class="nt-sym">\(\mathbb{P}(\{i\})\)</span>
+        <span class="nt-def">Probabilité de cet événement — ici \(1/6\), soit \(\approx 16{,}67\,\%\).</span>
+      </div>
+
+      <div class="grid two" style="align-items:center;margin-top:1.25rem;">
+        <div>
+          <div class="die-face" id="dieFace">⚀</div>
+          <div class="controls" style="justify-content:center;margin-top:1rem;margin-bottom:0;">
+            <button id="rollOne">Lancer 1 fois</button>
+            <button class="ghost" id="rollHundred">Lancer 100 fois</button>
+            <button class="ghost" id="resetDie">Réinitialiser</button>
+          </div>
+        </div>
+        <div>
+          <div class="chart-box"><canvas id="dieChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">Lancers totaux <b id="dieTotal">0</b></div>
+        <div class="stat">Face la plus fréquente <b id="dieTop">—</b></div>
+        <div class="stat">Écart max à 1/6 <b id="dieDev">—</b></div>
+      </div>
+
+      <div class="note">
+        <strong>À observer :</strong> après 10 lancers, l'histogramme est très irrégulier.
+        Après 1 000 lancers, les six barres se rapprochent du même niveau.
+        Le hasard individuel produit une régularité collective.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="grands-nombres">
+    <h2><span class="num">2</span> La loi des grands nombres</h2>
+    <p class="lead">
+      C'est la loi fondamentale des probabilités. Elle dit que la moyenne observée
+      converge vers l'espérance théorique à mesure que le nombre d'essais augmente.
+      Simulons des lancers de pièce.
+    </p>
+
+    <div class="card">
+      <div class="formula">
+        $$\forall\,\varepsilon>0,\qquad
+        \mathbb{P}\!\left(\left|\frac{X_{1}+X_{2}+\cdots+X_{n}}{n}-\mu\right|>\varepsilon\right)
+        \;\xrightarrow[\;n\to\infty\;]{}\;0$$
+      </div>
+
+      <div class="notation" style="margin-top:0;border-top:none;padding-top:0;">
+        <div class="nt-title">Légende</div>
+        <span class="nt-sym">\(X_1,\dots,X_n\)</span>
+        <span class="nt-def"><b>Variables aléatoires i.i.d.</b> — résultats des \(n\) essais ; chacune vaut \(1\) (pile) ou \(0\) (face).</span>
+        <span class="nt-sym">\(n\)</span>
+        <span class="nt-def">Nombre d'essais (ici : nombre de lancers de pièce).</span>
+        <span class="nt-sym">\(\mu\)</span>
+        <span class="nt-def"><b>Espérance</b> commune : \(\mu=\mathbb{E}[X_i]\). Vaut \(0{,}5\) pour une pièce équilibrée, \(0{,}7\) si elle est truquée.</span>
+        <span class="nt-sym">\(\bar X_n\)</span>
+        <span class="nt-def"><b>Moyenne empirique</b> : \(\displaystyle \bar X_n=\frac{1}{n}\sum_{i=1}^{n}X_i\), c'est-à-dire la fréquence observée de « pile ».</span>
+        <span class="nt-sym">\(\varepsilon\)</span>
+        <span class="nt-def"><b>Tolérance</b> — un petit écart positif fixé à l'avance (par ex. \(0{,}01\)).</span>
+        <span class="nt-sym">\(|\cdot|\)</span>
+        <span class="nt-def">Valeur absolue : mesure l'écart entre moyenne observée et espérance.</span>
+        <span class="nt-sym">\(\mathbb{P}(\cdot)\)</span>
+        <span class="nt-def">Probabilité que cet écart dépasse la tolérance.</span>
+      </div>
+
+      <div class="controls" style="margin-top:1.25rem;">
+        <div class="ctl">
+          <label>Nombre de lancers : <span id="llnNVal">10 000</span></label>
+          <input type="range" id="llnN" min="100" max="100000" step="100" value="10000">
+        </div>
+        <div class="ctl" style="flex:0 0 auto;min-width:auto;">
+          <button id="llnRun">Simuler</button>
+        </div>
+        <div class="ctl" style="flex:0 0 auto;min-width:auto;">
+          <button class="ghost" id="llnBias">Pièce truquée (p = 0,7)</button>
+        </div>
+      </div>
+
+      <div class="chart-box tall"><canvas id="llnChart"></canvas></div>
+
+      <div class="stats">
+        <div class="stat">Lancers <b id="llnN">0</b></div>
+        <div class="stat">Pile observé <b id="llnFreq">—</b></div>
+        <div class="stat">Probabilité théorique <b id="llnP">0,500</b></div>
+        <div class="stat">Écart absolu <b id="llnErr">—</b></div>
+      </div>
+
+      <div class="note">
+        <strong>Interprétation :</strong> l'axe horizontal est échantillonné de façon
+        logarithmique — chaque palier multiplie \(n\) par 10. Les grandes fluctuations
+        n'ont lieu qu'au début. Dès quelques milliers de lancers, la courbe se colle à la
+        ligne théorique. Essayez la pièce truquée : la convergence se fait vers \(0{,}7\),
+        pas vers \(0{,}5\).
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="bayes">
+    <h2><span class="num">3</span> Probabilité conditionnelle &amp; théorème de Bayes</h2>
+    <p class="lead">
+      Un phénomène aléatoire change de visage quand on dispose d'une information.
+      Bayes répond à la question : <em>« sachant ce que j'observe, quelle est la
+      probabilité de ce que je cherche ? »</em> Exemple classique et contre-intuitif :
+      le test médical.
+    </p>
+
+    <div class="card">
+      <div class="formula">
+        $$\mathbb{P}(A\mid B)=\frac{\mathbb{P}(A\cap B)}{\mathbb{P}(B)}$$
+        $$\mathbb{P}(M\mid T^{+})=\frac{\mathbb{P}(T^{+}\mid M)\,\mathbb{P}(M)}{\mathbb{P}(T^{+})}
+        \qquad\text{avec}\qquad
+        \mathbb{P}(T^{+})=\mathbb{P}(T^{+}\mid M)\,\mathbb{P}(M)+\mathbb{P}(T^{+}\mid S)\,\mathbb{P}(S)$$
+      </div>
+
+      <div class="notation" style="margin-top:0;border-top:none;padding-top:0;">
+        <div class="nt-title">Légende</div>
+        <span class="nt-sym">\(A,\ B\)</span>
+        <span class="nt-def">Deux événements quelconques, avec \(\mathbb{P}(B)>0\).</span>
+        <span class="nt-sym">\(\mathbb{P}(A\mid B)\)</span>
+        <span class="nt-def"><b>Probabilité conditionnelle</b> — probabilité de \(A\) <em>sachant que</em> \(B\) est réalisé.</span>
+        <span class="nt-sym">\(\mathbb{P}(A\cap B)\)</span>
+        <span class="nt-def">Probabilité que \(A\) et \(B\) se produisent simultanément.</span>
+
+        <span class="nt-sym">\(M\)</span>
+        <span class="nt-def">Événement « la personne est <b>malade</b> ».</span>
+        <span class="nt-sym">\(S=\overline{M}\)</span>
+        <span class="nt-def">Événement complémentaire « la personne est <b>saine</b> ».</span>
+        <span class="nt-sym">\(T^{+}\)</span>
+        <span class="nt-def">Événement « le test est <b>positif</b> ».</span>
+        <span class="nt-sym">\(\mathbb{P}(M)\)</span>
+        <span class="nt-def"><b>Prévalence</b> — proportion de malades dans la population.</span>
+        <span class="nt-sym">\(\mathbb{P}(T^{+}\mid M)\)</span>
+        <span class="nt-def"><b>Sensibilité</b> — probabilité qu'un malade soit détecté positif.</span>
+        <span class="nt-sym">\(\mathbb{P}(T^{-}\mid S)\)</span>
+        <span class="nt-def"><b>Spécificité</b> — probabilité qu'une personne saine soit déclarée négative.</span>
+        <span class="nt-sym">\(\mathbb{P}(M\mid T^{+})\)</span>
+        <span class="nt-def"><b>Valeur prédictive positive (VPP)</b> — ce qu'on cherche : probabilité d'être réellement malade après un test positif.</span>
+      </div>
+
+      <div class="controls" style="margin-top:1.25rem;">
+        <div class="ctl">
+          <label>Prévalence \(\mathbb{P}(M)\) : <span id="prevVal">1,0 %</span></label>
+          <input type="range" id="prev" min="0.1" max="30" step="0.1" value="1">
+        </div>
+        <div class="ctl">
+          <label>Sensibilité \(\mathbb{P}(T^{+}\mid M)\) : <span id="sensVal">99 %</span></label>
+          <input type="range" id="sens" min="50" max="100" step="1" value="99">
+        </div>
+        <div class="ctl">
+          <label>Spécificité \(\mathbb{P}(T^{-}\mid S)\) : <span id="specVal">95 %</span></label>
+          <input type="range" id="spec" min="50" max="100" step="1" value="95">
+        </div>
+      </div>
+
+      <div class="iconarray" id="iconArray"></div>
+
+      <div class="legend">
+        <span><i style="background:#e11d48"></i> Malade &amp; Test positif (vrai positif)</span>
+        <span><i style="background:#fca5a5"></i> Malade &amp; Test négatif (faux négatif)</span>
+        <span><i style="background:#f59e0b"></i> Sain &amp; Test positif (faux positif)</span>
+        <span><i style="background:#e5e7eb"></i> Sain &amp; Test négatif (vrai négatif)</span>
+      </div>
+
+      <div class="stats">
+        <div class="stat">\(\mathbb{P}(M\mid T^{+})\) <b id="bayesPost">—</b></div>
+        <div class="stat">\(\mathbb{P}(T^{+})\) global <b id="bayesTP">—</b></div>
+        <div class="stat">Faux positifs / positifs <b id="bayesFP">—</b></div>
+      </div>
+
+      <div class="note">
+        <strong>Le piège :</strong> avec \(1\,\%\) de prévalence et une spécificité de
+        \(95\,\%\), un test positif ne signifie « malade » qu'à environ \(17\,\%\) !
+        Pourquoi ? Parce que les \(99\,\%\) de gens sains forment une population énorme,
+        et que \(5\,\%\) d'entre eux produisent beaucoup plus de faux positifs que les
+        malades ne produisent de vrais positifs. Augmentez la prévalence à \(20\,\%\) et
+        regardez la réponse changer du tout au tout.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="tcl">
+    <h2><span class="num">4</span> Le théorème central limite</h2>
+    <p class="lead">
+      C'est le résultat le plus spectaculaire des probabilités : quelle que soit la
+      distribution de départ, la <strong>moyenne</strong> d'un grand nombre de variables
+      indépendantes tend vers une loi normale. Même avec des dés, objet 100 % discret.
+    </p>
+
+    <div class="card">
+      <div class="formula">
+        $$\frac{\bar X_{n}-\mu}{\sigma/\sqrt{n}}\;\xrightarrow[\;n\to\infty\;]{\ \mathcal{L}\ }\;\mathcal{N}(0,1)$$
+      </div>
+
+      <div class="notation" style="margin-top:0;border-top:none;padding-top:0;">
+        <div class="nt-title">Légende</div>
+        <span class="nt-sym">\(\bar X_n\)</span>
+        <span class="nt-def"><b>Moyenne empirique</b> : \(\displaystyle \bar X_n=\frac{1}{n}\left(X_1+\cdots+X_n\right)\). Ici, la moyenne des \(k\) dés.</span>
+        <span class="nt-sym">\(X_1,\dots,X_n\)</span>
+        <span class="nt-def">Variables aléatoires indépendantes et de même loi.</span>
+        <span class="nt-sym">\(\mu\)</span>
+        <span class="nt-def"><b>Espérance</b> commune : \(\mu=\mathbb{E}[X_i]\) (pour un dé : \(\mu=3{,}5\)).</span>
+        <span class="nt-sym">\(\sigma\)</span>
+        <span class="nt-def"><b>Écart-type</b> commun : \(\sigma=\sqrt{\mathbb{V}(X_i)}\), supposé fini et non nul (pour un dé : \(\sigma=\sqrt{35/12}\)).</span>
+        <span class="nt-sym">\(\sqrt{n}\)</span>
+        <span class="nt-def"><b>Facteur de normalisation</b> — compense la décroissance de la dispersion de la moyenne.</span>
+        <span class="nt-sym">\(\mathcal{L}\)</span>
+        <span class="nt-def"><b>Convergence en loi</b> — la distribution se rapproche de celle de droite.</span>
+        <span class="nt-sym">\(\mathcal{N}(0,1)\)</span>
+        <span class="nt-def"><b>Loi normale centrée réduite</b> — cloche d'espérance \(0\) et d'écart-type \(1\).</span>
+      </div>
+
+      <div class="controls" style="margin-top:1.25rem;">
+        <div class="ctl">
+          <label>Nombre de dés par lancer (\(k\)) : <span id="tclKVal">5</span></label>
+          <input type="range" id="tclK" min="1" max="12" step="1" value="5">
+        </div>
+        <div class="ctl">
+          <label>Nombre de répétitions : <span id="tclNVal">20 000</span></label>
+          <input type="range" id="tclN" min="1000" max="100000" step="1000" value="20000">
+        </div>
+        <div class="ctl" style="flex:0 0 auto;min-width:auto;">
+          <button id="tclRun">Relancer la simulation</button>
+        </div>
+      </div>
+
+      <div class="chart-box tall"><canvas id="tclChart"></canvas></div>
+
+      <div class="stats">
+        <div class="stat">Moyenne théorique <b>3,500</b></div>
+        <div class="stat">Écart-type théorique <b id="tclSd">—</b></div>
+        <div class="stat">Moyenne empirique <b id="tclMean">—</b></div>
+      </div>
+
+      <div class="note">
+        <strong>À observer :</strong> avec \(k=1\), l'histogramme est plat (chaque face
+        équiprobable). Dès \(k=3\), une cloche apparaît. À \(k=8\) ou \(10\), la courbe
+        normale théorique (en rouge) se superpose presque parfaitement aux barres.
+        C'est pour cela que la loi normale est partout : elle décrit des <em>sommes</em>
+        de petites causes indépendantes.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="distributions">
+    <h2><span class="num">5</span> Les distributions classiques</h2>
+    <p class="lead">
+      Trois lois suffisent à modéliser la grande majorité des phénomènes aléatoires :
+      la binomiale (comptage de succès), la loi de Poisson (événements rares dans le temps)
+      et la loi normale (sommes de causes nombreuses).
+    </p>
+
+    <div class="card">
+      <div class="controls">
+        <div class="ctl" style="flex:0 0 auto;min-width:auto;">
+          <label>Distribution</label>
+          <select id="distSelect" style="padding:.55rem .7rem;border-radius:9px;border:1px solid var(--border);font-family:inherit;font-size:.86rem;background:#fff;">
+            <option value="binom">Binomiale ℬ(n, p)</option>
+            <option value="poisson">Poisson 𝒫(λ)</option>
+            <option value="normal">Normale 𝒩(μ, σ²)</option>
+          </select>
+        </div>
+
+        <div class="ctl" id="ctlN">
+          <label>\(n\) (nombre d'épreuves) : <span id="nVal">20</span></label>
+          <input type="range" id="pN" min="1" max="60" step="1" value="20">
+        </div>
+
+        <div class="ctl" id="ctlP">
+          <label>\(p\) (probabilité de succès) : <span id="pVal">0,30</span></label>
+          <input type="range" id="pP" min="0.01" max="0.99" step="0.01" value="0.30">
+        </div>
+
+        <div class="ctl" id="ctlLambda" style="display:none;">
+          <label>\(\lambda\) (intensité moyenne) : <span id="lamVal">4,0</span></label>
+          <input type="range" id="pLam" min="0.2" max="25" step="0.1" value="4">
+        </div>
+
+        <div class="ctl" id="ctlMu" style="display:none;">
+          <label>\(\mu\) (moyenne) : <span id="muVal">0</span></label>
+          <input type="range" id="pMu" min="-10" max="10" step="0.5" value="0">
+        </div>
+
+        <div class="ctl" id="ctlSigma" style="display:none;">
+          <label>\(\sigma\) (écart-type) : <span id="sigVal">1,5</span></label>
+          <input type="range" id="pSig" min="0.3" max="5" step="0.1" value="1.5">
+        </div>
+      </div>
+
+      <div class="chart-box tall"><canvas id="distChart"></canvas></div>
+
+      <div class="stats">
+        <div class="stat">Espérance \(\mathbb{E}[X]\) <b id="dMean">—</b></div>
+        <div class="stat">Variance \(\mathbb{V}(X)\) <b id="dVar">—</b></div>
+        <div class="stat">Écart-type \(\sigma\) <b id="dSd">—</b></div>
+        <div class="stat">Mode <b id="dMode">—</b></div>
+      </div>
+
+      <div class="note" id="distNote"></div>
+    </div>
+
+    <div class="grid two" style="margin-top:1rem;">
+      <div class="card">
+        <h3>Espérance &amp; variance</h3>
+        <p style="font-size:.92rem;color:var(--muted);margin:0;">
+          L'espérance est la valeur moyenne « à long terme ». La variance mesure la
+          dispersion autour de cette moyenne.
+        </p>
+
+        <div class="formula">
+          $$\mathbb{E}[X]=\sum_{i}x_{i}\,\mathbb{P}(X=x_{i})$$
+          $$\mathbb{V}(X)=\mathbb{E}\!\left[(X-\mathbb{E}[X])^{2}\right]=\mathbb{E}[X^{2}]-\mathbb{E}[X]^{2}$$
+          $$\sigma(X)=\sqrt{\mathbb{V}(X)},\qquad \mathbb{V}(aX+b)=a^{2}\,\mathbb{V}(X)$$
+        </div>
+
+        <div class="notation" style="margin-top:0;border-top:none;padding-top:0;">
+          <div class="nt-title">Légende</div>
+          <span class="nt-sym">\(X\)</span>
+          <span class="nt-def">Variable aléatoire réelle.</span>
+          <span class="nt-sym">\(x_i\)</span>
+          <span class="nt-def">Valeurs possibles prises par \(X\), pondérées par leur probabilité.</span>
+          <span class="nt-sym">\(\mathbb{E}[X]\)</span>
+          <span class="nt-def"><b>Espérance</b> — moyenne théorique, notée aussi \(\mu\).</span>
+          <span class="nt-sym">\(\mathbb{V}(X)\)</span>
+          <span class="nt-def"><b>Variance</b> — dispersion quadratique moyenne, notée aussi \(\sigma^{2}\).</span>
+          <span class="nt-sym">\(\sigma(X)\)</span>
+          <span class="nt-def"><b>Écart-type</b> — racine de la variance, dans la même unité que \(X\).</span>
+          <span class="nt-sym">\(a,\ b\)</span>
+          <span class="nt-def">Constantes réelles ; \(a\) est un facteur d'échelle, \(b\) un décalage.</span>
+        </div>
+
+        <div class="note" style="margin-bottom:0;">
+          Règle clé : \(\mathbb{V}(aX+b)=a^{2}\mathbb{V}(X)\). Une translation ne change
+          pas la dispersion ; une mise à l'échelle la transforme quadratiquement.
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Approximations utiles</h3>
+        <ul style="font-size:.9rem;color:var(--muted);padding-left:1.1rem;margin:0;">
+          <li><strong>Poisson → Binomiale</strong> : si \(n\) grand et \(p\) petit avec
+              \(np=\lambda\), alors \(\mathcal{B}(n,p)\approx\mathcal{P}(\lambda)\).</li>
+          <li><strong>Binomiale → Normale</strong> : si \(np>5\) et \(n(1-p)>5\),
+              alors \(\mathcal{B}(n,p)\approx\mathcal{N}\!\left(np,\;np(1-p)\right)\).</li>
+          <li><strong>Poisson → Normale</strong> : si \(\lambda>15\),
+              \(\mathcal{P}(\lambda)\approx\mathcal{N}(\lambda,\;\lambda)\).</li>
+        </ul>
+
+        <div class="formula">
+          $$\mathcal{B}(n,p)\;\approx\;\mathcal{N}\!\big(np,\ np(1-p)\big)
+          \qquad\text{quand } np>5 \text{ et } n(1-p)>5$$
+        </div>
+
+        <div class="notation" style="margin-top:0;border-top:none;padding-top:0;">
+          <div class="nt-title">Légende</div>
+          <span class="nt-sym">\(n\)</span>
+          <span class="nt-def">Nombre d'épreuves indépendantes.</span>
+          <span class="nt-sym">\(p\)</span>
+          <span class="nt-def">Probabilité de succès à chaque épreuve.</span>
+          <span class="nt-sym">\(\lambda\)</span>
+          <span class="nt-def">Intensité moyenne d'un processus de Poisson : \(\lambda=np\).</span>
+          <span class="nt-sym">\(\mathcal{B},\ \mathcal{P},\ \mathcal{N}\)</span>
+          <span class="nt-def">Lois binomiale, de Poisson et normale.</span>
+          <span class="nt-sym">\(\approx\)</span>
+          <span class="nt-def">Approximation — l'égalité devient exacte à la limite.</span>
+        </div>
+
+        <div class="note" style="margin-bottom:0;">
+          Essayez dans le simulateur : binomiale avec \(n=60\) et \(p=0{,}3\) ressemble
+          beaucoup à une cloche. C'est le théorème central limite en action.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Exploration interactive des lois des probabilités — faites varier, simulez, observez.
+  </footer>
+
+</div>
+
+<script>
+/* ============================================================
+   KaTeX — rendu des formules
+   ============================================================ */
+const KATEX_DELIMS = [
+  { left: "$$", right: "$$", display: true },
+  { left: "\\[", right: "\\]", display: true },
+  { left: "\\(", right: "\\)", display: false }
+];
+function typeset(el) {
+  if (typeof renderMathInElement !== "function") return;
+  renderMathInElement(el || document.body, {
+    delimiters: KATEX_DELIMS,
+    throwOnError: false,
+    errorColor: "#e11d48"
+  });
+}
+
+/* ============================================================
+   Chart.js — réglages globaux
+   ============================================================ */
+Chart.defaults.font.family = "system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = "#6b7280";
+Chart.defaults.plugins.legend.labels.boxWidth = 12;
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+
+const ACCENT = "#4d6bfe";
+const ACCENT_SOFT = "rgba(77,107,254,.15)";
+const GRID = "#eceef2";
+
+const charts = {};
+function mount(id, cfg) {
+  if (charts[id]) charts[id].destroy();
+  const el = document.getElementById(id);
+  if (!el) return null;
+  charts[id] = new Chart(el, cfg);
+  return charts[id];
+}
+
+const fmt = (x, d = 3) => x.toFixed(d).replace(".", ",");
+
+/* ============================================================
+   1. LE DÉ
+   ============================================================ */
+const DIE_FACES = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+let dieCounts = [0, 0, 0, 0, 0, 0];
+let dieTotal = 0;
+
+function drawDie() {
+  mount("dieChart", {
+    type: "bar",
+    data: {
+      labels: ["1", "2", "3", "4", "5", "6"],
+      datasets: [{
+        label: "Occurrences",
+        data: dieCounts.slice(),
+        backgroundColor: ACCENT,
+        borderRadius: 6,
+        barPercentage: 0.7
+      }, {
+        type: "line",
+        label: "Théorique (n/6)",
+        data: new Array(6).fill(dieTotal / 6),
+        borderColor: "#e11d48",
+        borderDash: [5, 4],
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 250 },
+      plugins: {
+        legend: { position: "bottom" },
+        tooltip: {
+          callbacks: {
+            label: c => {
+              const n = dieTotal || 1;
+              const v = c.parsed.y;
+              return ` ${c.dataset.label} : ${v}` +
+                     (c.datasetIndex === 0 ? `  (${(100 * v / n).toFixed(1)} %)` : "");
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: GRID },
+          title: { display: true, text: "Nombre d'apparitions" }
+        },
+        x: { grid: { display: false }, title: { display: true, text: "Face du dé" } }
+      }
+    }
+  });
+  updateDieStats();
+}
+
+function updateDieStats() {
+  document.getElementById("dieTotal").textContent = dieTotal;
+  if (!dieTotal) {
+    document.getElementById("dieTop").textContent = "—";
+    document.getElementById("dieDev").textContent = "—";
+    return;
+  }
+  let max = -1, idx = 0;
+  for (let i = 0; i < 6; i++) if (dieCounts[i] > max) { max = dieCounts[i]; idx = i; }
+  document.getElementById("dieTop").textContent = `Face ${idx + 1} (${max})`;
+
+  const expected = dieTotal / 6;
+  let dev = 0;
+  for (let i = 0; i < 6; i++) dev = Math.max(dev, Math.abs(dieCounts[i] - expected));
+  document.getElementById("dieDev").textContent = dev.toFixed(1);
+}
+
+function rollDie(times) {
+  const faceEl = document.getElementById("dieFace");
+  faceEl.classList.add("rolling");
+  setTimeout(() => faceEl.classList.remove("rolling"), 120);
+
+  for (let t = 0; t < times; t++) {
+    const r = Math.floor(Math.random() * 6);
+    dieCounts[r]++;
+    dieTotal++;
+    if (t === times - 1) faceEl.textContent = DIE_FACES[r];
+  }
+  drawDie();
+}
+
+document.getElementById("rollOne").addEventListener("click", () => rollDie(1));
+document.getElementById("rollHundred").addEventListener("click", () => rollDie(100));
+document.getElementById("resetDie").addEventListener("click", () => {
+  dieCounts = [0, 0, 0, 0, 0, 0];
+  dieTotal = 0;
+  document.getElementById("dieFace").textContent = "⚀";
+  drawDie();
+});
+drawDie();
+
+/* ============================================================
+   2. LOI DES GRANDS NOMBRES
+   ============================================================ */
+let llnP = 0.5;
+
+function buildCheckpoints(N) {
+  const pts = [];
+  const upTo = Math.min(N, 100);
+  for (let i = 1; i <= upTo; i++) pts.push(i);
+  for (let i = 110; i <= Math.min(N, 1000); i += 10) pts.push(i);
+  for (let i = 1100; i <= Math.min(N, 10000); i += 100) pts.push(i);
+  for (let i = 11000; i <= Math.min(N, 100000); i += 1000) pts.push(i);
+  if (pts.length === 0 || pts[pts.length - 1] !== N) pts.push(N);
+  return pts;
+}
+
+function runLLN() {
+  const N = parseInt(document.getElementById("llnN").value, 10);
+  const cps = buildCheckpoints(N);
+  const cpSet = new Set(cps);
+
+  let heads = 0;
+  const points = [];
+
+  for (let i = 1; i <= N; i++) {
+    if (Math.random() < llnP) heads++;
+    if (cpSet.has(i)) points.push({ x: i, y: heads / i });
+  }
+
+  const freq = heads / N;
+  document.getElementById("llnN").textContent = N.toLocaleString("fr-FR");
+  document.getElementById("llnFreq").textContent = fmt(freq, 4);
+  document.getElementById("llnP").textContent = fmt(llnP, 3);
+  document.getElementById("llnErr").textContent = fmt(Math.abs(freq - llnP), 4);
+
+  mount("llnChart", {
+    type: "line",
+    data: {
+      datasets: [{
+        label: "Fréquence observée de Pile",
+        data: points,
+        parsing: false,
+        borderColor: ACCENT,
+        backgroundColor: ACCENT_SOFT,
+        borderWidth: 2.2,
+        pointRadius: 0,
+        fill: true,
+        tension: 0.15
+      }, {
+        label: `Espérance théorique μ = ${fmt(llnP, 2)}`,
+        data: [{ x: 1, y: llnP }, { x: N, y: llnP }],
+        parsing: false,
+        borderColor: "#e11d48",
+        borderDash: [6, 5],
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 0 },
+      interaction: { mode: "nearest", intersect: false },
+      plugins: {
+        legend: { position: "bottom" },
+        tooltip: {
+          callbacks: {
+            title: items => `n = ${Number(items[0].parsed.x).toLocaleString("fr-FR")}`,
+            label: c => ` ${c.dataset.label} : ${fmt(c.parsed.y, 4)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: "linear",
+          min: 1,
+          max: N,
+          grid: { color: GRID },
+          title: { display: true, text: "Nombre de lancers n (échelle échantillonnée)" },
+          ticks: { callback: v => (v >= 1000 ? (v / 1000) + "k" : v) }
+        },
+        y: {
+          min: 0,
+          max: 1,
+          grid: { color: GRID },
+          title: { display: true, text: "Fréquence relative n_A / n" },
+          ticks: { callback: v => (v * 100).toFixed(0) + " %" }
+        }
+      }
+    }
+  });
+}
+
+document.getElementById("llnN").addEventListener("input", e => {
+  document.getElementById("llnNVal").textContent =
+    Number(e.target.value).toLocaleString("fr-FR");
+});
+document.getElementById("llnRun").addEventListener("click", runLLN);
+document.getElementById("llnBias").addEventListener("click", () => {
+  llnP = llnP === 0.5 ? 0.7 : 0.5;
+  document.getElementById("llnBias").textContent =
+    llnP === 0.5 ? "Pièce truquée (p = 0,7)" : "Pièce équilibrée (p = 0,5)";
+  runLLN();
+});
+runLLN();
+
+/* ============================================================
+   3. BAYES
+   ============================================================ */
+const N_PEOPLE = 1000;
+
+function updateBayes() {
+  const prev = parseFloat(document.getElementById("prev").value) / 100;
+  const sens = parseFloat(document.getElementById("sens").value) / 100;
+  const spec = parseFloat(document.getElementById("spec").value) / 100;
+
+  document.getElementById("prevVal").textContent = fmt(prev * 100, 1) + " %";
+  document.getElementById("sensVal").textContent = Math.round(sens * 100) + " %";
+  document.getElementById("specVal").textContent = Math.round(spec * 100) + " %";
+
+  const malades = prev * N_PEOPLE;
+  const sains = N_PEOPLE - malades;
+
+  const TP = malades * sens;
+  const FN = malades * (1 - sens);
+  const FP = sains * (1 - spec);
+  const TN = sains * spec;
+
+  const pPos = (TP + FP) / N_PEOPLE;
+  const posterior = (TP + FP) > 0 ? TP / (TP + FP) : 0;
+
+  document.getElementById("bayesPost").textContent = fmt(posterior * 100, 1) + " %";
+  document.getElementById("bayesTP").textContent = fmt(pPos * 100, 2) + " %";
+  document.getElementById("bayesFP").textContent =
+    (TP + FP) > 0 ? fmt(100 * FP / (TP + FP), 1) + " %" : "—";
+
+  const arr = document.getElementById("iconArray");
+  const counts = [
+    { n: Math.round(TP), c: "#e11d48" },
+    { n: Math.round(FN), c: "#fca5a5" },
+    { n: Math.round(FP), c: "#f59e0b" },
+    { n: Math.round(TN), c: "#e5e7eb" }
+  ];
+  let html = "", placed = 0;
+  counts.forEach((grp, gi) => {
+    let n = grp.n;
+    if (gi === counts.length - 1) n = N_PEOPLE - placed;
+    for (let i = 0; i < n; i++) { html += `<i style="background:${grp.c}"></i>`; placed++; }
+  });
+  while (placed < N_PEOPLE) { html += `<i style="background:#e5e7eb"></i>`; placed++; }
+  arr.innerHTML = html;
+}
+
+["prev", "sens", "spec"].forEach(id =>
+  document.getElementById(id).addEventListener("input", updateBayes)
+);
+updateBayes();
+
+/* ============================================================
+   4. THÉORÈME CENTRAL LIMITE
+   ============================================================ */
+function rollDice(k) {
+  let s = 0;
+  for (let i = 0; i < k; i++) s += 1 + Math.floor(Math.random() * 6);
+  return s / k;
+}
+
+function gaussianPdf(x, mu, sd) {
+  return Math.exp(-0.5 * Math.pow((x - mu) / sd, 2)) / (sd * Math.sqrt(2 * Math.PI));
+}
+
+function runTCL() {
+  const k = parseInt(document.getElementById("tclK").value, 10);
+  const N = parseInt(document.getElementById("tclN").value, 10);
+
+  const mu = 3.5;
+  const sd = Math.sqrt((35 / 12) / k);
+
+  const BINS = 60;
+  const lo = 1, hi = 6;
+  const width = (hi - lo) / BINS;
+  const counts = new Array(BINS).fill(0);
+
+  let sum = 0;
+  for (let i = 0; i < N; i++) {
+    const m = rollDice(k);
+    sum += m;
+    let b = Math.floor((m - lo) / width);
+    if (b < 0) b = 0;
+    if (b >= BINS) b = BINS - 1;
+    counts[b]++;
+  }
+  const empMean = sum / N;
+
+  const labels = [], density = [], normal = [];
+  for (let b = 0; b < BINS; b++) {
+    const center = lo + (b + 0.5) * width;
+    labels.push(center);
+    density.push(counts[b] / (N * width));
+    normal.push(gaussianPdf(center, mu, sd));
+  }
+
+  document.getElementById("tclSd").textContent = fmt(sd, 4);
+  document.getElementById("tclMean").textContent = fmt(empMean, 4);
+  document.getElementById("tclKVal").textContent = k;
+  document.getElementById("tclNVal").textContent = N.toLocaleString("fr-FR");
+
+  mount("tclChart", {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Densité empirique des moyennes",
+        data: density,
+        backgroundColor: "rgba(77,107,254,.55)",
+        borderColor: ACCENT,
+        borderWidth: 0,
+        barPercentage: 1.0,
+        categoryPercentage: 1.0,
+        order: 2
+      }, {
+        type: "line",
+        label: "Loi normale théorique N(μ, σ²/k)",
+        data: normal,
+        borderColor: "#e11d48",
+        borderWidth: 2.4,
+        pointRadius: 0,
+        tension: 0.35,
+        fill: false,
+        order: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 0 },
+      plugins: {
+        legend: { position: "bottom" },
+        tooltip: {
+          callbacks: {
+            title: items => `Moyenne ≈ ${parseFloat(items[0].label).toFixed(2)}`,
+            label: c => ` ${c.dataset.label} : ${c.parsed.y.toFixed(3)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          title: { display: true, text: "Moyenne empirique X̄ des k dés" },
+          ticks: {
+            maxTicksLimit: 12,
+            callback: (v, i) => (i % 10 === 0 ? Number(labels[i]).toFixed(1) : "")
+          }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: GRID },
+          title: { display: true, text: "Densité de probabilité" }
+        }
+      }
+    }
+  });
+}
+
+document.getElementById("tclK").addEventListener("input", runTCL);
+document.getElementById("tclN").addEventListener("input", runTCL);
+document.getElementById("tclRun").addEventListener("click", runTCL);
+runTCL();
+
+/* ============================================================
+   5. DISTRIBUTIONS
+   ============================================================ */
+function logFactorial(n) {
+  let s = 0;
+  for (let i = 2; i <= n; i++) s += Math.log(i);
+  return s;
+}
+function binomPmf(n, p) {
+  const out = [];
+  for (let k = 0; k <= n; k++) {
+    const logC = logFactorial(n) - logFactorial(k) - logFactorial(n - k);
+    let v = Math.exp(logC + k * Math.log(p) + (n - k) * Math.log(1 - p));
+    if (!isFinite(v) || v < 1e-12) v = 0;
+    out.push(v);
+  }
+  return out;
+}
+function poissonPmf(lambda) {
+  const kMax = Math.ceil(lambda + 4 * Math.sqrt(lambda)) + 4;
+  const out = [];
+  const logL = Math.log(lambda);
+  for (let k = 0; k <= kMax; k++) {
+    out.push(Math.exp(-lambda + k * logL - logFactorial(k)));
+  }
+  return out;
+}
+
+function updateDistVisibility() {
+  const type = document.getElementById("distSelect").value;
+  document.getElementById("ctlN").style.display = type === "binom" ? "" : "none";
+  document.getElementById("ctlP").style.display = type === "binom" ? "" : "none";
+  document.getElementById("ctlLambda").style.display = type === "poisson" ? "" : "none";
+  document.getElementById("ctlMu").style.display = type === "normal" ? "" : "none";
+  document.getElementById("ctlSigma").style.display = type === "normal" ? "" : "none";
+}
+
+function drawDist() {
+  updateDistVisibility();
+  const type = document.getElementById("distSelect").value;
+  const note = document.getElementById("distNote");
+
+  if (type === "binom") {
+    const n = parseInt(document.getElementById("pN").value, 10);
+    const p = parseFloat(document.getElementById("pP").value);
+    document.getElementById("nVal").textContent = n;
+    document.getElementById("pVal").textContent = fmt(p, 2);
+
+    const pmf = binomPmf(n, p);
+    const labels = pmf.map((_, k) => k);
+    const mean = n * p;
+    const variance = n * p * (1 - p);
+
+    document.getElementById("dMean").textContent = fmt(mean, 3);
+    document.getElementById("dVar").textContent = fmt(variance, 3);
+    document.getElementById("dSd").textContent = fmt(Math.sqrt(variance), 3);
+    document.getElementById("dMode").textContent = Math.floor((n + 1) * p);
+
+    note.innerHTML = `
+      <strong>Binomiale \\(\\mathcal{B}(n,p)\\)</strong> — loi du nombre de succès sur
+      \\(n\\) épreuves indépendantes de probabilité \\(p\\). Modélise par exemple le
+      nombre de « pile » sur \\(n\\) lancers, ou le nombre de pièces défectueuses dans un lot.
+      <div class="formula">
+        $$\\mathbb{P}(X=k)=\\binom{n}{k}\\,p^{k}\\,(1-p)^{\\,n-k},
+        \\qquad k=0,1,\\dots,n$$
+        $$\\mathbb{E}[X]=np,\\qquad \\mathbb{V}(X)=np(1-p)$$
+      </div>
+      <div class="notation" style="margin-top:0;border-top:none;padding-top:0;">
+        <div class="nt-title">Légende</div>
+        <span class="nt-sym">\\(n\\)</span><span class="nt-def">Nombre d'épreuves (lancers, tirages, tests…).</span>
+        <span class="nt-sym">\\(p\\)</span><span class="nt-def">Probabilité de succès à chaque épreuve.</span>
+        <span class="nt-sym">\\(k\\)</span><span class="nt-def">Nombre de succès observés, entier de \\(0\\) à \\(n\\).</span>
+        <span class="nt-sym">\\(\\binom{n}{k}\\)</span><span class="nt-def"><b>Coefficient binomial</b> : \\(\\dfrac{n!}{k!\\,(n-k)!}\\), nombre de façons de choisir \\(k\\) succès parmi \\(n\\).</span>
+        <span class="nt-sym">\\(X\\)</span><span class="nt-def">Variable aléatoire « nombre de succès ».</span>
+      </div>`;
+
+    mount("distChart", {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "P(X = k)",
+          data: pmf,
+          backgroundColor: ACCENT,
+          borderRadius: 3,
+          barPercentage: 0.85,
+          categoryPercentage: 0.95
+        }, {
+          type: "line",
+          label: "Approximation normale",
+          data: labels.map(k => gaussianPdf(k, mean, Math.sqrt(variance))),
+          borderColor: "#e11d48",
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.35
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 200 },
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: {
+            callbacks: {
+              title: items => `k = ${items[0].label}`,
+              label: c => ` ${c.dataset.label} : ${c.parsed.y.toFixed(5)}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            title: { display: true, text: "k (nombre de succès)" },
+            ticks: { maxTicksLimit: 20 }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: GRID },
+            title: { display: true, text: "P(X = k)" }
+          }
+        }
+      }
+    });
+
+  } else if (type === "poisson") {
+    const lambda = parseFloat(document.getElementById("pLam").value);
+    document.getElementById("lamVal").textContent = fmt(lambda, 1);
+
+    const pmf = poissonPmf(lambda);
+    const labels = pmf.map((_, k) => k);
+
+    document.getElementById("dMean").textContent = fmt(lambda, 3);
+    document.getElementById("dVar").textContent = fmt(lambda, 3);
+    document.getElementById("dSd").textContent = fmt(Math.sqrt(lambda), 3);
+    document.getElementById("dMode").textContent = Math.floor(lambda);
+
+    note.innerHTML = `
+      <strong>Poisson \\(\\mathcal{P}(\\lambda)\\)</strong> — loi du nombre d'événements
+      rares survenant dans un intervalle fixe, lorsqu'ils sont indépendants et de taux
+      constant. Exemples : appels reçus par un standard en une heure, désintégrations
+      radioactives par seconde, accidents sur une route par mois.
+      <div class="formula">
+        $$\\mathbb{P}(X=k)=\\frac{\\lambda^{k}}{k!}\\,e^{-\\lambda},
+        \\qquad k\\in\\mathbb{N}$$
+        $$\\mathbb{E}[X]=\\mathbb{V}(X)=\\lambda$$
+      </div>
+      <div class="notation" style="margin-top:0;border-top:none;padding-top:0;">
+        <div class="nt-title">Légende</div>
+        <span class="nt-sym">\\(\\lambda\\)</span><span class="nt-def"><b>Intensité moyenne</b> — nombre moyen d'événements par intervalle. Seul paramètre de la loi.</span>
+        <span class="nt-sym">\\(k\\)</span><span class="nt-def">Nombre d'événements observés, entier naturel \\(\\mathbb{N}=\\{0,1,2,\\dots\\}\\).</span>
+        <span class="nt-sym">\\(k!\\)</span><span class="nt-def"><b>Factorielle</b> : \\(k!=1\\times 2\\times\\cdots\\times k\\), avec \\(0!=1\\).</span>
+        <span class="nt-sym">\\(e\\)</span><span class="nt-def">Base du logarithme népérien, \\(e\\approx 2{,}718\\).</span>
+        <span class="nt-sym">\\(X\\)</span><span class="nt-def">Variable aléatoire « nombre d'événements ».</span>
+      </div>
+      <div class="note" style="background:#fff;border-left-color:#4d6bfe;margin-bottom:0;">
+        Propriété remarquable : \\(\\mathbb{E}[X]=\\mathbb{V}(X)=\\lambda\\). L'espérance
+        et la variance sont égales — c'est la signature d'un processus de Poisson.
+      </div>`;
+
+    mount("distChart", {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "P(X = k)",
+          data: pmf,
+          backgroundColor: ACCENT,
+          borderRadius: 3,
+          barPercentage: 0.85,
+          categoryPercentage: 0.95
+        }, {
+          type: "line",
+          label: "Approximation normale",
+          data: labels.map(k => gaussianPdf(k, lambda, Math.sqrt(lambda))),
+          borderColor: "#e11d48",
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.35
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 200 },
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: {
+            callbacks: {
+              title: items => `k = ${items[0].label}`,
+              label: c => ` ${c.dataset.label} : ${c.parsed.y.toFixed(5)}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            title: { display: true, text: "k (nombre d'événements)" },
+            ticks: { maxTicksLimit: 25 }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: GRID },
+            title: { display: true, text: "P(X = k)" }
+          }
+        }
+      }
+    });
+
+  } else {
+    const mu = parseFloat(document.getElementById("pMu").value);
+    const sigma = parseFloat(document.getElementById("pSig").value);
+    document.getElementById("muVal").textContent = fmt(mu, 1);
+    document.getElementById("sigVal").textContent = fmt(sigma, 1);
+
+    const xmin = mu - 4 * sigma, xmax = mu + 4 * sigma;
+    const STEPS = 160;
+    const xs = [], ys = [], bandXs = [], bandYs = [];
+
+    for (let i = 0; i <= STEPS; i++) {
+      const x = xmin + (xmax - xmin) * i / STEPS;
+      const y = gaussianPdf(x, mu, sigma);
+      xs.push(x); ys.push(y);
+      if (x >= mu - sigma && x <= mu + sigma) { bandXs.push(x); bandYs.push(y); }
+    }
+
+    document.getElementById("dMean").textContent = fmt(mu, 3);
+    document.getElementById("dVar").textContent = fmt(sigma * sigma, 3);
+    document.getElementById("dSd").textContent = fmt(sigma, 3);
+    document.getElementById("dMode").textContent = fmt(mu, 1);
+
+    note.innerHTML = `
+      <strong>Normale \\(\\mathcal{N}(\\mu,\\sigma^{2})\\)</strong> — la « courbe en cloche ».
+      Elle apparaît partout grâce au théorème central limite : toute somme de causes
+      indépendantes tend vers elle.
+      <div class="formula">
+        $$f(x)=\\frac{1}{\\sigma\\sqrt{2\\pi}}\\;
+        \\exp\\!\\left(-\\frac{(x-\\mu)^{2}}{2\\sigma^{2}}\\right)$$
+        $$\\mathbb{P}(\\mu-\\sigma\\le X\\le \\mu+\\sigma)\\approx 68\\,\\%$$
+        $$\\mathbb{P}(\\mu-2\\sigma\\le X\\le \\mu+2\\sigma)\\approx 95\\,\\%$$
+      </div>
+      <div class="notation" style="margin-top:0;border-top:none;padding-top:0;">
+        <div class="nt-title">Légende</div>
+        <span class="nt-sym">\\(\\mu\\)</span><span class="nt-def"><b>Moyenne</b> — centre de la cloche ; c'est aussi la médiane et le mode.</span>
+        <span class="nt-sym">\\(\\sigma\\)</span><span class="nt-def"><b>Écart-type</b> — largeur de la cloche ; plus \\(\\sigma\\) est grand, plus la courbe est aplatie.</span>
+        <span class="nt-sym">\\(\\sigma^{2}\\)</span><span class="nt-def"><b>Variance</b> — carré de l'écart-type.</span>
+        <span class="nt-sym">\\(f(x)\\)</span><span class="nt-def"><b>Densité de probabilité</b> : \\(\\mathbb{P}(a\\le X\\le b)=\\int_a^b f(x)\\,dx\\).</span>
+        <span class="nt-sym">\\(\\pi\\)</span><span class="nt-def">Constante d'Archimède, \\(\\pi\\approx 3{,}14159\\).</span>
+        <span class="nt-sym">\\(\\exp\\)</span><span class="nt-def">Fonction exponentielle, \\(\\exp(u)=e^{u}\\).</span>
+      </div>
+      <div class="note" style="background:#fff;border-left-color:#4d6bfe;margin-bottom:0;">
+        <strong>Règle empirique :</strong> 68 % des valeurs dans \\([\\mu-\\sigma,\\mu+\\sigma]\\)
+        (zone bleue), 95 % dans \\([\\mu-2\\sigma,\\mu+2\\sigma]\\), 99,7 % dans
+        \\([\\mu-3\\sigma,\\mu+3\\sigma]\\).
+      </div>`;
+
+    mount("distChart", {
+      type: "line",
+      data: {
+        datasets: [{
+          label: "Zone μ ± σ (≈ 68 %)",
+          data: bandXs.map((x, i) => ({ x, y: bandYs[i] })),
+          parsing: false,
+          borderColor: "transparent",
+          backgroundColor: "rgba(77,107,254,.18)",
+          fill: "origin",
+          pointRadius: 0
+        }, {
+          label: "Densité f(x)",
+          data: xs.map((x, i) => ({ x, y: ys[i] })),
+          parsing: false,
+          borderColor: ACCENT,
+          borderWidth: 2.5,
+          pointRadius: 0,
+          tension: 0.3,
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 200 },
+        interaction: { mode: "nearest", intersect: false },
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: {
+            callbacks: {
+              title: items => `x = ${Number(items[0].parsed.x).toFixed(2)}`,
+              label: c => ` ${c.dataset.label} : ${c.parsed.y.toFixed(4)}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: "linear",
+            grid: { color: GRID },
+            title: { display: true, text: "x" }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: GRID },
+            title: { display: true, text: "Densité f(x)" }
+          }
+        }
+      }
+    });
+  }
+
+  // Re-rendu des formules KaTeX dans la note dynamique
+  typeset(note);
+}
+
+document.getElementById("distSelect").addEventListener("change", drawDist);
+["pN", "pP", "pLam", "pMu", "pSig"].forEach(id =>
+  document.getElementById(id).addEventListener("input", drawDist)
+);
+drawDist();
+
+/* ============================================================
+   Rendu initial des formules statiques
+   ============================================================ */
+typeset(document.body);
+</script>
+</body>
+</html>
