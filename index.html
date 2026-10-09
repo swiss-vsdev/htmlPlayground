@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · Mes simulateurs</title>
+<style>
+  :root{
+    --ink:#0d0d0d;
+    --muted:#6b7280;
+    --border:#e5e5e5;
+    --border-strong:#d1d5db;
+    --bg:#fafafa;
+    --card:#ffffff;
+    --accent:#4d6bfe;
+    --accent-soft:rgba(77,107,254,.08);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#f3f4f6;
+      --muted:#9ca3af;
+      --border:#26282e;
+      --border-strong:#3a3d44;
+      --bg:#0f1013;
+      --card:#17181c;
+      --accent-soft:rgba(77,107,254,.15);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* ============ HEADER ============ */
+  header{
+    padding:40px 24px 16px;
+    max-width:1200px;
+    width:100%;
+    margin:0 auto;
+  }
+  .header-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  h1{
+    font-size:26px;
+    font-weight:700;
+    margin:0 0 6px;
+    letter-spacing:-0.02em;
+  }
+  .sub{
+    font-size:14px;
+    color:var(--muted);
+    margin:0;
+  }
+  .sub a{color:var(--accent);text-decoration:none}
+  .sub a:hover{text-decoration:underline}
+
+  .refresh-btn{
+    background:transparent;
+    border:1px solid var(--border-strong);
+    color:var(--muted);
+    font-size:12px;
+    padding:7px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-family:inherit;
+    transition:all .15s;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .refresh-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .refresh-btn.spinning svg{animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ============ SEARCH ============ */
+  .search-wrap{position:relative;margin-top:24px}
+  .search-wrap svg{
+    position:absolute;
+    left:14px;top:50%;
+    transform:translateY(-50%);
+    color:var(--muted);
+    pointer-events:none;
+  }
+  #search{
+    width:100%;
+    padding:12px 14px 12px 42px;
+    font-size:14px;
+    font-family:inherit;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    color:var(--ink);
+    outline:none;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  #search:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);
+  }
+  #search::placeholder{color:var(--muted)}
+
+  /* ============ MAIN ============ */
+  main{
+    flex:1;
+    max-width:1200px;
+    width:100%;
+    margin:0 auto;
+    padding:24px 24px 60px;
+  }
+
+  /* --- Section (par dossier) --- */
+  .section{margin-bottom:36px}
+  .section:last-child{margin-bottom:0}
+
+  .section-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--border);
+    cursor:pointer;
+    user-select:none;
+    transition:opacity .15s;
+  }
+  .section-head:hover{opacity:.85}
+
+  .section-dot{
+    width:10px;height:10px;
+    border-radius:50%;
+    background:var(--sec-color, var(--accent));
+    box-shadow:0 0 0 4px var(--sec-soft, var(--accent-soft));
+    flex-shrink:0;
+  }
+  .section-name{
+    font-size:15px;
+    font-weight:600;
+    color:var(--ink);
+    letter-spacing:-0.01em;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .section-name .folder-icon{
+    color:var(--sec-color, var(--accent));
+    flex-shrink:0;
+  }
+  .section-count{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    font-size:11px;
+    font-weight:600;
+    padding:2px 8px;
+    border-radius:999px;
+    background:var(--sec-soft, var(--accent-soft));
+    color:var(--sec-color, var(--accent));
+  }
+  .section-chevron{
+    margin-left:auto;
+    color:var(--muted);
+    transition:transform .2s;
+    flex-shrink:0;
+  }
+  .section.collapsed .section-chevron{transform:rotate(-90deg)}
+  .section.collapsed .section-body{display:none}
+
+  /* --- Grid de cartes --- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));
+    gap:12px;
+  }
+
+  a.card{
+    display:flex;
+    flex-direction:column;
+    padding:18px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    text-decoration:none;
+    color:var(--ink);
+    transition:all .18s ease;
+    box-shadow:0 1px 2px rgba(0,0,0,.03);
+    min-height:110px;
+    position:relative;
+    overflow:hidden;
+  }
+  a.card:hover{
+    border-color:var(--sec-color, var(--accent));
+    box-shadow:0 6px 20px var(--sec-soft, rgba(77,107,254,.12));
+    transform:translateY(-2px);
+  }
+  a.card::before{
+    content:'';
+    position:absolute;
+    left:0;top:0;bottom:0;
+    width:3px;
+    background:var(--sec-color, var(--accent));
+    opacity:0;
+    transition:opacity .18s;
+  }
+  a.card:hover::before{opacity:1}
+
+  .card-badge{
+    width:34px;height:34px;
+    border-radius:9px;
+    background:var(--sec-soft, var(--accent-soft));
+    color:var(--sec-color, var(--accent));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    font-size:14px;
+    margin-bottom:12px;
+    font-family:ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  .card-title{
+    font-size:14.5px;
+    font-weight:600;
+    line-height:1.35;
+    margin:0 0 6px;
+    color:var(--ink);
+  }
+  .card-file{
+    font-size:11.5px;
+    color:var(--muted);
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    margin-top:auto;
+    padding-top:10px;
+    display:flex;
+    align-items:center;
+    gap:5px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .card-file svg{flex-shrink:0}
+
+  /* ============ STATES ============ */
+  .state{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:60px 20px;
+    color:var(--muted);
+    gap:12px;
+  }
+  .state-icon{
+    width:44px;height:44px;
+    border-radius:12px;
+    background:var(--accent-soft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--accent);
+  }
+  .state h2{font-size:15px;font-weight:600;color:var(--ink);margin:0}
+  .state p{font-size:13px;margin:0;max-width:420px;line-height:1.5}
+  .state code{
+    background:var(--accent-soft);
+    color:var(--accent);
+    padding:2px 6px;
+    border-radius:5px;
+    font-size:12px;
+    font-family:ui-monospace,monospace;
+  }
+  .spinner{
+    width:20px;height:20px;
+    border:2px solid var(--border-strong);
+    border-top-color:var(--accent);
+    border-radius:50%;
+    animation:spin .8s linear infinite;
+  }
+
+  /* ============ FOOTER ============ */
+  footer{
+    text-align:center;
+    padding:20px;
+    font-size:12px;
+    color:var(--muted);
+    border-top:1px solid var(--border);
+  }
+  footer a{color:var(--accent);text-decoration:none}
+  footer a:hover{text-decoration:underline}
+
+  /* ============ ANIMATIONS ============ */
+  @keyframes fadeIn{
+    from{opacity:0;transform:translateY(4px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  a.card{animation:fadeIn .3s ease backwards}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div>
+      <h1>🧪 Dashboard · Mes simulateurs</h1>
+      <p class="sub" id="repo-info">Chargement…</p>
+    </div>
+    <button class="refresh-btn" id="refresh" title="Rafraîchir la liste">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 1 1-3-6.7L21 8"/>
+        <path d="M21 3v5h-5"/>
+      </svg>
+      Rafraîchir
+    </button>
+  </div>
+
+  <div class="search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+      <circle cx="11" cy="11" r="7"/>
+      <path d="m20 20-3.5-3.5"/>
+    </svg>
+    <input id="search" type="search" placeholder="Rechercher un simulateur, un dossier…" autocomplete="off">
+  </div>
+</header>
+
+<main id="main">
+  <div class="state">
+    <div class="spinner"></div>
+    <p>Détection du dépôt et chargement…</p>
+  </div>
+</main>
+
+<footer>
+  <span id="footer-info">—</span>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  const CACHE_KEY = "ml-dashboard-cache-v2";
+  const CACHE_TTL = 60 * 60 * 1000; // 1 heure
+  const CONCURRENCY = 6;            // nombre de fetch simultanés pour les titres
+
+  const main = document.getElementById("main");
+  const searchInput = document.getElementById("search");
+  const refreshBtn = document.getElementById("refresh");
+  const repoInfo = document.getElementById("repo-info");
+  const footerInfo = document.getElementById("footer-info");
+
+  let allItems = [];   // { path, folder, name, title }
+
+  /* =========================================================
+     1. DÉTECTION DU DÉPÔT
+     ========================================================= */
+  function detectRepo(){
+    // Override possible via ?repo=user/repo (utile pour tests ou domaine custom)
+    const params = new URLSearchParams(location.search);
+    const override = params.get("repo");
+    if (override && override.includes("/")){
+      const [user, repo] = override.split("/");
+      return { user, repo };
+    }
+
+    const host = location.hostname;
+    const path = location.pathname;
+    if (host.endsWith(".github.io")){
+      const user = host.replace(".github.io", "");
+      const parts = path.split("/").filter(Boolean);
+      const repo = parts[0] || (user + ".github.io");
+      return { user, repo };
+    }
+    return null;
+  }
+
+  /* =========================================================
+     2. CACHE localStorage
+     ========================================================= */
+  function readCache(){
+    try{
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (Date.now() - data.ts > CACHE_TTL) return null;
+      return data.items;
+    } catch(e){ return null; }
+  }
+  function writeCache(items){
+    try{
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), items }));
+    } catch(e){}
+  }
+  function clearCache(){
+    try{ localStorage.removeItem(CACHE_KEY); }catch(e){}
+  }
+
+  /* =========================================================
+     3. LISTER LES FICHIERS HTML DU REPO (une seule requête API)
+     ========================================================= */
+  async function fetchRepoTree({ user, repo }){
+    // On essaie "main" puis "master"
+    const branches = ["main", "master"];
+    let lastErr = null;
+
+    for (const branch of branches){
+      try{
+        const url = `https://api.github.com/repos/${user}/${repo}/git/trees/${branch}?recursive=1`;
+        const res = await fetch(url, { headers: { "Accept": "application/vnd.github+json" } });
+        if (res.status === 404) { lastErr = new Error("Branche introuvable"); continue; }
+        if (res.status === 403) throw new Error("Limite API GitHub atteinte. Réessaie dans une heure.");
+        if (!res.ok) { lastErr = new Error(`Erreur GitHub API (${res.status})`); continue; }
+
+        const data = await res.json();
+        return filterTree(data.tree || []);
+      } catch(e){
+        lastErr = e;
+      }
+    }
+    throw lastErr || new Error("Impossible de lire le dépôt.");
+  }
+
+  function filterTree(tree){
+    const EXCLUDED_DIRS = [
+      ".github/", "node_modules/", ".vscode/", ".idea/",
+      "dist/", "build/", "vendor/"
+    ];
+
+    return tree
+      .filter(node => node.type === "blob")
+      .filter(node => /\.html?$/i.test(node.path))
+      .filter(node => {
+        const lower = node.path.toLowerCase();
+        // Exclure les fichiers/dossiers cachés ou internes
+        if (node.path.split("/").some(part => part.startsWith(".") || part.startsWith("_"))) return false;
+        if (EXCLUDED_DIRS.some(d => lower.startsWith(d))) return false;
+        // Exclure UNIQUEMENT l'index.html à la racine (c'est ce dashboard)
+        if (node.path === "index.html") return false;
+        return true;
+      })
+      .map(node => {
+        const parts = node.path.split("/");
+        const name = parts[parts.length - 1];
+        const folder = parts.length > 1 ? parts.slice(0, -1).join("/") : "";
+        return { path: node.path, name, folder };
+      })
+      .sort((a, b) => a.path.localeCompare(b.path, "fr"));
+  }
+
+  /* =========================================================
+     4. EXTRACTION DES TITRES (avec limite de concurrence)
+     ========================================================= */
+  async function extractTitle(path){
+    try{
+      const res = await fetch("./" + path, { cache: "no-cache" });
+      if (!res.ok) throw new Error();
+      const text = await res.text();
+      const doc = new DOMParser().parseFromString(text, "text/html");
+      const t = doc.querySelector("title");
+      const title = t && t.textContent.trim();
+      if (title) return title;
+    } catch(e){ /* fallback */ }
+    return prettify(path.split("/").pop().replace(/\.html?$/i, ""));
+  }
+
+  function prettify(str){
+    return str
+      .replace(/[-_]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  async function extractAllTitles(items){
+    const results = new Array(items.length);
+    let idx = 0;
+    async function worker(){
+      while (idx < items.length){
+        const i = idx++;
+        results[i] = await extractTitle(items[i].path);
+      }
+    }
+    await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+    return results;
+  }
+
+  /* =========================================================
+     5. COULEUR DÉTERMINISTE PAR DOSSIER
+     ========================================================= */
+  function folderHue(folder){
+    if (!folder) return 220; // bleu par défaut pour la racine
+    let h = 0;
+    for (let i = 0; i < folder.length; i++) h = (h * 31 + folder.charCodeAt(i)) | 0;
+    return Math.abs(h) % 360;
+  }
+
+  function folderStyle(folder, isDark){
+    const hue = folderHue(folder);
+    const lightness = isDark ? 65 : 50;
+    const softAlpha = isDark ? 0.18 : 0.10;
+    return {
+      color: `hsl(${hue}, 65%, ${lightness}%)`,
+      soft:  `hsla(${hue}, 65%, ${lightness}%, ${softAlpha})`
+    };
+  }
+
+  /* =========================================================
+     6. RENDU
+     ========================================================= */
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+    }[c]));
+  }
+
+  function isDarkMode(){
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+
+  function groupByFolder(items){
+    const groups = new Map();
+    items.forEach(it => {
+      const key = it.folder || "";
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(it);
+    });
+    // Tri : racine d'abord, puis alphabétique
+    const arr = Array.from(groups.entries());
+    arr.sort((a, b) => {
+      if (a[0] === "" && b[0] !== "") return -1;
+      if (a[0] !== "" && b[0] === "") return 1;
+      return a[0].localeCompare(b[0], "fr");
+    });
+    return arr;
+  }
+
+  function render(items){
+    if (!items.length){
+      main.innerHTML = `
+        <div class="state">
+          <div class="state-icon">📭</div>
+          <h2>Aucun simulateur trouvé</h2>
+          <p>Ajoute un fichier <code>mon-simulateur.html</code> (à la racine ou dans un sous-dossier), puis <code>git push</code>. Il apparaîtra ici automatiquement.</p>
+        </div>`;
+      return;
+    }
+
+    const groups = groupByFolder(items);
+    const dark = isDarkMode();
+
+    const html = groups.map(([folder, files]) => {
+      const style = folderStyle(folder, dark);
+      const displayName = folder
+        ? folder.split("/").map(prettify).join(" / ")
+        : "Racine";
+      const isRoot = folder === "";
+
+      const cards = files.map((it, i) => `
+        <a class="card" href="${escapeHtml(it.path)}" style="animation-delay:${Math.min(i*20, 300)}ms">
+          <div class="card-badge">${String(i + 1).padStart(2, "0")}</div>
+          <h3 class="card-title">${escapeHtml(it.title)}</h3>
+          <div class="card-file">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            ${escapeHtml(it.name)}
+          </div>
+        </a>
+      `).join("");
+
+      return `
+        <section class="section" data-folder="${escapeHtml(folder)}" style="--sec-color:${style.color};--sec-soft:${style.soft}">
+          <div class="section-head">
+            <span class="section-dot"></span>
+            <span class="section-name">
+              ${isRoot
+                ? `<svg class="folder-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`
+                : `<svg class="folder-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`
+              }
+              ${escapeHtml(displayName)}
+            </span>
+            <span class="section-count">${files.length}</span>
+            <svg class="section-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+          <div class="section-body">
+            <div class="grid">${cards}</div>
+          </div>
+        </section>
+      `;
+    }).join("");
+
+    main.innerHTML = html;
+
+    // Collapse/expand au clic sur l'entête
+    main.querySelectorAll(".section-head").forEach(head => {
+      head.addEventListener("click", () => {
+        head.parentElement.classList.toggle("collapsed");
+      });
+    });
+  }
+
+  function applyFilter(query){
+    const q = query.trim().toLowerCase();
+    const filtered = q
+      ? allItems.filter(it =>
+          it.title.toLowerCase().includes(q) ||
+          it.path.toLowerCase().includes(q) ||
+          it.folder.toLowerCase().includes(q)
+        )
+      : allItems;
+
+    if (q && !filtered.length){
+      main.innerHTML = `
+        <div class="state">
+          <div class="state-icon">🔍</div>
+          <h2>Aucun résultat</h2>
+          <p>Rien ne correspond à « ${escapeHtml(query)} ».</p>
+        </div>`;
+      return;
+    }
+    render(filtered);
+  }
+
+  /* =========================================================
+     7. CHARGEMENT PRINCIPAL
+     ========================================================= */
+  async function load(forceRefresh){
+    const repo = detectRepo();
+
+    if (!repo){
+      main.innerHTML = `
+        <div class="state">
+          <div class="state-icon">💻</div>
+          <h2>Mode local</h2>
+          <p>Ce dashboard fonctionne une fois hébergé sur GitHub Pages. En local, ouvre directement tes fichiers HTML depuis le Finder.</p>
+        </div>`;
+      repoInfo.textContent = "Aperçu local — non hébergé";
+      footerInfo.textContent = "—";
+      return;
+    }
+
+    const repoUrl = `https://github.com/${repo.user}/${repo.repo}`;
+    repoInfo.innerHTML = `<a href="${repoUrl}" target="_blank" rel="noopener">${repo.user}/${repo.repo}</a>`;
+    footerInfo.innerHTML = `Dépôt : <a href="${repoUrl}" target="_blank" rel="noopener">${repo.user}/${repo.repo}</a> · Mis en cache 1 h`;
+
+    // Cache
+    if (!forceRefresh){
+      const cached = readCache();
+      if (cached){
+        allItems = cached;
+        applyFilter(searchInput.value);
+        return;
+      }
+    }
+
+    main.innerHTML = `
+      <div class="state">
+        <div class="spinner"></div>
+        <p>Chargement des simulateurs…</p>
+      </div>`;
+
+    try{
+      const files = await fetchRepoTree(repo);
+      const titles = await extractAllTitles(files);
+      const items = files.map((f, i) => ({ ...f, title: titles[i] }));
+      allItems = items;
+      writeCache(items);
+      applyFilter(searchInput.value);
+    } catch(err){
+      main.innerHTML = `
+        <div class="state">
+          <div class="state-icon">⚠️</div>
+          <h2>Impossible de charger la liste</h2>
+          <p>${escapeHtml(err.message || "Erreur inconnue")}</p>
+          <p style="font-size:12px">Astuce : vérifie que le dépôt est <strong>public</strong> et que GitHub Pages est activé.</p>
+        </div>`;
+    }
+  }
+
+  /* =========================================================
+     8. ÉVÉNEMENTS
+     ========================================================= */
+  let searchTimer;
+  searchInput.addEventListener("input", e => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => applyFilter(e.target.value), 80);
+  });
+
+  refreshBtn.addEventListener("click", async () => {
+    refreshBtn.classList.add("spinning");
+    clearCache();
+    await load(true);
+    refreshBtn.classList.remove("spinning");
+  });
+
+  // Rafraîchir quand on change de thème système
+  if (window.matchMedia){
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      if (allItems.length) applyFilter(searchInput.value);
+    });
+  }
+
+  // Go
+  load(false);
+})();
+</script>
+</body>
+</html>
