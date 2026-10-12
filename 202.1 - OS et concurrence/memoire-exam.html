@@ -3,130 +3,352 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mémoire — Fiche Examen Interactive</title>
+<title>Mémoire — Préparation Examen Interactive</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #f7f8fb;
+    --bg: #f5f7fb;
     --surface: #ffffff;
-    --border: #e5e5e5;
-    --border-strong: #d1d5db;
-    --text: #0d0d0d;
-    --muted: #6b7280;
-    --accent: #4d6bfe;
+    --surface-2: #fafbfd;
+    --border: #e6e9ef;
+    --border-strong: #d4d9e3;
+    --text: #0f172a;
+    --text-2: #475569;
+    --muted: #94a3b8;
+    --accent: #4f46e5;
+    --accent-2: #6366f1;
     --accent-soft: #eef2ff;
     --green: #10b981;
+    --green-soft: #d1fae5;
     --red: #ef4444;
+    --red-soft: #fee2e2;
     --orange: #f59e0b;
+    --orange-soft: #fef3c7;
     --purple: #8b5cf6;
+    --purple-soft: #ede9fe;
     --pink: #ec4899;
+    --pink-soft: #fce7f3;
     --teal: #14b8a6;
+    --teal-soft: #ccfbf1;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,0.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,0.06);
+    --shadow-lg: 0 12px 32px rgba(15,23,42,0.08);
   }
 
-  html { scroll-behavior: smooth; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
     background: var(--bg);
     color: var(--text);
-    line-height: 1.55;
-    font-size: 14.5px;
-    display: flex;
-    min-height: 100vh;
+    line-height: 1.6;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
   }
 
-  nav.sidebar {
+  /* ============ TOP BAR ============ */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 20px;
+    z-index: 100;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .topbar-brand .logo {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 14px;
+  }
+  .topbar-brand .sub {
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 12px;
+    margin-left: 4px;
+  }
+
+  .progress-wrap {
+    flex: 1;
+    max-width: 400px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--purple) 100%);
+    width: 0%;
+    border-radius: 3px;
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+  .progress-text {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-2);
+    white-space: nowrap;
+    min-width: 60px;
+  }
+
+  .topbar-controls {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+  }
+  .btn-icon {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text-2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+  .btn-icon:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ============ SIDE PROGRESS ============ */
+  .side-progress {
+    position: fixed;
+    left: 0; top: 56px; bottom: 0;
     width: 240px;
     background: var(--surface);
     border-right: 1px solid var(--border);
-    position: fixed;
-    top: 0; left: 0;
-    height: 100vh;
+    padding: 20px 14px;
     overflow-y: auto;
-    padding: 18px 12px;
-    z-index: 10;
+    z-index: 50;
   }
-  nav.sidebar h1 { font-size: 15px; font-weight: 800; margin-bottom: 3px; }
-  nav.sidebar .sub { font-size: 10.5px; color: var(--muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.06em; }
-  nav.sidebar a {
-    display: flex; align-items: center; gap: 8px;
-    padding: 7px 10px; border-radius: 7px;
-    color: var(--muted); text-decoration: none;
-    font-size: 12.5px; font-weight: 600; margin-bottom: 2px;
+
+  .side-progress h3 {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 10px;
+    padding: 0 8px;
+  }
+
+  .step-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+  }
+  .step-link:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .step-link.active {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 4px 12px rgba(79,70,229,0.25);
+  }
+  .step-link.done .dot {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .step-link.active .dot {
+    background: white;
+    border-color: white;
+  }
+
+  .step-link .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    border: 2px solid var(--border-strong);
+    background: transparent;
+    flex-shrink: 0;
     transition: all 0.15s;
   }
-  nav.sidebar a:hover { background: var(--accent-soft); color: var(--accent); }
-  nav.sidebar a.active { background: var(--accent); color: white; }
-  nav.sidebar .group {
-    font-size: 10px; font-weight: 800; text-transform: uppercase;
-    letter-spacing: 0.08em; color: var(--muted);
-    margin: 14px 10px 5px;
+
+  .step-link .num {
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 700;
+    min-width: 18px;
+  }
+  .step-link.active .num { color: rgba(255,255,255,0.7); }
+
+  /* ============ MAIN CONTENT ============ */
+  .stage {
+    position: fixed;
+    top: 56px; left: 240px; right: 0; bottom: 0;
+    overflow-y: auto;
+    scroll-behavior: smooth;
   }
 
-  main {
-    margin-left: 240px; flex: 1;
-    padding: 28px 36px 100px; max-width: 980px;
+  .slide {
+    display: none;
+    padding: 40px 48px 120px;
+    max-width: 900px;
+    margin: 0 auto;
+    animation: fadeIn 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+  .slide.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
-  section { margin-bottom: 44px; scroll-margin-top: 20px; }
-
-  section > h2 {
-    font-size: 22px; font-weight: 800;
-    margin-bottom: 4px; display: flex; align-items: center; gap: 10px;
-  }
-  section > h2 .num {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 28px; height: 28px; background: var(--accent);
-    color: white; border-radius: 7px; font-size: 13px; font-weight: 800; flex-shrink: 0;
-  }
-  section > .lead {
-    color: var(--muted); margin-bottom: 18px; font-size: 13.5px;
-    padding-left: 38px;
+  .slide-num {
+    display: inline-block;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 4px 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    letter-spacing: 0.05em;
   }
 
-  h3 {
-    font-size: 15.5px; font-weight: 800;
-    margin: 22px 0 10px; display: flex; align-items: center; gap: 8px;
+  .slide h1 {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    line-height: 1.2;
   }
-  h3::before { content: ""; width: 3px; height: 14px; background: var(--accent); border-radius: 2px; }
 
-  p { margin-bottom: 10px; }
-  ul, ol { margin: 8px 0 12px 20px; }
-  li { margin-bottom: 5px; }
+  .slide .lead {
+    font-size: 16px;
+    color: var(--text-2);
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  .slide h2 {
+    font-size: 19px;
+    font-weight: 800;
+    margin: 28px 0 12px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .slide h2::before {
+    content: "";
+    width: 4px; height: 18px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  .slide h3 {
+    font-size: 15px;
+    font-weight: 800;
+    margin: 20px 0 10px;
+    color: var(--text);
+  }
+
+  .slide p { margin-bottom: 12px; }
+  .slide ul, .slide ol { margin: 10px 0 14px 24px; }
+  .slide li { margin-bottom: 7px; }
 
   code {
-    background: var(--accent-soft); color: #3730a3;
-    padding: 1px 6px; border-radius: 4px;
-    font-family: 'SF Mono', Menlo, monospace; font-size: 12px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 12.5px;
+    font-weight: 600;
   }
 
   pre {
-    background: #0d1117; color: #e6edf3;
-    padding: 14px; border-radius: 10px;
-    overflow-x: auto; font-family: 'SF Mono', Menlo, monospace;
-    font-size: 12px; line-height: 1.55;
-    margin: 10px 0 14px; border: 1px solid #30363d;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 18px 20px;
+    border-radius: 12px;
+    overflow-x: auto;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 12.5px;
+    line-height: 1.65;
+    margin: 12px 0 18px;
+    border: 1px solid #1e293b;
+    box-shadow: var(--shadow-sm);
   }
-  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
-  .kw { color: #ff7b72; }
-  .str { color: #a5d6ff; }
-  .com { color: #8b949e; font-style: italic; }
-  .num2 { color: #79c0ff; }
+  pre code {
+    background: none; color: inherit;
+    padding: 0; font-size: inherit; font-weight: 400;
+  }
+  .kw { color: #f472b6; font-weight: 600; }
+  .str { color: #7dd3fc; }
+  .com { color: #94a3b8; font-style: italic; }
+  .num2 { color: #fbbf24; }
+  .fn { color: #a78bfa; }
 
+  /* ============ CARDS ============ */
   .card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 11px; padding: 14px 16px; margin-bottom: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow-sm);
   }
-  .card.accent { border-left: 3px solid var(--accent); }
-  .card.warn { border-left: 3px solid var(--orange); background: #fffbeb; }
-  .card.danger { border-left: 3px solid var(--red); background: #fef2f2; }
-  .card.ok { border-left: 3px solid var(--green); background: #f0fdf4; }
+  .card.accent { border-left: 4px solid var(--accent); }
+  .card.warn { border-left: 4px solid var(--orange); background: linear-gradient(to right, var(--orange-soft) 0%, var(--surface) 30%); }
+  .card.danger { border-left: 4px solid var(--red); background: linear-gradient(to right, var(--red-soft) 0%, var(--surface) 30%); }
+  .card.ok { border-left: 4px solid var(--green); background: linear-gradient(to right, var(--green-soft) 0%, var(--surface) 30%); }
 
   .callout {
-    font-weight: 800; font-size: 12px; text-transform: uppercase;
-    letter-spacing: 0.04em; margin-bottom: 5px;
-    display: flex; align-items: center; gap: 6px;
+    font-weight: 800;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
   }
   .card.accent .callout { color: var(--accent); }
   .card.warn .callout { color: #b45309; }
@@ -134,528 +356,1005 @@
   .card.ok .callout { color: #047857; }
 
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-  @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 780px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
 
+  /* ============ TABLE ============ */
   table {
-    width: 100%; border-collapse: collapse;
-    margin: 10px 0 14px; font-size: 13px;
-    background: var(--surface); border-radius: 9px;
-    overflow: hidden; border: 1px solid var(--border);
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px;
+    font-size: 13.5px;
+    background: var(--surface);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
   }
   th {
-    background: #f3f4f6; text-align: left;
-    padding: 8px 11px; font-weight: 800; font-size: 11px;
-    text-transform: uppercase; letter-spacing: 0.04em;
-    color: var(--muted); border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 800;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-2);
+    border-bottom: 1px solid var(--border);
   }
-  td { padding: 8px 11px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
   tr:last-child td { border-bottom: none; }
 
-  .widget {
-    background: var(--surface); border: 1px solid var(--border-strong);
-    border-radius: 13px; padding: 18px; margin: 14px 0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-  }
-  .widget-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 12px; padding-bottom: 9px; border-bottom: 1px solid var(--border);
-    gap: 10px; flex-wrap: wrap;
-  }
-  .widget-title {
-    font-weight: 800; font-size: 13px; color: var(--accent);
-    display: flex; align-items: center; gap: 7px;
-  }
-  .widget-title::before { content: "⚡"; font-size: 13px; }
-
-  input[type="range"] {
-    width: 100%; height: 6px; -webkit-appearance: none;
-    background: #e5e7eb; border-radius: 3px; outline: none; margin: 6px 0;
-  }
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 20px; height: 20px;
-    background: var(--accent); border-radius: 50%;
-    cursor: pointer; border: 3px solid white;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-  }
-
-  input[type="number"], input[type="text"], select {
-    padding: 7px 10px; border: 1px solid var(--border-strong);
-    border-radius: 7px; font-family: inherit; font-size: 13px;
-    outline: none; background: white; transition: border 0.15s;
-  }
-  input:focus, select:focus {
-    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
-  }
-
-  button {
-    background: var(--accent); color: white; border: none;
-    padding: 8px 14px; border-radius: 7px; font-family: inherit;
-    font-size: 12.5px; font-weight: 700; cursor: pointer;
-    transition: all 0.15s;
-  }
-  button:hover { background: #3d5bef; transform: translateY(-1px); }
-  button.secondary {
-    background: white; color: var(--accent); border: 1px solid var(--border-strong);
-  }
-  button.secondary:hover { background: var(--accent-soft); border-color: var(--accent); }
-
-  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
-  .row label { font-size: 11.5px; font-weight: 700; color: var(--muted); }
-
+  /* ============ BADGES ============ */
   .badge {
-    display: inline-block; padding: 2px 7px; border-radius: 5px;
-    font-size: 10.5px; font-weight: 800; text-transform: uppercase;
-    letter-spacing: 0.03em;
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
-  .badge.green { background: #d1fae5; color: #047857; }
-  .badge.red { background: #fee2e2; color: #b91c1c; }
+  .badge.green { background: var(--green-soft); color: #047857; }
+  .badge.red { background: var(--red-soft); color: #b91c1c; }
   .badge.blue { background: #dbeafe; color: #1d4ed8; }
-  .badge.orange { background: #fed7aa; color: #c2410c; }
-  .badge.purple { background: #e9d5ff; color: #6d28d9; }
-  .badge.gray { background: #e5e7eb; color: #374151; }
-  .badge.pink { background: #fce7f3; color: #be185d; }
+  .badge.orange { background: var(--orange-soft); color: #c2410c; }
+  .badge.purple { background: var(--purple-soft); color: #6d28d9; }
+  .badge.gray { background: var(--border); color: var(--text-2); }
+  .badge.pink { background: var(--pink-soft); color: #be185d; }
 
+  /* ============ MEMORY TRACK ============ */
   .mem-track {
-    display: flex; height: 42px; border-radius: 7px;
-    overflow: hidden; border: 1px solid var(--border-strong);
-    background: #f9fafb; margin: 8px 0;
+    display: flex;
+    height: 44px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-strong);
+    background: var(--surface-2);
+    margin: 10px 0;
+    box-shadow: var(--shadow-sm);
   }
   .mem-block {
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 800; color: white;
-    transition: all 0.3s; min-width: 0; overflow: hidden; white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: white;
+    transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0 6px;
   }
-  .mem-block.free { background: #d1d5db; color: #4b5563; }
-  .mem-block.used { background: var(--accent); }
-  .mem-block.kernel { background: #1f2937; }
-  .mem-block.p0 { background: #4d6bfe; }
+  .mem-block.free { background: #cbd5e1; color: #475569; }
+  .mem-block.kernel { background: #1e293b; }
+  .mem-block.p0 { background: #4f46e5; }
   .mem-block.p1 { background: #8b5cf6; }
   .mem-block.p2 { background: #ec4899; }
   .mem-block.p3 { background: #f59e0b; }
   .mem-block.p4 { background: #14b8a6; }
 
-  .quiz {
-    background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
-    border: 1px solid #c7d2fe; border-radius: 13px;
-    padding: 16px; margin: 16px 0;
+  /* ============ WIDGET ============ */
+  .widget {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    padding: 20px;
+    margin: 18px 0;
+    box-shadow: var(--shadow-md);
   }
-  .quiz-q { font-weight: 800; margin-bottom: 10px; font-size: 14px; }
-  .quiz-opt {
-    display: block; width: 100%; text-align: left;
-    background: white; border: 2px solid var(--border);
-    border-radius: 9px; padding: 9px 12px; margin-bottom: 7px;
-    font-family: inherit; font-size: 13px; color: var(--text);
-    font-weight: 600; cursor: pointer; transition: all 0.15s;
+  .widget-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    flex-wrap: wrap;
   }
-  .quiz-opt:hover { border-color: var(--accent); background: var(--accent-soft); }
-  .quiz-opt.correct { border-color: var(--green); background: #d1fae5; color: #065f46; }
-  .quiz-opt.wrong { border-color: var(--red); background: #fee2e2; color: #7f1d1d; }
-  .quiz-fb {
-    margin-top: 8px; font-size: 12.5px; padding: 9px 12px;
-    border-radius: 7px; display: none;
+  .widget-title {
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.01em;
   }
-  .quiz-fb.show { display: block; }
-  .quiz-fb.ok { background: #d1fae5; color: #065f46; }
-  .quiz-fb.ko { background: #fee2e2; color: #7f1d1d; }
-
-  .info-row {
-    display: flex; justify-content: space-between;
-    padding: 6px 0; border-bottom: 1px dashed var(--border);
+  .widget-title::before {
+    content: "⚡";
     font-size: 13px;
   }
-  .info-row:last-child { border-bottom: none; }
-  .info-row .label { color: var(--muted); font-weight: 600; }
-  .info-row .value { font-weight: 800; font-family: 'SF Mono', monospace; }
 
-  .tabs {
-    display: flex; gap: 3px; border-bottom: 2px solid var(--border);
-    margin-bottom: 14px; flex-wrap: wrap;
+  /* ============ FORM ============ */
+  input[type="text"], input[type="number"], select {
+    padding: 8px 12px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 8px;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 13px;
+    outline: none;
+    background: var(--surface);
+    color: var(--text);
+    transition: all 0.15s;
+    font-weight: 600;
   }
-  .tab {
-    padding: 7px 12px; background: none; border: none;
-    border-bottom: 2px solid transparent; color: var(--muted);
-    font-family: inherit; font-size: 12.5px; font-weight: 700;
-    cursor: pointer; margin-bottom: -2px;
-    border-radius: 5px 5px 0 0;
+  input:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
   }
-  .tab:hover { color: var(--accent); background: var(--accent-soft); }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: none; }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; animation: fadeIn 0.2s; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
 
-  .ptable {
-    font-family: 'SF Mono', monospace; font-size: 12px;
-    background: #0d1117; color: #e6edf3; padding: 12px;
-    border-radius: 9px; line-height: 1.65; overflow-x: auto;
+  input[type="range"] {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    background: var(--border);
+    border-radius: 3px;
+    outline: none;
+    margin: 8px 0;
   }
-  .ptable .row-pt { display: flex; gap: 2px; margin-bottom: 2px; }
-  .ptable .cell { padding: 4px 8px; border-radius: 4px; background: #21262d; }
-  .ptable .cell.hl { background: var(--accent); color: white; }
-  .ptable .cell.dead { background: #7f1d1d; color: #fecaca; }
-  .ptable .cell.valid { background: #065f46; color: #d1fae5; }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 4px solid white;
+    box-shadow: 0 2px 6px rgba(79,70,229,0.35);
+    transition: transform 0.15s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+  }
 
-  .stat {
-    text-align: center; padding: 12px;
-    background: var(--surface); border: 1px solid var(--border);
+  button.btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 2px 6px rgba(79,70,229,0.2);
+  }
+  button.btn:hover {
+    background: var(--accent-2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(79,70,229,0.3);
+  }
+  button.btn:active { transform: translateY(0); }
+  button.btn.secondary {
+    background: var(--surface);
+    color: var(--accent);
+    border: 1.5px solid var(--border-strong);
+    box-shadow: none;
+  }
+  button.btn.secondary:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    box-shadow: 0 2px 6px rgba(79,70,229,0.1);
+  }
+  button.btn.ghost {
+    background: transparent;
+    color: var(--text-2);
+    box-shadow: none;
+    border: none;
+  }
+  button.btn.ghost:hover { background: var(--border); }
+
+  .row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 10px 0;
+  }
+  .row label {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  /* ============ FORMULA ============ */
+  .formula {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 13.5px;
+    margin: 12px 0;
+    color: var(--text);
+    line-height: 1.8;
+  }
+  .formula strong { color: var(--accent); }
+
+  /* ============ QUIZ ============ */
+  .quiz {
+    background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+    border: 1.5px solid #c7d2fe;
+    border-radius: 14px;
+    padding: 20px;
+    margin: 18px 0;
+    box-shadow: var(--shadow-sm);
+  }
+  .quiz-q {
+    font-weight: 800;
+    margin-bottom: 14px;
+    font-size: 14.5px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .quiz-opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 15px;
+    margin-bottom: 8px;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .quiz-opt:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    transform: translateX(2px);
+  }
+  .quiz-opt.correct {
+    border-color: var(--green);
+    background: var(--green-soft);
+    color: #065f46;
+  }
+  .quiz-opt.wrong {
+    border-color: var(--red);
+    background: var(--red-soft);
+    color: #7f1d1d;
+  }
+  .quiz-opt:disabled { cursor: default; }
+  .quiz-fb {
+    margin-top: 10px;
+    font-size: 13px;
+    padding: 11px 15px;
     border-radius: 9px;
+    display: none;
+    font-weight: 600;
   }
-  .stat .val {
-    font-size: 20px; font-weight: 800; color: var(--accent);
-    font-family: 'SF Mono', monospace;
-  }
-  .stat .lbl {
-    font-size: 10.5px; text-transform: uppercase;
-    letter-spacing: 0.05em; color: var(--muted);
-    margin-top: 3px; font-weight: 700;
-  }
+  .quiz-fb.show { display: block; animation: fadeIn 0.3s; }
+  .quiz-fb.ok { background: var(--green-soft); color: #065f46; }
+  .quiz-fb.ko { background: var(--red-soft); color: #7f1d1d; }
 
+  /* ============ FLASHCARD ============ */
   .flashcard {
-    perspective: 1000px; height: 160px; margin: 14px 0;
+    perspective: 1200px;
+    height: 180px;
+    margin: 16px 0;
   }
   .flashcard-inner {
-    position: relative; width: 100%; height: 100%;
-    transition: transform 0.55s; transform-style: preserve-3d; cursor: pointer;
+    position: relative;
+    width: 100%; height: 100%;
+    transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
+    transform-style: preserve-3d;
+    cursor: pointer;
   }
   .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
   .flashcard-face {
-    position: absolute; width: 100%; height: 100%;
-    backface-visibility: hidden; border-radius: 12px;
-    padding: 20px; display: flex; align-items: center;
-    justify-content: center; text-align: center;
-    font-size: 14.5px; font-weight: 700;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    position: absolute;
+    width: 100%; height: 100%;
+    backface-visibility: hidden;
+    border-radius: 14px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 14.5px;
+    font-weight: 700;
+    box-shadow: var(--shadow-md);
+    line-height: 1.5;
   }
-  .flashcard-front { background: var(--surface); border: 2px solid var(--accent); color: var(--accent); }
+  .flashcard-face .label {
+    position: absolute;
+    top: 12px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.6;
+    font-weight: 800;
+  }
+  .flashcard-front {
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    color: var(--text);
+  }
+  .flashcard-front .label { color: var(--accent); }
   .flashcard-back {
-    background: var(--accent); color: white; transform: rotateY(180deg);
-    font-weight: 600; font-size: 13px; line-height: 1.5;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
+    color: white;
+    transform: rotateY(180deg);
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .flashcard-back .label { color: rgba(255,255,255,0.7); }
+
+  /* ============ FOOTER NAV ============ */
+  .slide-nav {
+    position: fixed;
+    bottom: 0;
+    left: 240px; right: 0;
+    height: 72px;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 48px;
+    gap: 12px;
+    z-index: 40;
   }
 
-  .progress {
-    position: fixed; top: 0; left: 240px; right: 0;
-    height: 3px; background: var(--border); z-index: 20;
-  }
-  .progress-fill {
-    height: 100%; background: var(--accent); width: 0%;
-    transition: width 0.1s;
-  }
-
-  .formula {
-    background: #f9fafb; border-left: 3px solid var(--accent);
-    padding: 10px 14px; border-radius: 7px;
-    font-family: 'SF Mono', monospace; font-size: 13.5px;
-    margin: 10px 0;
+  .slide-nav-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
   }
 
-  @media (max-width: 800px) {
-    nav.sidebar { display: none; }
-    main { margin-left: 0; padding: 20px 16px 80px; }
-    .progress { left: 0; }
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13.5px;
+    cursor: pointer;
+    border: 1.5px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    transition: all 0.15s;
+    font-family: inherit;
+    min-width: 110px;
+    justify-content: center;
   }
+  .nav-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+    transform: translateY(-1px);
+  }
+  .nav-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .nav-btn.primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(79,70,229,0.25);
+  }
+  .nav-btn.primary:hover:not(:disabled) {
+    background: var(--accent-2);
+    color: white;
+    border-color: var(--accent-2);
+    box-shadow: 0 6px 16px rgba(79,70,229,0.35);
+  }
+
+  .slide-counter {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-2);
+    font-family: 'SF Mono', Menlo, monospace;
+    background: var(--surface-2);
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  /* ============ STAT ============ */
+  .stat {
+    text-align: center;
+    padding: 16px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+  }
+  .stat .val {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent);
+    font-family: 'SF Mono', Menlo, monospace;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .stat .lbl {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-top: 5px;
+    font-weight: 800;
+  }
+
+  /* ============ INFO ROW ============ */
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 13.5px;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .label { color: var(--text-2); font-weight: 600; }
+  .info-row .value { font-weight: 800; font-family: 'SF Mono', monospace; color: var(--text); }
+
+  /* ============ VISUAL RESULT ============ */
+  .result-box {
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 13.5px;
+    margin-top: 12px;
+    font-weight: 700;
+  }
+  .result-box.ok { background: var(--green-soft); color: #065f46; border: 1px solid #6ee7b7; }
+  .result-box.ko { background: var(--red-soft); color: #7f1d1d; border: 1px solid #fca5a5; }
+
+  /* ============ LOG ============ */
+  .log-box {
+    margin-top: 12px;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 14px;
+    border-radius: 10px;
+    min-height: 80px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+  .log-box .ok { color: #6ee7b7; }
+  .log-box .fail { color: #fca5a5; }
+  .log-box .info { color: #93c5fd; }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 900px) {
+    .side-progress { display: none; }
+    .stage { left: 0; }
+    .slide-nav { left: 0; padding: 0 20px; }
+    .slide { padding: 28px 24px 120px; }
+  }
+
+  /* ============ SCROLLBAR ============ */
+  .stage::-webkit-scrollbar,
+  .side-progress::-webkit-scrollbar { width: 8px; }
+  .stage::-webkit-scrollbar-thumb,
+  .side-progress::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 4px;
+  }
+  .stage::-webkit-scrollbar-thumb:hover,
+  .side-progress::-webkit-scrollbar-thumb:hover {
+    background: var(--muted);
+  }
+
+  /* ============ WELCOME SLIDE ============ */
+  .welcome-hero {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
+    border-radius: 20px;
+    padding: 40px;
+    color: white;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+  }
+  .welcome-hero::after {
+    content: "";
+    position: absolute;
+    top: -50%; right: -20%;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .welcome-hero h1 {
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+    position: relative;
+    z-index: 1;
+  }
+  .welcome-hero p {
+    font-size: 16px;
+    opacity: 0.9;
+    max-width: 600px;
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+  }
+  .welcome-hero .meta {
+    display: flex;
+    gap: 20px;
+    margin-top: 24px;
+    position: relative;
+    z-index: 1;
+    flex-wrap: wrap;
+  }
+  .welcome-hero .meta-item {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .topic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin: 20px 0;
+  }
+  .topic-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+    font-family: inherit;
+  }
+  .topic-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .topic-card .emoji { font-size: 20px; margin-bottom: 6px; }
+  .topic-card .name { font-weight: 800; font-size: 13px; color: var(--text); }
+  .topic-card .sub { font-size: 11px; color: var(--muted); margin-top: 2px; font-weight: 600; }
 </style>
 </head>
 <body>
 
-<div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+<!-- ============ TOPBAR ============ -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="logo">💾</div>
+    <span>Mémoire</span>
+    <span class="sub">Préparation Examen</span>
+  </div>
 
-<nav class="sidebar">
-  <h1>💾 Mémoire — Examen</h1>
-  <div class="sub">Fiche interactive · 202.1</div>
+  <div class="progress-wrap">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-text" id="progressText">0 / 18</div>
+  </div>
 
-  <div class="group">Bases</div>
-  <a href="#hierarchie">🏔️ Hiérarchie</a>
-  <a href="#virtual">🎯 Virtuel vs Physique</a>
-  <a href="#baselimit">📐 Base & Limit</a>
-  <a href="#partitions">📦 Partitions</a>
+  <div class="topbar-controls">
+    <button class="btn-icon" onclick="goPrev()" title="Précédent">←</button>
+    <button class="btn-icon" onclick="goNext()" title="Suivant">→</button>
+  </div>
+</div>
 
-  <div class="group">Fragmentation</div>
-  <a href="#frag">🧩 Interne vs Externe</a>
-  <a href="#placement">📍 Stratégies placement</a>
-  <a href="#compaction">🧹 Compaction</a>
+<!-- ============ SIDE PROGRESS ============ -->
+<aside class="side-progress" id="sideProgress">
+  <h3>Progression</h3>
+  <!-- injected by JS -->
+</aside>
 
-  <div class="group">Virtualisation</div>
-  <a href="#segmentation">🗂️ Segmentation</a>
-  <a href="#paging">📄 Pagination</a>
-  <a href="#translation">🌲 Page walk</a>
-  <a href="#tlb">⚡ TLB & Fault</a>
+<!-- ============ STAGE ============ -->
+<main class="stage" id="stage">
 
-  <div class="group">Dynamique</div>
-  <a href="#layout">🏗️ Layout processus</a>
-  <a href="#stack">📚 Stack</a>
-  <a href="#brkmmap">🎒 brk vs mmap</a>
-  <a href="#malloc">🧠 malloc</a>
+<!-- ========== SLIDE 0 : WELCOME ========== -->
+<section class="slide active" data-title="Introduction">
+  <div class="welcome-hero">
+    <h1>Mémoire & Allocation</h1>
+    <p>18 étapes pour maîtriser la gestion mémoire. Fais-les dans l'ordre, prends ton temps, teste les simulateurs. Quand tu maîtrises une étape, elle se marque automatiquement.</p>
+    <div class="meta">
+      <div class="meta-item">🎯 18 étapes</div>
+      <div class="meta-item">🧪 6 simulateurs</div>
+      <div class="meta-item">❓ Quiz final</div>
+    </div>
+  </div>
 
-  <div class="group">Révision</div>
-  <a href="#flash">🃏 Flashcards</a>
-  <a href="#quizfinal">🎯 Quiz final</a>
-</nav>
+  <h2>Comment utiliser cette fiche</h2>
+  <div class="grid-3">
+    <div class="card accent" style="margin:0;">
+      <div class="callout">📖 Lis</div>
+      <p style="font-size:13px;margin:0;">Chaque étape = 1 concept. Court et visuel.</p>
+    </div>
+    <div class="card accent" style="margin:0;">
+      <div class="callout">🧪 Teste</div>
+      <p style="font-size:13px;margin:0;">Utilise les simulateurs pour voir les concepts en action.</p>
+    </div>
+    <div class="card accent" style="margin:0;">
+      <div class="callout">✅ Valide</div>
+      <p style="font-size:13px;margin:0;">Fais le quiz à la fin de chaque étape clé.</p>
+    </div>
+  </div>
 
-<main>
+  <h2>Plan du cours</h2>
+  <div class="topic-grid">
+    <button class="topic-card" onclick="goTo(1)">
+      <div class="emoji">🏔️</div>
+      <div class="name">Hiérarchie mémoire</div>
+      <div class="sub">Registres → Disque</div>
+    </button>
+    <button class="topic-card" onclick="goTo(2)">
+      <div class="emoji">🎯</div>
+      <div class="name">Virtuel vs Physique</div>
+      <div class="sub">MMU & traduction</div>
+    </button>
+    <button class="topic-card" onclick="goTo(3)">
+      <div class="emoji">📐</div>
+      <div class="name">Base & Limit</div>
+      <div class="sub">1er mécanisme protection</div>
+    </button>
+    <button class="topic-card" onclick="goTo(5)">
+      <div class="emoji">🧩</div>
+      <div class="name">Fragmentation</div>
+      <div class="sub">Interne vs externe</div>
+    </button>
+    <button class="topic-card" onclick="goTo(6)">
+      <div class="emoji">📍</div>
+      <div class="name">Stratégies placement</div>
+      <div class="sub">First / Best / Worst</div>
+    </button>
+    <button class="topic-card" onclick="goTo(8)">
+      <div class="emoji">🗂️</div>
+      <div class="name">Segmentation</div>
+      <div class="sub">Base / limit / perm</div>
+    </button>
+    <button class="topic-card" onclick="goTo(9)">
+      <div class="emoji">📄</div>
+      <div class="name">Pagination</div>
+      <div class="sub">Pages & frames</div>
+    </button>
+    <button class="topic-card" onclick="goTo(11)">
+      <div class="emoji">⚡</div>
+      <div class="name">TLB & Page Fault</div>
+      <div class="sub">Cache des traductions</div>
+    </button>
+    <button class="topic-card" onclick="goTo(14)">
+      <div class="emoji">🎒</div>
+      <div class="name">brk vs mmap</div>
+      <div class="sub">Allocation heap</div>
+    </button>
+    <button class="topic-card" onclick="goTo(15)">
+      <div class="emoji">🧠</div>
+      <div class="name">malloc</div>
+      <div class="sub">Arène & free list</div>
+    </button>
+  </div>
 
-<!-- ============ HIERARCHIE ============ -->
-<section id="hierarchie">
-  <h2><span class="num">1</span> Hiérarchie mémoire</h2>
-  <p class="lead">Plus tu descends, plus c'est lent, plus c'est gros, moins c'est cher par octet.</p>
+  <div class="card ok" style="margin-top:24px;">
+    <div class="callout">💡 Astuce TDAH</div>
+    <p style="font-size:13.5px;margin:0;">Ne fais pas tout d'un coup. Choisis <strong>3 étapes</strong>, valide-les, fais une pause. Reviens plus tard. Le cerveau TDAH apprend mieux en petites doses espacées.</p>
+  </div>
+</section>
+
+<!-- ========== SLIDE 1 : HIERARCHIE ========== -->
+<section class="slide" data-title="Hiérarchie mémoire">
+  <div class="slide-num">ÉTAPE 01 / 17</div>
+  <h1>Hiérarchie mémoire</h1>
+  <p class="lead">Le CPU n'accède pas à la RAM à vitesse constante. Il y a une pyramide : plus on monte, plus c'est rapide, petit et cher.</p>
+
+  <h2>La pyramide</h2>
+  <table>
+    <thead>
+      <tr><th>Niveau</th><th>Latence</th><th>Taille</th><th>Note</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Registres</td><td>~0,3 ns</td><td>~1 Ko</td><td>Dans le CPU</td></tr>
+      <tr><td>Cache L1</td><td>~1 ns</td><td>≤128 Ko</td><td>Par cœur</td></tr>
+      <tr><td>Cache L2</td><td>~3 ns</td><td>~1 Mo</td><td>Par cœur</td></tr>
+      <tr><td>Cache L3</td><td>~10 ns</td><td>~10 Mo</td><td>Partagé</td></tr>
+      <tr><td>DRAM</td><td>~100 ns</td><td>~16 Go</td><td>Barrettes RAM</td></tr>
+      <tr><td>SSD</td><td>~10–100 µs</td><td>~1 To</td><td>Flash</td></tr>
+      <tr><td>Disque dur</td><td>~ms</td><td>~4 To</td><td>Mécanique</td></tr>
+    </tbody>
+  </table>
 
   <div class="widget">
     <div class="widget-header">
-      <div class="widget-title">⏱️ Si un accès registre prenait 1 seconde…</div>
+      <div class="widget-title">Simulateur d'échelle</div>
     </div>
+    <p style="font-size:13.5px;margin-bottom:12px;">Si un accès registre prenait <strong id="scaleVal">1 seconde</strong>, alors :</p>
     <input type="range" id="latScale" min="1" max="60" value="1">
-    <div id="latOut" style="margin-top:12px;"></div>
+    <div id="latOut" style="margin-top:14px;"></div>
   </div>
-
-  <table>
-    <tr><th>Niveau</th><th>Latence</th><th>Note</th></tr>
-    <tr><td>Registres</td><td>~0,3 ns</td><td>Dans le CPU</td></tr>
-    <tr><td>Cache L1</td><td>~1 ns</td><td>≤128 KB, par cœur</td></tr>
-    <tr><td>Cache L2</td><td>~3 ns</td><td>~4× plus grand que L1</td></tr>
-    <tr><td>Cache L3</td><td>~10 ns</td><td>Partagé entre cœurs</td></tr>
-    <tr><td>DRAM</td><td>~100 ns</td><td>Barrettes RAM</td></tr>
-    <tr><td>SSD</td><td>~10–100 µs</td><td>Flash</td></tr>
-    <tr><td>Disque dur</td><td>~ms</td><td>Mécanique</td></tr>
-  </table>
 
   <div class="card accent">
     <div class="callout">🎓 À retenir</div>
-    <p>DRAM ≈ <strong>100× plus lente</strong> que L1. Un accès SSD ≈ <strong>1000× plus lent</strong> que DRAM. C'est pour ça que <strong>la localité mémoire</strong> et le <strong>TLB</strong> sont essentiels.</p>
+    <p style="margin:0;">DRAM ≈ <strong>100× plus lente</strong> que L1. La <strong>localité mémoire</strong> (accéder souvent aux mêmes zones) est essentielle pour ne pas perdre de temps.</p>
   </div>
 </section>
 
-<!-- ============ VIRTUEL ============ -->
-<section id="virtual">
-  <h2><span class="num">2</span> Adresses virtuelles vs physiques</h2>
-  <p class="lead">Le processus ne voit JAMAIS les adresses physiques. La MMU fait la traduction.</p>
+<!-- ========== SLIDE 2 : VIRTUEL vs PHYSIQUE ========== -->
+<section class="slide" data-title="Virtuel vs Physique">
+  <div class="slide-num">ÉTAPE 02 / 17</div>
+  <h1>Adresses virtuelles vs physiques</h1>
+  <p class="lead">Un processus ne voit JAMAIS les adresses physiques. Il manipule des adresses virtuelles, et la MMU fait la traduction.</p>
 
   <div class="grid-2">
-    <div class="card accent">
-      <div class="callout">Adresse virtuelle</div>
-      <p>Ce que le processus manipule. Espace de 0 à une taille maximale (comme s'il était seul).</p>
+    <div class="card accent" style="margin:0;">
+      <div class="callout">🌐 Adresse virtuelle</div>
+      <p style="font-size:13.5px;margin:0;">Ce que le processus manipule. Il croit avoir un grand tableau contigu de 0 à une taille max.</p>
     </div>
-    <div class="card accent">
-      <div class="callout">Adresse physique</div>
-      <p>Adresse réelle dans la RAM. Visible seulement par le kernel et la MMU.</p>
+    <div class="card accent" style="margin:0;">
+      <div class="callout">🔌 Adresse physique</div>
+      <p style="font-size:13.5px;margin:0;">L'adresse réelle dans la RAM. Visible seulement par le kernel et la MMU.</p>
     </div>
   </div>
 
+  <h2>Le flux de traduction</h2>
   <div class="card">
-    <div class="callout" style="color:var(--text)">🔄 Flux</div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;padding:10px 0;font-weight:700;font-size:13px;">
-      <span style="padding:8px 14px;background:#eef2ff;border-radius:7px;color:var(--accent);">Processus</span>
-      <span>→</span>
-      <span style="padding:8px 14px;background:#fef3c7;border-radius:7px;color:#92400e;">Adresse virtuelle</span>
-      <span>→</span>
-      <span style="padding:8px 14px;background:#dbeafe;border-radius:7px;color:#1d4ed8;">MMU</span>
-      <span>→</span>
-      <span style="padding:8px 14px;background:#d1fae5;border-radius:7px;color:#047857;">Adresse physique</span>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;padding:8px 0;font-weight:700;font-size:13px;">
+      <span style="padding:10px 16px;background:var(--accent-soft);border-radius:9px;color:var(--accent);">Processus</span>
+      <span style="color:var(--muted);">→</span>
+      <span style="padding:10px 16px;background:var(--orange-soft);border-radius:9px;color:#92400e;">Adresse virtuelle</span>
+      <span style="color:var(--muted);">→</span>
+      <span style="padding:10px 16px;background:#dbeafe;border-radius:9px;color:#1d4ed8;font-weight:800;">MMU</span>
+      <span style="color:var(--muted);">→</span>
+      <span style="padding:10px 16px;background:var(--green-soft);border-radius:9px;color:#047857;">Adresse physique</span>
     </div>
   </div>
 
-  <div class="card ok">
-    <div class="callout">✅ Pourquoi ?</div>
-    <ul style="margin-left:16px;">
-      <li><strong>Sécurité</strong> — un processus ne peut pas lire/modifier un autre</li>
-      <li><strong>Simplicité</strong> — l'app voit un tableau contigu de 0 à ∞</li>
-      <li><strong>Isolation</strong> — le kernel et les autres sont protégés</li>
-    </ul>
+  <h2>Pourquoi cette abstraction ?</h2>
+  <div class="grid-3">
+    <div class="card ok" style="margin:0;">
+      <div class="callout">🔒 Sécurité</div>
+      <p style="font-size:13px;margin:0;">Un processus ne peut pas lire/modifier la mémoire d'un autre.</p>
+    </div>
+    <div class="card ok" style="margin:0;">
+      <div class="callout">🧩 Simplicité</div>
+      <p style="font-size:13px;margin:0;">L'app voit un tableau contigu, pas la RAM fragmentée.</p>
+    </div>
+    <div class="card ok" style="margin:0;">
+      <div class="callout">🎯 Isolation</div>
+      <p style="font-size:13px;margin:0;">Le kernel et les autres processus sont protégés.</p>
+    </div>
+  </div>
+
+  <div class="quiz" data-quiz="q2">
+    <div class="quiz-q">Qui effectue la traduction d'adresse virtuelle vers adresse physique ?</div>
+    <button class="quiz-opt" data-c="false">Le processus lui-même</button>
+    <button class="quiz-opt" data-c="true">La MMU (Memory Management Unit)</button>
+    <button class="quiz-opt" data-c="false">Le compilateur</button>
+    <div class="quiz-fb"></div>
   </div>
 </section>
 
-<!-- ============ BASE & LIMIT ============ -->
-<section id="baselimit">
-  <h2><span class="num">3</span> MMU : Base & Limit</h2>
-  <p class="lead">Premier mécanisme de protection. Simple et efficace.</p>
+<!-- ========== SLIDE 3 : BASE & LIMIT ========== -->
+<section class="slide" data-title="Base & Limit">
+  <div class="slide-num">ÉTAPE 03 / 17</div>
+  <h1>MMU : Base & Limit</h1>
+  <p class="lead">Premier mécanisme de protection. Simple et efficace : deux registres par processus.</p>
 
+  <h2>Les deux registres</h2>
+  <div class="grid-2">
+    <div class="card accent" style="margin:0;">
+      <div class="callout">📐 Limit register</div>
+      <p style="font-size:13.5px;margin:0;">Adresse virtuelle maximale autorisée. Au-delà → <strong>exception</strong>.</p>
+    </div>
+    <div class="card accent" style="margin:0;">
+      <div class="callout">📍 Base register</div>
+      <p style="font-size:13.5px;margin:0;">Offset ajouté à l'adresse virtuelle pour obtenir l'adresse physique.</p>
+    </div>
+  </div>
+
+  <h2>La règle de traduction</h2>
   <div class="formula">
-    si <strong>adresse_virtuelle ≤ limite</strong> :
-    <br>&nbsp;&nbsp;&nbsp;&nbsp;adresse_physique = <strong>base + adresse_virtuelle</strong>
-    <br>sinon → <strong>exception</strong> (segfault)
+    si <strong>adresse_virtuelle ≤ limite</strong> :<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<strong>adresse_physique = base + adresse_virtuelle</strong><br>
+    sinon → <strong>exception (segmentation fault)</strong>
   </div>
 
   <div class="widget">
     <div class="widget-header">
-      <div class="widget-title">🎯 Simulateur MMU</div>
+      <div class="widget-title">Simulateur MMU</div>
     </div>
     <div class="row">
       <div>
         <label>LIMIT</label>
-        <input type="text" id="limIn" value="0x800" style="width:90px;display:block;margin-top:3px;">
+        <input type="text" id="limIn" value="0x800">
       </div>
       <div>
         <label>BASE</label>
-        <input type="text" id="baseIn" value="0x4000" style="width:90px;display:block;margin-top:3px;">
+        <input type="text" id="baseIn" value="0x4000">
       </div>
       <div>
         <label>ADRESSE VIRTUELLE</label>
-        <input type="text" id="vaIn" value="0x80" style="width:90px;display:block;margin-top:3px;">
+        <input type="text" id="vaIn" value="0x80">
       </div>
-      <button onclick="translate()" style="align-self:flex-end;">🔍 Traduire</button>
+      <button class="btn" onclick="runMMU()" style="align-self:flex-end;">Traduire</button>
     </div>
-
-    <div id="mmuOut" style="margin-top:14px;">
-      <div style="display:flex;align-items:center;gap:8px;padding:12px;background:#f9fafb;border-radius:8px;font-family:monospace;font-size:13px;flex-wrap:wrap;justify-content:center;">
-        <span id="vaLabel" style="font-weight:800;"></span>
-        <span style="color:var(--muted);">→</span>
-        <span style="padding:5px 10px;border-radius:5px;background:var(--accent-soft);color:var(--accent);font-weight:800;">&lt; limit ?</span>
-        <span style="color:var(--muted);">→</span>
-        <span style="padding:5px 10px;border-radius:5px;background:#fef3c7;color:#92400e;font-weight:800;">+ base</span>
-        <span style="color:var(--muted);">→</span>
-        <span id="paLabel" style="font-weight:800;color:var(--green);"></span>
-      </div>
-      <div id="verdict" style="text-align:center;margin-top:10px;font-weight:800;"></div>
-    </div>
+    <div id="mmuOut"></div>
   </div>
 
   <div class="card warn">
-    <div class="callout">⚠️ Points d'examen</div>
-    <ul style="margin-left:16px;">
-      <li>La MMU ne garde <strong>aucun historique</strong> — elle applique les règles à chaque accès.</li>
-      <li>L'OS décide des valeurs de base et limite pour chaque processus.</li>
-      <li>Le kernel s'autorise limite=max et base=0.</li>
+    <div class="callout">⚠️ Points clés à l'examen</div>
+    <ul style="margin:6px 0 0 18px;">
+      <li>La MMU <strong>ne garde aucun historique</strong> — elle applique les règles à chaque accès.</li>
+      <li>L'OS configure <strong>base et limit pour chaque processus</strong>.</li>
+      <li>Le kernel peut s'autoriser <code>limit = max</code> et <code>base = 0</code>.</li>
       <li>User space = adresses basses · Kernel space = adresses hautes.</li>
     </ul>
   </div>
+
+  <div class="quiz" data-quiz="q3">
+    <div class="quiz-q">Un processus tente d'accéder à une VA &gt; limite. Que se passe-t-il ?</div>
+    <button class="quiz-opt" data-c="false">Le kernel l'ajoute automatiquement</button>
+    <button class="quiz-opt" data-c="true">Une exception est levée (segfault)</button>
+    <button class="quiz-opt" data-c="false">L'accès est ignoré silencieusement</button>
+    <div class="quiz-fb"></div>
+  </div>
 </section>
 
-<!-- ============ PARTITIONS ============ -->
-<section id="partitions">
-  <h2><span class="num">4</span> Partitionnement simple</h2>
-  <p class="lead">Mémoire totale divisée en parts égales. Simple mais rigide.</p>
+<!-- ========== SLIDE 4 : PARTITIONS ========== -->
+<section class="slide" data-title="Partitionnement simple">
+  <div class="slide-num">ÉTAPE 04 / 17</div>
+  <h1>Partitionnement simple</h1>
+  <p class="lead">La mémoire est divisée en parts égales. Le plus simple, mais aussi le plus rigide.</p>
 
+  <h2>Exemple : 1024 octets / 4 processus</h2>
   <div class="card">
-    <div class="callout" style="color:var(--text)">Exemple : 1024 octets / 4 processus = 256 octets chacun</div>
     <div class="mem-track" style="margin-top:8px;">
       <div class="mem-block p0" style="flex:1;">P0<br>0x000</div>
       <div class="mem-block p1" style="flex:1;">P1<br>0x100</div>
       <div class="mem-block p2" style="flex:1;">P2<br>0x200</div>
       <div class="mem-block p3" style="flex:1;">P3<br>0x300</div>
     </div>
-    <p style="font-size:12.5px;color:var(--muted);margin-top:8px;">Chaque processus croit disposer de 0 à sa limite.</p>
+    <p style="font-size:12.5px;color:var(--text-2);margin:8px 0 0 0;">Chaque processus croit disposer de 0 à sa limite.</p>
   </div>
 
   <div class="grid-2">
-    <div class="card ok">
+    <div class="card ok" style="margin:0;">
       <div class="callout">✅ Avantages</div>
-      <p>Simple, prévisible. Adapté aux systèmes embarqués.</p>
+      <ul style="margin:6px 0 0 18px;font-size:13.5px;">
+        <li>Simple et prévisible</li>
+        <li>Adapté aux systèmes embarqués</li>
+      </ul>
     </div>
-    <div class="card danger">
+    <div class="card danger" style="margin:0;">
       <div class="callout">❌ Inconvénients</div>
-      <p>Allocation fixe → <strong>fragmentation interne</strong>. Nombre de processus difficile à changer.</p>
+      <ul style="margin:6px 0 0 18px;font-size:13.5px;">
+        <li>Fragmentation interne</li>
+        <li>Nombre de processus fixe</li>
+      </ul>
     </div>
   </div>
 </section>
 
-<!-- ============ FRAGMENTATION ============ -->
-<section id="frag">
-  <h2><span class="num">5</span> Fragmentation</h2>
-  <p class="lead">LE problème central de l'allocation mémoire.</p>
+<!-- ========== SLIDE 5 : FRAGMENTATION ========== -->
+<section class="slide" data-title="Fragmentation">
+  <div class="slide-num">ÉTAPE 05 / 17</div>
+  <h1>Fragmentation</h1>
+  <p class="lead">LE problème central de l'allocation mémoire. Deux formes à ne jamais confondre.</p>
 
   <div class="grid-2">
-    <div class="card danger">
+    <div class="card danger" style="margin:0;">
       <div class="callout">🔒 Fragmentation interne</div>
-      <p>Un processus reçoit <strong>plus</strong> que nécessaire. Espace gaspillé <em>à l'intérieur</em> de la zone allouée.</p>
-      <div class="mem-track" style="margin-top:8px;height:32px;">
-        <div class="mem-block used" style="flex:3;">utilisé</div>
+      <p style="font-size:13.5px;">Un processus reçoit <strong>plus</strong> que nécessaire. Espace gaspillé <em>à l'intérieur</em> de la zone allouée.</p>
+      <div class="mem-track" style="margin-top:10px;height:34px;">
+        <div class="mem-block p0" style="flex:3;">utilisé</div>
         <div class="mem-block free" style="flex:1;">gaspillé</div>
       </div>
-      <p style="font-size:12px;color:var(--muted);margin-top:6px;">→ partitions fixes, blocs imposés</p>
+      <p style="font-size:12px;color:var(--text-2);margin:8px 0 0 0;">→ partitions fixes, blocs imposés</p>
     </div>
-    <div class="card warn">
+    <div class="card warn" style="margin:0;">
       <div class="callout">🕳️ Fragmentation externe</div>
-      <p>Mémoire libre découpée en <strong>trous non contigus</strong>. Somme suffisante mais aucun bloc assez grand.</p>
-      <div class="mem-track" style="margin-top:8px;height:32px;">
-        <div class="mem-block used" style="flex:1;"></div>
+      <p style="font-size:13.5px;">Mémoire libre découpée en <strong>trous non contigus</strong>. Somme suffisante mais aucun bloc assez grand.</p>
+      <div class="mem-track" style="margin-top:10px;height:34px;">
+        <div class="mem-block p0" style="flex:1;"></div>
         <div class="mem-block free" style="flex:0.5;">trou</div>
-        <div class="mem-block used" style="flex:1;"></div>
+        <div class="mem-block p1" style="flex:1;"></div>
         <div class="mem-block free" style="flex:0.5;">trou</div>
-        <div class="mem-block used" style="flex:1;"></div>
+        <div class="mem-block p2" style="flex:1;"></div>
       </div>
-      <p style="font-size:12px;color:var(--muted);margin-top:6px;">→ allocation dynamique</p>
+      <p style="font-size:12px;color:var(--text-2);margin:8px 0 0 0;">→ allocation dynamique</p>
     </div>
   </div>
 
   <div class="card accent">
-    <div class="callout">🎓 Définition à retenir</div>
-    <p><strong>Interne</strong> = gaspillage DANS un bloc alloué.<br>
+    <div class="callout">🎓 Définition express</div>
+    <p style="margin:0;"><strong>Interne</strong> = gaspillage DANS un bloc alloué.<br>
     <strong>Externe</strong> = trous ENTRE les blocs alloués.</p>
+  </div>
+
+  <div class="quiz" data-quiz="q5">
+    <div class="quiz-q">La pagination élimine quel type de fragmentation ?</div>
+    <button class="quiz-opt" data-c="false">Interne</button>
+    <button class="quiz-opt" data-c="true">Externe</button>
+    <button class="quiz-opt" data-c="false">Les deux</button>
+    <div class="quiz-fb"></div>
   </div>
 </section>
 
-<!-- ============ PLACEMENT ============ -->
-<section id="placement">
-  <h2><span class="num">6</span> Stratégies de placement</h2>
-  <p class="lead">Comment choisir le trou où placer un nouveau processus ?</p>
+<!-- ========== SLIDE 6 : STRATÉGIES ========== -->
+<section class="slide" data-title="Stratégies placement">
+  <div class="slide-num">ÉTAPE 06 / 17</div>
+  <h1>Stratégies de placement</h1>
+  <p class="lead">Comment choisir le trou où placer un nouveau processus ? 4 stratégies classiques.</p>
 
-  <div class="tabs">
-    <button class="tab active" data-tab="tab-first">First Fit</button>
-    <button class="tab" data-tab="tab-next">Next Fit</button>
-    <button class="tab" data-tab="tab-best">Best Fit</button>
-    <button class="tab" data-tab="tab-worst">Worst Fit</button>
-  </div>
-
-  <div class="tab-content active" id="tab-first">
-    <div class="card accent">
-      <div class="callout">🥇 First Fit</div>
-      <p>Premier bloc libre assez grand.</p>
-      <p><span class="badge green">Simple, rapide</span> <span class="badge red">Peut fragmenter</span></p>
-    </div>
-  </div>
-  <div class="tab-content" id="tab-next">
-    <div class="card accent">
-      <div class="callout">⏭️ Next Fit</div>
-      <p>First Fit en repartant de la <strong>dernière allocation</strong>.</p>
-      <p><span class="badge green">Évite de rescanner depuis le début</span> <span class="badge orange">Dépend de l'ordre</span></p>
-    </div>
-  </div>
-  <div class="tab-content" id="tab-best">
-    <div class="card accent">
-      <div class="callout">🎯 Best Fit</div>
-      <p>Plus <strong>petit</strong> bloc assez grand.</p>
-      <p><span class="badge green">Limite l'espace perdu</span> <span class="badge red">Scan complet, crée des micro-fragments</span></p>
-    </div>
-  </div>
-  <div class="tab-content" id="tab-worst">
-    <div class="card accent">
-      <div class="callout">🐘 Worst Fit</div>
-      <p>Plus <strong>grand</strong> bloc libre.</p>
-      <p><span class="badge green">Laisse de grands restes</span> <span class="badge red">Scan complet, contre-intuitif</span></p>
-    </div>
-  </div>
+  <table>
+    <thead>
+      <tr><th>Stratégie</th><th>Principe</th><th>Avantages</th><th>Inconvénients</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>First Fit</strong></td><td>1er bloc assez grand</td><td><span class="badge green">Simple, rapide</span></td><td><span class="badge red">Peut fragmenter</span></td></tr>
+      <tr><td><strong>Next Fit</strong></td><td>First Fit depuis dernière alloc</td><td><span class="badge green">Évite rescan complet</span></td><td><span class="badge orange">Dépend de l'ordre</span></td></tr>
+      <tr><td><strong>Best Fit</strong></td><td>Plus petit bloc assez grand</td><td><span class="badge green">Perte minimale</span></td><td><span class="badge red">Scan complet, micro-fragments</span></td></tr>
+      <tr><td><strong>Worst Fit</strong></td><td>Plus grand bloc libre</td><td><span class="badge green">Grand reste</span></td><td><span class="badge red">Scan complet</span></td></tr>
+    </tbody>
+  </table>
 
   <div class="widget">
     <div class="widget-header">
-      <div class="widget-title">🎮 Simulateur : requêtes 5 → 3 → 3 → 4 → 4 KB</div>
-      <button class="secondary" onclick="resetPlacement()">↻ Reset</button>
+      <div class="widget-title">Simulateur : requêtes 5 → 3 → 3 → 4 → 4 KB</div>
+      <button class="btn secondary" onclick="resetPlace()">↻ Reset</button>
     </div>
-    <div id="plViz" style="margin:10px 0;"></div>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:10px;">Trous initiaux : <strong>10 KB · 5 KB · 7.5 KB</strong></p>
+    <div id="plViz" style="margin:12px 0;"></div>
     <div class="row">
-      <button onclick="runPlace('first')">First Fit</button>
-      <button onclick="runPlace('next')">Next Fit</button>
-      <button onclick="runPlace('best')">Best Fit</button>
-      <button onclick="runPlace('worst')">Worst Fit</button>
+      <button class="btn" onclick="runPlace('first')">First Fit</button>
+      <button class="btn" onclick="runPlace('next')">Next Fit</button>
+      <button class="btn" onclick="runPlace('best')">Best Fit</button>
+      <button class="btn" onclick="runPlace('worst')">Worst Fit</button>
     </div>
-    <div id="plLog" style="margin-top:10px;font-family:monospace;font-size:11.5px;background:#f9fafb;padding:10px;border-radius:7px;min-height:50px;white-space:pre-line;"></div>
+    <div id="plLog" class="log-box">Clique sur une stratégie pour lancer la simulation.</div>
   </div>
 
   <div class="card warn">
-    <div class="callout">📝 À l'examen</div>
-    <p>Scénario typique : 5 → 3 → 3 → 4 → 4 KB avec trous 10, 5, 7.5. <strong>First Fit peut échouer</strong> à cause de la fragmentation externe. <strong>Next Fit réussit souvent</strong> sans scan complet. Best/Worst nécessitent un scan complet.</p>
+    <div class="callout">📝 À retenir</div>
+    <p style="margin:0;">Dans le scénario 5→3→3→4→4 : <strong>First Fit échoue</strong> (fragmentation externe). <strong>Next Fit et Best Fit réussissent</strong>. La meilleure stratégie dépend du workload.</p>
   </div>
 </section>
 
-<!-- ============ COMPACTION ============ -->
-<section id="compaction">
-  <h2><span class="num">7</span> Compaction</h2>
-  <p class="lead">Déplacer les blocs pour regrouper les espaces libres.</p>
+<!-- ========== SLIDE 7 : COMPACTION ========== -->
+<section class="slide" data-title="Compaction">
+  <div class="slide-num">ÉTAPE 07 / 17</div>
+  <h1>Compaction</h1>
+  <p class="lead">Déplacer les blocs alloués pour regrouper les espaces libres en un seul gros bloc contigu.</p>
 
   <div class="widget">
     <div class="widget-header">
-      <div class="widget-title">🧹 Compacter la mémoire</div>
-      <button class="secondary" onclick="doCompact()">▶ Compacter</button>
+      <div class="widget-title">Simulateur</div>
+      <button class="btn secondary" onclick="doCompact()">▶ Compacter</button>
     </div>
-    <div id="compactViz" class="mem-track" style="height:44px;">
+    <div id="compactViz" class="mem-track" style="height:48px;">
       <div class="mem-block p0" style="flex:1;">P0</div>
       <div class="mem-block free" style="flex:0.5;">libre</div>
       <div class="mem-block p1" style="flex:1;">P1</div>
@@ -663,232 +1362,248 @@
       <div class="mem-block p2" style="flex:1;">P2</div>
       <div class="mem-block free" style="flex:1;">libre</div>
     </div>
-    <p style="font-size:12px;color:var(--muted);margin-top:8px;">
-      ⚠️ Coût élevé : arrêter les processus, copier la mémoire, mettre à jour les registres base/limit.
-    </p>
+  </div>
+
+  <div class="card danger">
+    <div class="callout">⚠️ Coût élevé</div>
+    <ul style="margin:6px 0 0 18px;">
+      <li>Il faut <strong>arrêter les processus</strong></li>
+      <li><strong>Copier</strong> toute la mémoire</li>
+      <li><strong>Mettre à jour</strong> les registres base et limite</li>
+    </ul>
+    <p style="margin:10px 0 0 0;font-size:13.5px;">→ C'est une mitigation, pas une solution parfaite.</p>
+  </div>
+
+  <div class="card accent">
+    <div class="callout">💡 Analogie</div>
+    <p style="margin:0;">C'est comme défragmenter un disque dur. Sur disque, les OS modernes le font souvent <strong>en arrière-plan</strong>.</p>
   </div>
 </section>
 
-<!-- ============ SEGMENTATION ============ -->
-<section id="segmentation">
-  <h2><span class="num">8</span> Segmentation</h2>
-  <p class="lead">Adresse logique = (numéro de segment, offset). Chaque segment a base, limite, permissions.</p>
+<!-- ========== SLIDE 8 : SEGMENTATION ========== -->
+<section class="slide" data-title="Segmentation">
+  <div class="slide-num">ÉTAPE 08 / 17</div>
+  <h1>Segmentation</h1>
+  <p class="lead">Adresse logique = (numéro de segment, offset). Chaque segment a sa base, sa limite et ses permissions.</p>
 
-  <h3>Data structure : table des segments</h3>
+  <h2>Data structure : table des segments</h2>
   <table>
-    <tr><th>Seg</th><th>Base</th><th>Limit</th><th>Perm</th><th>Rôle</th></tr>
-    <tr><td>0</td><td>0x1000</td><td>0x400</td><td><span class="badge red">R-X</span></td><td>Code</td></tr>
-    <tr><td>1</td><td>0x2000</td><td>0x800</td><td><span class="badge blue">RW-</span></td><td>Données</td></tr>
-    <tr><td>2</td><td>0x3000</td><td>0x200</td><td><span class="badge blue">RW-</span></td><td>Stack</td></tr>
+    <thead>
+      <tr><th>Seg</th><th>Base</th><th>Limit</th><th>Perm</th><th>Rôle</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>0</td><td>0x1000</td><td>0x400</td><td><span class="badge red">R-X</span></td><td>Code</td></tr>
+      <tr><td>1</td><td>0x2000</td><td>0x800</td><td><span class="badge blue">RW-</span></td><td>Données</td></tr>
+      <tr><td>2</td><td>0x3000</td><td>0x200</td><td><span class="badge blue">RW-</span></td><td>Stack</td></tr>
+    </tbody>
   </table>
 
   <div class="widget">
     <div class="widget-header">
-      <div class="widget-title">🧮 Traduire (segment, offset) → adresse physique</div>
+      <div class="widget-title">Traduire (segment, offset)</div>
     </div>
     <div class="row">
       <div>
         <label>Segment #</label>
-        <input type="number" id="segNum" value="1" min="0" max="2" style="width:60px;display:block;margin-top:3px;">
+        <input type="number" id="segNum" value="1" min="0" max="2">
       </div>
       <div>
         <label>Offset (hex)</label>
-        <input type="text" id="segOff" value="0x12" style="width:80px;display:block;margin-top:3px;">
+        <input type="text" id="segOff" value="0x12">
       </div>
-      <button onclick="doSeg()" style="align-self:flex-end;">Traduire</button>
+      <button class="btn" onclick="runSeg()" style="align-self:flex-end;">Traduire</button>
     </div>
-    <div id="segOut" style="margin-top:12px;font-size:13px;"></div>
+    <div id="segOut"></div>
   </div>
 
   <div class="grid-2">
-    <div class="card ok">
+    <div class="card ok" style="margin:0;">
       <div class="callout">✅ Avantages</div>
-      <ul style="margin-left:16px;">
+      <ul style="margin:6px 0 0 18px;font-size:13.5px;">
         <li>Permissions fines (R/W/X)</li>
-        <li>Partage de segments entre processus</li>
+        <li>Partage de segments</li>
         <li>Allocation dynamique</li>
-        <li>Réduit fragmentation externe</li>
       </ul>
     </div>
-    <div class="card danger">
+    <div class="card danger" style="margin:0;">
       <div class="callout">❌ Limites</div>
-      <ul style="margin-left:16px;">
+      <ul style="margin:6px 0 0 18px;font-size:13.5px;">
         <li>Gestion complexe</li>
         <li>Peut encore fragmenter</li>
-        <li>Pas le mécanisme principal moderne</li>
+        <li>Rarement utilisé seul aujourd'hui</li>
       </ul>
     </div>
   </div>
 </section>
 
-<!-- ============ PAGINATION ============ -->
-<section id="paging">
-  <h2><span class="num">9</span> Pagination</h2>
-  <p class="lead">Pages de taille fixe (4 KB) mappées sur des frames. <strong>Aucune fragmentation externe !</strong></p>
+<!-- ========== SLIDE 9 : PAGINATION ========== -->
+<section class="slide" data-title="Pagination">
+  <div class="slide-num">ÉTAPE 09 / 17</div>
+  <h1>Pagination</h1>
+  <p class="lead">Mémoire organisée en <strong>pages</strong> de taille fixe (4 KB), mappées sur des <strong>frames</strong> physiques.</p>
 
+  <div class="card accent">
+    <div class="callout">🎯 Le gain principal</div>
+    <p style="margin:0;">Aucune fragmentation externe ! Toutes les pages ont la même taille, donc n'importe quelle page peut aller dans n'importe quelle frame libre.</p>
+  </div>
+
+  <h2>Pages → Frames</h2>
   <div class="widget">
-    <div class="widget-header">
-      <div class="widget-title">📄 Pages → Frames</div>
-    </div>
-    <div style="display:flex;gap:24px;align-items:center;justify-content:center;padding:10px 0;flex-wrap:wrap;">
+    <div style="display:flex;gap:30px;align-items:center;justify-content:center;padding:10px 0;flex-wrap:wrap;">
       <div>
-        <div style="font-size:11px;font-weight:800;color:var(--muted);text-align:center;margin-bottom:6px;">VIRTUEL (P1)</div>
-        <div style="display:flex;flex-direction:column;gap:3px;">
-          <div style="background:#4d6bfe;color:white;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Page 0</div>
-          <div style="background:#4d6bfe;color:white;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Page 1</div>
-          <div style="background:#4d6bfe;color:white;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Page 2</div>
-          <div style="background:#4d6bfe;color:white;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Page 3</div>
+        <div style="font-size:11px;font-weight:800;color:var(--muted);text-align:center;margin-bottom:8px;letter-spacing:0.05em;">VIRTUEL (P1)</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="background:var(--accent);color:white;padding:7px 22px;border-radius:6px;text-align:center;font-size:11.5px;font-weight:800;">Page 0</div>
+          <div style="background:var(--accent);color:white;padding:7px 22px;border-radius:6px;text-align:center;font-size:11.5px;font-weight:800;">Page 1</div>
+          <div style="background:var(--accent);color:white;padding:7px 22px;border-radius:6px;text-align:center;font-size:11.5px;font-weight:800;">Page 2</div>
+          <div style="background:var(--accent);color:white;padding:7px 22px;border-radius:6px;text-align:center;font-size:11.5px;font-weight:800;">Page 3</div>
         </div>
       </div>
-      <div style="font-size:22px;color:var(--accent);">→</div>
+      <div style="font-size:26px;color:var(--accent);font-weight:300;">→</div>
       <div>
-        <div style="font-size:11px;font-weight:800;color:var(--muted);text-align:center;margin-bottom:6px;">PHYSIQUE</div>
-        <div style="display:flex;flex-direction:column;gap:3px;">
-          <div style="background:#1f2937;color:white;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Frame 1 ← P0</div>
-          <div style="background:#e5e7eb;color:#6b7280;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Frame 2 (libre)</div>
-          <div style="background:#1f2937;color:white;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Frame 3 ← P1</div>
-          <div style="background:#1f2937;color:white;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Frame 4 ← P2</div>
-          <div style="background:#e5e7eb;color:#6b7280;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Frame 7 (libre)</div>
+        <div style="font-size:11px;font-weight:800;color:var(--muted);text-align:center;margin-bottom:8px;letter-spacing:0.05em;">PHYSIQUE</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="background:#1e293b;color:white;padding:7px 22px;border-radius:6px;text-align:center;font-size:11.5px;font-weight:800;">Frame 1 ← P0</div>
+          <div style="background:#cbd5e1;color:#475569;padding:7px 22px;border-radius:6px;text-align:center;font-size:11.5px;font-weight:800;">Frame 2 (libre)</div>
+          <div style="background:#1e293b;color:white;padding:7px 22px;border-radius:6px;text-align:center;font-size:11.5px;font-weight:800;">Frame 3 ← P1</div>
+          <div style="background:#1e293b;color:white;padding:7px 22px;border-radius:6px;text-align:center;font-size:11.5px;font-weight:800;">Frame 4 ← P2</div>
         </div>
       </div>
     </div>
   </div>
 
-  <h3>Segmentation vs Pagination</h3>
+  <h2>Segmentation vs Pagination</h2>
   <table>
-    <tr><th></th><th>Segmentation</th><th>Pagination</th></tr>
-    <tr><td>Unité</td><td>Logique (code, stack…)</td><td>Fixe (4 KB)</td></tr>
-    <tr><td>Protection</td><td>Fine</td><td>Moins fine</td></tr>
-    <tr><td>Vitesse</td><td>Plus rapide</td><td>Plus lente</td></tr>
-    <tr><td>Fragmentation</td><td>Externe</td><td>Interne (petite)</td></tr>
+    <thead>
+      <tr><th></th><th>Segmentation</th><th>Pagination</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Unité</strong></td><td>Logique (code, stack…)</td><td>Fixe (4 KB)</td></tr>
+      <tr><td><strong>Protection</strong></td><td>Fine</td><td>Moins fine</td></tr>
+      <tr><td><strong>Vitesse</strong></td><td>Plus rapide</td><td>Plus lente</td></tr>
+      <tr><td><strong>Fragmentation</strong></td><td>Externe</td><td>Interne (petite)</td></tr>
+      <tr><td><strong>Combinable ?</strong></td><td colspan="2" style="text-align:center;"><span class="badge green">Oui</span></td></tr>
+    </tbody>
   </table>
 </section>
 
-<!-- ============ TRANSLATION ============ -->
-<section id="translation">
-  <h2><span class="num">10</span> Table de traduction (page walk)</h2>
-  <p class="lead">Adresse virtuelle = préfixe (indices) + suffixe (offset dans la frame).</p>
+<!-- ========== SLIDE 10 : PAGE WALK ========== -->
+<section class="slide" data-title="Page walk">
+  <div class="slide-num">ÉTAPE 10 / 17</div>
+  <h1>Table de traduction</h1>
+  <p class="lead">Une adresse virtuelle = préfixe (indices dans les tables) + suffixe (offset dans la frame).</p>
 
-  <div class="formula">
-    Adresse virtuelle 0xb2b4 = <strong>[L0][L1][L2]</strong> + <strong>offset</strong>
-    <br>→ on navigue dans les tables jusqu'à la feuille
-    <br>→ feuille = adresse de la frame physique
-    <br>→ physique = frame + offset
+  <h2>Décomposition de l'adresse 0xb2b4</h2>
+  <div class="card">
+    <div style="font-family:'SF Mono',monospace;font-size:12.5px;background:#0f172a;color:#e2e8f0;padding:16px;border-radius:10px;overflow-x:auto;line-height:1.9;">
+      <div style="color:#94a3b8;margin-bottom:8px;">Adresse 0xb2b4 en binaire :</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span style="color:#60a5fa;">L0: <strong>10</strong></span>
+        <span style="color:#fbbf24;">L1: <strong>110</strong></span>
+        <span style="color:#34d399;">L2: <strong>010</strong></span>
+        <span style="color:#cbd5e1;">offset: <strong>10110100</strong></span>
+      </div>
+    </div>
   </div>
 
   <div class="widget">
     <div class="widget-header">
-      <div class="widget-title">🌲 Page walk interactif</div>
-      <button class="secondary" onclick="stepWalk()">▶ Étape suivante</button>
+      <div class="widget-title">Page walk pas à pas</div>
+      <button class="btn" onclick="stepWalk()">▶ Étape suivante</button>
     </div>
-    <div class="ptable" style="margin-bottom:12px;">
-      <div style="margin-bottom:8px;color:#8b949e;">Adresse 0xb2b4 en binaire :</div>
-      <div class="row-pt">
-        <div class="cell" style="background:#1e40af;">L0</div>
-        <div class="cell">1</div>
-        <div class="cell">0</div>
-        <div class="cell" style="background:#92400e;">L1</div>
-        <div class="cell">1</div>
-        <div class="cell">1</div>
-        <div class="cell">0</div>
-        <div class="cell" style="background:#065f46;">L2</div>
-        <div class="cell">0</div>
-        <div class="cell">1</div>
-        <div class="cell">0</div>
-        <div class="cell" style="background:#374151;">offset</div>
-        <div class="cell">1</div>
-        <div class="cell">0</div>
-        <div class="cell">1</div>
-        <div class="cell">1</div>
-        <div class="cell">0</div>
-        <div class="cell">1</div>
-        <div class="cell">0</div>
-        <div class="cell">0</div>
-      </div>
-    </div>
-
-    <div id="walkOut" style="background:#f9fafb;padding:12px;border-radius:8px;font-family:monospace;font-size:12.5px;line-height:1.8;min-height:80px;">
-      <span style="color:var(--muted);">Clique sur ▶ pour avancer dans le page walk</span>
-    </div>
+    <div id="walkOut" class="log-box" style="min-height:120px;">Clique sur "Étape suivante" pour commencer le page walk.</div>
   </div>
 
+  <h2>Data structure : Page Table Entry (PTE)</h2>
   <div class="card">
-    <div class="callout" style="color:var(--text)">📋 Data structure : Page Table Entry (PTE) contient…</div>
-    <ul style="margin-left:16px;">
+    <p style="font-size:13.5px;margin-bottom:10px;">Chaque PTE contient :</p>
+    <ul style="margin:0 0 0 18px;">
       <li><strong>Adresse physique</strong> de la frame <em>ou</em> position swap</li>
       <li><strong>Bit de validité</strong> — page présente en RAM ?</li>
       <li><strong>Bits de permissions</strong> — R / W / X</li>
-      <li><strong>Bit accessed</strong> — accédée depuis dernière éviction ?</li>
-      <li><strong>Bit dirty</strong> — modifiée depuis dernier swap ?</li>
+      <li><strong>Bit accessed</strong> — accédée récemment ?</li>
+      <li><strong>Bit dirty</strong> — modifiée depuis le dernier swap ?</li>
     </ul>
   </div>
 
   <div class="card warn">
-    <div class="callout">⚠️ Cas particuliers à l'examen</div>
-    <ul style="margin-left:16px;">
-      <li><strong>Shortcuts</strong> — une table peut avoir un raccourci direct vers une frame</li>
-      <li><strong>Dead ends</strong> — entrée = 0xdead → adresse invalide → segfault</li>
+    <div class="callout">⚠️ Cas à connaître</div>
+    <ul style="margin:6px 0 0 18px;">
+      <li><strong>Shortcut</strong> — une table peut avoir un raccourci direct vers une frame</li>
+      <li><strong>Dead end</strong> — entrée = 0xdead → adresse invalide → segfault</li>
     </ul>
   </div>
 </section>
 
-<!-- ============ TLB ============ -->
-<section id="tlb">
-  <h2><span class="num">11</span> TLB & Page Fault</h2>
-  <p class="lead">TLB = cache matériel des traductions récentes. Indispensable aux perfs.</p>
+<!-- ========== SLIDE 11 : TLB ========== -->
+<section class="slide" data-title="TLB & Page Fault">
+  <div class="slide-num">ÉTAPE 11 / 17</div>
+  <h1>TLB & Page Fault</h1>
+  <p class="lead">Le TLB est un cache matériel des traductions récentes. Sans lui, chaque accès mémoire ferait un page walk complet.</p>
 
   <div class="widget">
     <div class="widget-header">
-      <div class="widget-title">⚡ Chemin de traduction</div>
-      <button class="secondary" onclick="animTLB()">▶ Animer</button>
+      <div class="widget-title">Chemin de traduction</div>
+      <button class="btn" onclick="animTLB()">▶ Animer</button>
     </div>
     <div id="tlbFlow" style="display:flex;flex-direction:column;gap:6px;"></div>
-    <div id="tlbMsg" style="margin-top:10px;font-size:13px;"></div>
+    <div id="tlbMsg" style="margin-top:12px;"></div>
   </div>
 
-  <h3>Causes d'un page fault</h3>
+  <h2>Causes d'un page fault</h2>
   <table>
-    <tr><th>Cause</th><th>Action</th></tr>
-    <tr><td>Page jamais accédée</td><td><span class="badge green">Lazy alloc → nouvelle frame</span></td></tr>
-    <tr><td>Page en swap</td><td><span class="badge orange">Ramener depuis disque</span></td></tr>
-    <tr><td>Permissions invalides</td><td><span class="badge red">Segfault</span></td></tr>
-    <tr><td>Adresse invalide</td><td><span class="badge red">Segfault</span></td></tr>
+    <thead>
+      <tr><th>Cause</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Page jamais accédée</td><td><span class="badge green">Lazy alloc → nouvelle frame</span></td></tr>
+      <tr><td>Page en swap</td><td><span class="badge orange">Ramener depuis le disque</span></td></tr>
+      <tr><td>Permissions invalides</td><td><span class="badge red">Segfault</span></td></tr>
+      <tr><td>Adresse invalide</td><td><span class="badge red">Segfault</span></td></tr>
+    </tbody>
   </table>
 
+  <div class="grid-3">
+    <div class="stat"><div class="val">4 KB</div><div class="lbl">Taille de page</div></div>
+    <div class="stat"><div class="val">~1 ns</div><div class="lbl">TLB hit</div></div>
+    <div class="stat"><div class="val">~100 ns</div><div class="lbl">TLB miss (page walk)</div></div>
+  </div>
+
   <div class="card accent">
-    <div class="callout">📐 Taille de page typique</div>
-    <p>4 KB = 2¹² octets. Distance approximative stack ↔ heap : ~2⁴⁸ octets.</p>
+    <div class="callout">🎓 À retenir</div>
+    <p style="margin:0;">Le TLB transforme une traduction qui prendrait 100 ns en ~1 ns. C'est <strong>crucial</strong> pour les performances.</p>
   </div>
 </section>
 
-<!-- ============ LAYOUT ============ -->
-<section id="layout">
-  <h2><span class="num">12</span> Layout d'un processus</h2>
-  <p class="lead">Chaque processus voit son propre espace virtuel. Stack descend, heap monte.</p>
+<!-- ========== SLIDE 12 : LAYOUT ========== -->
+<section class="slide" data-title="Layout processus">
+  <div class="slide-num">ÉTAPE 12 / 17</div>
+  <h1>Layout d'un processus</h1>
+  <p class="lead">Chaque processus voit son propre espace virtuel, isolé du kernel et des autres processus.</p>
 
   <div class="widget">
     <div class="widget-header">
-      <div class="widget-title">🏗️ Clique sur un segment</div>
+      <div class="widget-title">Clique sur un segment pour plus d'infos</div>
     </div>
-    <div style="display:flex;gap:14px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:250px;">
-        <div id="layoutViz" style="display:flex;flex-direction:column;gap:2px;font-size:11.5px;font-weight:800;text-align:center;">
-          <div class="seg-it" data-s="kernel" style="background:#1f2937;color:white;padding:9px;border-radius:5px;cursor:pointer;">Kernel space (0xffff…)</div>
-          <div class="seg-it" data-s="args" style="background:#374151;color:white;padding:7px;border-radius:5px;cursor:pointer;">Command line args</div>
-          <div class="seg-it" data-s="stack" style="background:#ec4899;color:white;padding:9px;border-radius:5px;cursor:pointer;">Stack ↓</div>
-          <div style="background:#e5e7eb;color:#6b7280;padding:14px;border-radius:5px;font-size:10.5px;">espace libre</div>
-          <div class="seg-it" data-s="mmap" style="background:#8b5cf6;color:white;padding:7px;border-radius:5px;cursor:pointer;">Memory mapping</div>
-          <div style="background:#e5e7eb;color:#6b7280;padding:10px;border-radius:5px;font-size:10.5px;">espace libre</div>
-          <div class="seg-it" data-s="heap" style="background:#f59e0b;color:white;padding:9px;border-radius:5px;cursor:pointer;">Heap ↑</div>
-          <div class="seg-it" data-s="bss" style="background:#10b981;color:white;padding:7px;border-radius:5px;cursor:pointer;">BSS (uninit data)</div>
-          <div class="seg-it" data-s="data" style="background:#14b8a6;color:white;padding:7px;border-radius:5px;cursor:pointer;">Initialized data</div>
-          <div class="seg-it" data-s="code" style="background:#4d6bfe;color:white;padding:7px;border-radius:5px;cursor:pointer;">Program code (0x0000)</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:260px;">
+        <div id="layoutViz" style="display:flex;flex-direction:column;gap:3px;font-size:11.5px;font-weight:800;text-align:center;">
+          <div class="seg-it" data-s="kernel" style="background:#1e293b;color:white;padding:10px;border-radius:6px;cursor:pointer;transition:all 0.15s;">Kernel space (0xffff…)</div>
+          <div class="seg-it" data-s="args" style="background:#334155;color:white;padding:8px;border-radius:6px;cursor:pointer;transition:all 0.15s;">Command line args</div>
+          <div class="seg-it" data-s="stack" style="background:var(--pink);color:white;padding:10px;border-radius:6px;cursor:pointer;transition:all 0.15s;">Stack ↓</div>
+          <div style="background:#cbd5e1;color:#475569;padding:16px;border-radius:6px;font-size:10.5px;">espace libre</div>
+          <div class="seg-it" data-s="mmap" style="background:var(--purple);color:white;padding:8px;border-radius:6px;cursor:pointer;transition:all 0.15s;">Memory mapping</div>
+          <div style="background:#cbd5e1;color:#475569;padding:12px;border-radius:6px;font-size:10.5px;">espace libre</div>
+          <div class="seg-it" data-s="heap" style="background:var(--orange);color:white;padding:10px;border-radius:6px;cursor:pointer;transition:all 0.15s;">Heap ↑</div>
+          <div class="seg-it" data-s="bss" style="background:var(--green);color:white;padding:8px;border-radius:6px;cursor:pointer;transition:all 0.15s;">BSS (uninit data)</div>
+          <div class="seg-it" data-s="data" style="background:var(--teal);color:white;padding:8px;border-radius:6px;cursor:pointer;transition:all 0.15s;">Initialized data</div>
+          <div class="seg-it" data-s="code" style="background:var(--accent);color:white;padding:8px;border-radius:6px;cursor:pointer;transition:all 0.15s;">Program code (0x0000)</div>
         </div>
       </div>
-      <div style="flex:1;min-width:250px;">
+      <div style="flex:1;min-width:260px;">
         <div id="segInfo" class="card" style="margin:0;">
-          <div class="callout" style="color:var(--text)">ℹ️ Clique sur un segment</div>
-          <p style="font-size:12.5px;color:var(--muted);">Chaque segment a ses propres permissions et fonction.</p>
+          <div class="callout" style="color:var(--text);">ℹ️ Infos</div>
+          <p style="font-size:13px;color:var(--text-2);margin:0;">Clique sur un segment à gauche.</p>
         </div>
       </div>
     </div>
@@ -896,140 +1611,160 @@
 
   <div class="card accent">
     <div class="callout">🎲 ASLR</div>
-    <p>Les débuts de stack et heap sont <strong>randomisés</strong> pour rendre les attaques plus difficiles.</p>
+    <p style="margin:0;">Les débuts de <strong>stack</strong> et <strong>heap</strong> sont randomisés au lancement pour rendre les attaques plus difficiles.</p>
   </div>
 </section>
 
-<!-- ============ STACK ============ -->
-<section id="stack">
-  <h2><span class="num">13</span> Stack</h2>
-  <p class="lead">LIFO, allocation par soustraction du stack pointer, pas de syscall.</p>
+<!-- ========== SLIDE 13 : STACK ========== -->
+<section class="slide" data-title="Stack">
+  <div class="slide-num">ÉTAPE 13 / 17</div>
+  <h1>Stack</h1>
+  <p class="lead">LIFO. Allocation = soustraction du stack pointer. Pas de syscall. Très rapide.</p>
 
   <div class="widget">
     <div class="widget-header">
-      <div class="widget-title">📚 Call stack : pow(4, 3)</div>
-      <button class="secondary" onclick="stepStack()">▶ Étape</button>
+      <div class="widget-title">Call stack AArch64 : pow(4, 3)</div>
+      <button class="btn" onclick="stepStack()">▶ Étape</button>
     </div>
     <pre><code><span class="com">// Prologue</span>
 <span class="kw">stp</span> x29, x30, [sp, #-32]!   <span class="com">// push fp+lr, SP -= 32</span>
 <span class="kw">mov</span> x29, sp
 <span class="kw">sub</span> x1, x1, #1
 <span class="kw">cbz</span> x1, _end
-<span class="kw">str</span> x0, [sp, #16]            <span class="com">// sauvegarde base</span>
+<span class="kw">str</span> x0, [sp, #16]            <span class="com">// sauvegarde x0</span>
 <span class="kw">bl</span> _pow
 <span class="kw">ldr</span> x1, [sp, #16]
 <span class="kw">mul</span> x0, x0, x1
 <span class="com">// Épilogue</span>
 _end: <span class="kw">ldp</span> x29, x30, [sp], #32
 <span class="kw">ret</span></code></pre>
-    <div id="stackOut" style="font-family:monospace;font-size:12px;background:#f9fafb;padding:10px;border-radius:7px;min-height:80px;line-height:1.7;">
-      <span style="color:var(--muted);">Clique sur ▶ pour dérouler la récursion</span>
-    </div>
+    <div id="stackOut" class="log-box" style="min-height:100px;">Clique sur "Étape" pour dérouler la récursion.</div>
   </div>
 
   <div class="grid-3">
-    <div class="stat"><div class="val" style="font-size:14px;">x29</div><div class="lbl">Frame Pointer</div></div>
-    <div class="stat"><div class="val" style="font-size:14px;">x30</div><div class="lbl">Link Register</div></div>
-    <div class="stat"><div class="val" style="font-size:14px;">SP</div><div class="lbl">Stack Pointer</div></div>
+    <div class="stat"><div class="val">x29</div><div class="lbl">Frame Pointer</div></div>
+    <div class="stat"><div class="val">x30</div><div class="lbl">Link Register</div></div>
+    <div class="stat"><div class="val">SP</div><div class="lbl">Stack Pointer</div></div>
   </div>
 
-  <div class="grid-2" style="margin-top:12px;">
-    <div class="card ok">
+  <div class="grid-2" style="margin-top:14px;">
+    <div class="card ok" style="margin:0;">
       <div class="callout">✅ Avantages</div>
-      <p>Très rapide, automatique, localité optimale.</p>
+      <ul style="margin:6px 0 0 18px;font-size:13.5px;">
+        <li>Très rapide (pas de syscall)</li>
+        <li>Gestion automatique</li>
+        <li>Excellente localité mémoire</li>
+      </ul>
     </div>
-    <div class="card danger">
+    <div class="card danger" style="margin:0;">
       <div class="callout">❌ Limites</div>
-      <p>Taille limitée (Kio→Mio), durée de vie liée aux fonctions, <strong>stack overflow</strong> possible.</p>
+      <ul style="margin:6px 0 0 18px;font-size:13.5px;">
+        <li>Taille limitée (Kio → Mio)</li>
+        <li>Durée de vie liée aux fonctions</li>
+        <li>Stack overflow possible</li>
+      </ul>
     </div>
   </div>
 </section>
 
-<!-- ============ BRK/MMAP ============ -->
-<section id="brkmmap">
-  <h2><span class="num">14</span> Heap : brk vs mmap</h2>
-  <p class="lead">Deux mécanismes pour agrandir le heap. Chacun son usage.</p>
+<!-- ========== SLIDE 14 : BRK vs MMAP ========== -->
+<section class="slide" data-title="brk vs mmap">
+  <div class="slide-num">ÉTAPE 14 / 17</div>
+  <h1>Heap : brk vs mmap</h1>
+  <p class="lead">Deux mécanismes pour allouer dans le heap. Chacun ses avantages.</p>
 
   <div class="grid-2">
-    <div class="card accent">
+    <div class="card accent" style="margin:0;">
       <div class="callout">📍 brk — syscall #214</div>
-      <p>Déplace le <strong>program break</strong>, la fin du segment de données.</p>
-      <pre><code>brk(NULL)        <span class="com">// lit l'adresse actuelle</span>
-brk(x1 + 8192)   <span class="com">// étend de 8 KB</span></code></pre>
-      <p><span class="badge green">Simple, rapide</span> <span class="badge red">Fragment, concurrence, protections limitées</span></p>
+      <p style="font-size:13.5px;">Déplace le <strong>program break</strong>, la fin du segment de données.</p>
+      <pre style="font-size:11.5px;"><code>brk(NULL)        <span class="com">// lit l'adresse</span>
+brk(x + 8192)    <span class="com">// +8 KB</span></code></pre>
+      <p style="font-size:13px;margin:0;">
+        <span class="badge green">Simple, rapide</span>
+        <span class="badge red">Fragment, concurrence</span>
+      </p>
     </div>
-    <div class="card accent">
+    <div class="card accent" style="margin:0;">
       <div class="callout">🗺️ mmap — syscall #222</div>
-      <p>Plus général : peut mapper un <strong>fichier</strong> ou de la mémoire anonyme.</p>
-      <pre><code>mmap(addr, len, prot, flags, fd, off)</code></pre>
-      <p><span class="badge green">Grandes allocs, protections, fichiers</span> <span class="badge red">Plus lourd</span></p>
+      <p style="font-size:13.5px;">Plus général : mappe des <strong>fichiers</strong> ou de la mémoire anonyme.</p>
+      <pre style="font-size:11.5px;"><code>mmap(addr, len, prot,
+     flags, fd, offset)</code></pre>
+      <p style="font-size:13px;margin:0;">
+        <span class="badge green">Grandes allocs, protections</span>
+        <span class="badge red">Plus lourd</span>
+      </p>
     </div>
   </div>
 
   <table>
-    <tr><th></th><th>brk</th><th>mmap</th></tr>
-    <tr><td>Complexité</td><td>Simple</td><td>Plus complexe</td></tr>
-    <tr><td>Vitesse</td><td>Rapide</td><td>Plus lent</td></tr>
-    <tr><td>Fragmentation</td><td>Oui</td><td>Non</td></tr>
-    <tr><td>Fichiers</td><td>Non</td><td>Oui</td></tr>
-    <tr><td>Protections</td><td>Limitées</td><td>READ / WRITE / EXEC</td></tr>
-    <tr><td>Usage idéal</td><td>Petites allocs</td><td>Grandes allocs, fichiers</td></tr>
+    <thead>
+      <tr><th></th><th>brk</th><th>mmap</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Complexité</strong></td><td>Simple</td><td>Plus complexe</td></tr>
+      <tr><td><strong>Vitesse</strong></td><td>Rapide</td><td>Plus lent</td></tr>
+      <tr><td><strong>Fragmentation</strong></td><td>Oui</td><td>Non</td></tr>
+      <tr><td><strong>Fichiers</strong></td><td>Non</td><td>Oui</td></tr>
+      <tr><td><strong>Protections</strong></td><td>Limitées</td><td>R / W / X</td></tr>
+      <tr><td><strong>Usage</strong></td><td>Petites allocs</td><td>Grandes allocs, fichiers</td></tr>
+    </tbody>
   </table>
 
   <div class="card accent">
     <div class="callout">🔐 mprotect — syscall #226</div>
-    <p>Change les permissions d'une page. Ne marche QUE sur de la mémoire <code>mmap</code>. Utilisé par les <strong>JIT compilers</strong> (Chrome V8, JVM) et le code auto-modifiant.</p>
+    <p style="margin:0;">Change les permissions d'une page. Ne marche QUE sur de la mémoire <code>mmap</code>. Utilisé par les <strong>JIT compilers</strong> (Chrome V8, JVM).</p>
   </div>
 </section>
 
-<!-- ============ MALLOC ============ -->
-<section id="malloc">
-  <h2><span class="num">15</span> malloc — la couche utilisateur</h2>
-  <p class="lead">Interface pratique. Utilise brk ou mmap selon la taille.</p>
+<!-- ========== SLIDE 15 : MALLOC ========== -->
+<section class="slide" data-title="malloc">
+  <div class="slide-num">ÉTAPE 15 / 17</div>
+  <h1>malloc</h1>
+  <p class="lead">Interface utilisateur pratique. Utilise brk ou mmap selon la taille de l'allocation.</p>
 
   <div class="card accent">
-    <div class="callout">🧠 Décision</div>
-    <div style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:8px 0;font-weight:800;font-size:12px;">
-      <span style="background:#10b981;color:white;padding:7px 14px;border-radius:7px;">new byte[n]</span>
+    <div class="callout">🧠 Décision de malloc</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:12px 0;font-weight:800;font-size:12px;">
+      <span style="background:var(--green);color:white;padding:8px 14px;border-radius:8px;">new byte[n]</span>
       <span>→</span>
-      <span style="background:#fef3c7;color:#92400e;padding:7px 12px;border-radius:7px;">n &lt; 1024 ?</span>
+      <span style="background:var(--orange-soft);color:#92400e;padding:8px 14px;border-radius:8px;">n &lt; 1024 ?</span>
       <span>→</span>
-      <span style="background:#eef2ff;color:var(--accent);padding:7px 12px;border-radius:7px;">fit dans l'arène ?</span>
+      <span style="background:var(--accent-soft);color:var(--accent);padding:8px 14px;border-radius:8px;">fit dans l'arène ?</span>
     </div>
-    <div class="grid-2" style="margin-top:10px;">
+    <div class="grid-2" style="margin-top:12px;">
       <div class="card ok" style="margin:0;">
         <div class="callout">✅ Petite alloc</div>
-        <p style="font-size:12.5px;">Utilise l'<strong>arène</strong> préallouée. Pas de syscall.</p>
+        <p style="font-size:13px;margin:0;">Utilise l'<strong>arène</strong> préallouée. Pas de syscall → très rapide.</p>
       </div>
       <div class="card warn" style="margin:0;">
         <div class="callout">🐢 Grande alloc</div>
-        <p style="font-size:12.5px;">Appel à <code>mmap</code> ou agrandissement d'arène.</p>
+        <p style="font-size:13px;margin:0;">Appel à <code>mmap</code> ou agrandissement d'arène.</p>
       </div>
     </div>
   </div>
 
-  <h3>Data structure : arena, free list, busy list</h3>
+  <h2>Data structure : arena + free list + busy list</h2>
   <div class="widget">
-    <div class="mem-track" style="height:52px;">
-      <div class="mem-block used" style="flex:2;">busy</div>
+    <div class="mem-track" style="height:56px;">
+      <div class="mem-block p0" style="flex:2;">busy</div>
       <div class="mem-block free" style="flex:1;">free</div>
-      <div class="mem-block used" style="flex:2;">busy</div>
+      <div class="mem-block p1" style="flex:2;">busy</div>
       <div class="mem-block free" style="flex:1.5;">free</div>
-      <div class="mem-block used" style="flex:1.5;">busy</div>
+      <div class="mem-block p2" style="flex:1.5;">busy</div>
       <div class="mem-block free" style="flex:1;">free</div>
     </div>
-    <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11.5px;font-weight:800;">
+    <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11.5px;font-weight:800;">
       <span style="color:var(--accent);">→ busy list</span>
       <span style="color:var(--orange);">→ free list</span>
     </div>
-    <p style="font-size:12px;color:var(--muted);margin-top:8px;">
-      Alternative : <strong>bitmap</strong> — 1 bit par slot (utilisé/libre). Très compact.
+    <p style="font-size:12.5px;color:var(--text-2);margin:12px 0 0 0;">
+      Alternative : <strong>bitmap</strong> — 1 bit par slot (utilisé / libre). Très compact.
     </p>
   </div>
 
   <div class="card">
-    <div class="callout" style="color:var(--text)">📋 3 exigences d'un allocateur (à retenir)</div>
-    <ol style="margin-left:16px;">
+    <div class="callout" style="color:var(--text);">📋 3 exigences d'un allocateur</div>
+    <ol style="margin:6px 0 0 18px;">
       <li>Suivre les régions <strong>libres</strong> et <strong>occupées</strong></li>
       <li>Supporter la <strong>libération dans un ordre arbitraire</strong></li>
       <li>Supporter la <strong>réutilisation</strong> d'une région libérée</li>
@@ -1038,81 +1773,147 @@ brk(x1 + 8192)   <span class="com">// étend de 8 KB</span></code></pre>
 
   <div class="card warn">
     <div class="callout">⚠️ À l'examen</div>
-    <p>malloc utilise aussi First/Best/Worst Fit <strong>en interne</strong> pour trouver un slot dans l'arène.</p>
+    <p style="margin:0;">malloc utilise aussi First/Best/Worst Fit <strong>en interne</strong> pour trouver un slot dans l'arène. La <strong>stratégie interne</strong> est différente de l'allocation système.</p>
   </div>
 </section>
 
-<!-- ============ FLASHCARDS ============ -->
-<section id="flash">
-  <h2><span class="num">16</span> Flashcards express</h2>
-  <p class="lead">Clique pour retourner. Reviens-y plusieurs fois.</p>
+<!-- ========== SLIDE 16 : FLASHCARDS ========== -->
+<section class="slide" data-title="Flashcards">
+  <div class="slide-num">ÉTAPE 16 / 17</div>
+  <h1>Flashcards express</h1>
+  <p class="lead">Clique sur chaque carte pour la retourner. Reviens-y plusieurs fois avant l'examen.</p>
 
   <div class="grid-2">
     <div class="flashcard" onclick="this.classList.toggle('flipped')">
       <div class="flashcard-inner">
-        <div class="flashcard-face flashcard-front">Différence entre fragmentation interne et externe ?</div>
-        <div class="flashcard-face flashcard-back"><strong>Interne</strong> : gaspillage DANS un bloc alloué (partition fixe).<br><strong>Externe</strong> : trous ENTRE les blocs (allocation dynamique).</div>
+        <div class="flashcard-face flashcard-front">
+          <div class="label">Question</div>
+          Différence fragmentation interne vs externe ?
+        </div>
+        <div class="flashcard-face flashcard-back">
+          <div class="label">Réponse</div>
+          <strong>Interne</strong> : gaspillage DANS un bloc alloué (partition fixe).<br>
+          <strong>Externe</strong> : trous ENTRE les blocs (allocation dynamique).
+        </div>
       </div>
     </div>
+
     <div class="flashcard" onclick="this.classList.toggle('flipped')">
       <div class="flashcard-inner">
-        <div class="flashcard-face flashcard-front">Formule Base + Limit ?</div>
-        <div class="flashcard-face flashcard-back">Si VA ≤ limit : <strong>PA = base + VA</strong><br>Sinon : exception (segfault).</div>
+        <div class="flashcard-face flashcard-front">
+          <div class="label">Question</div>
+          Formule Base + Limit ?
+        </div>
+        <div class="flashcard-face flashcard-back">
+          <div class="label">Réponse</div>
+          Si VA ≤ limit :<br>
+          <strong>PA = base + VA</strong><br>
+          Sinon : exception (segfault).
+        </div>
       </div>
     </div>
+
     <div class="flashcard" onclick="this.classList.toggle('flipped')">
       <div class="flashcard-inner">
-        <div class="flashcard-face flashcard-front">Que se passe-t-il lors d'un page fault ?</div>
-        <div class="flashcard-face flashcard-back">3 cas :<br>1. Jamais accédée → lazy alloc<br>2. En swap → ramener du disque<br>3. Permissions invalides → segfault</div>
+        <div class="flashcard-face flashcard-front">
+          <div class="label">Question</div>
+          Que se passe-t-il lors d'un page fault ?
+        </div>
+        <div class="flashcard-face flashcard-back">
+          <div class="label">Réponse</div>
+          3 cas :<br>
+          1. Jamais accédée → lazy alloc<br>
+          2. En swap → ramener du disque<br>
+          3. Permissions invalides → segfault
+        </div>
       </div>
     </div>
+
     <div class="flashcard" onclick="this.classList.toggle('flipped')">
       <div class="flashcard-inner">
-        <div class="flashcard-face flashcard-front">Pourquoi le TLB est-il crucial ?</div>
-        <div class="flashcard-face flashcard-back">Sans lui, chaque accès mémoire ferait un page walk complet (plusieurs accès RAM). Avec : quasi-instantané.</div>
+        <div class="flashcard-face flashcard-front">
+          <div class="label">Question</div>
+          Pourquoi le TLB est-il crucial ?
+        </div>
+        <div class="flashcard-face flashcard-back">
+          <div class="label">Réponse</div>
+          Sans lui, chaque accès mémoire ferait un page walk complet (plusieurs accès RAM). Avec : quasi-instantané.
+        </div>
       </div>
     </div>
+
     <div class="flashcard" onclick="this.classList.toggle('flipped')">
       <div class="flashcard-inner">
-        <div class="flashcard-face flashcard-front">brk vs mmap ?</div>
-        <div class="flashcard-face flashcard-back"><strong>brk</strong> : simple, contigu, mais fragment. <strong>mmap</strong> : fichiers + protections + grandes allocs, mais plus lourd.</div>
+        <div class="flashcard-face flashcard-front">
+          <div class="label">Question</div>
+          brk vs mmap ?
+        </div>
+        <div class="flashcard-face flashcard-back">
+          <div class="label">Réponse</div>
+          <strong>brk</strong> : simple, contigu, mais fragment.<br>
+          <strong>mmap</strong> : fichiers + protections + grandes allocs, mais plus lourd.
+        </div>
       </div>
     </div>
+
     <div class="flashcard" onclick="this.classList.toggle('flipped')">
       <div class="flashcard-inner">
-        <div class="flashcard-face flashcard-front">Différence segmentation / pagination ?</div>
-        <div class="flashcard-face flashcard-back">Segmentation = unités logiques + permissions fines. Pagination = blocs fixes 4 KB, aucune fragmentation externe.</div>
+        <div class="flashcard-face flashcard-front">
+          <div class="label">Question</div>
+          Segmentation vs pagination ?
+        </div>
+        <div class="flashcard-face flashcard-back">
+          <div class="label">Réponse</div>
+          <strong>Segmentation</strong> : unités logiques, permissions fines.<br>
+          <strong>Pagination</strong> : blocs fixes 4 KB, aucune fragmentation externe.
+        </div>
       </div>
     </div>
+
     <div class="flashcard" onclick="this.classList.toggle('flipped')">
       <div class="flashcard-inner">
-        <div class="flashcard-face flashcard-front">Bit dirty — à quoi ça sert ?</div>
-        <div class="flashcard-face flashcard-back">Indique si la page a été modifiée. Si non, pas besoin de la réécrire sur disque lors du swap → write-back optimization.</div>
+        <div class="flashcard-face flashcard-front">
+          <div class="label">Question</div>
+          Bit dirty : à quoi ça sert ?
+        </div>
+        <div class="flashcard-face flashcard-back">
+          <div class="label">Réponse</div>
+          Indique si la page a été modifiée.<br>
+          Si non → pas besoin de la réécrire sur disque (write-back optimization).
+        </div>
       </div>
     </div>
+
     <div class="flashcard" onclick="this.classList.toggle('flipped')">
       <div class="flashcard-inner">
-        <div class="flashcard-face flashcard-front">Pourquoi ASLR ?</div>
-        <div class="flashcard-face flashcard-back">Randomise le début de stack et heap pour rendre les attaques mémoire (buffer overflow, ROP) plus difficiles.</div>
+        <div class="flashcard-face flashcard-front">
+          <div class="label">Question</div>
+          Pourquoi ASLR ?
+        </div>
+        <div class="flashcard-face flashcard-back">
+          <div class="label">Réponse</div>
+          Randomise le début de stack et heap pour rendre les attaques mémoire (buffer overflow, ROP) plus difficiles.
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ============ QUIZ FINAL ============ -->
-<section id="quizfinal">
-  <h2><span class="num">★</span> Quiz final</h2>
-  <p class="lead">8 questions pour vérifier que tu es prêt.</p>
+<!-- ========== SLIDE 17 : QUIZ FINAL ========== -->
+<section class="slide" data-title="Quiz final">
+  <div class="slide-num">ÉTAPE 17 / 17</div>
+  <h1>Quiz final</h1>
+  <p class="lead">8 questions pour vérifier que tu es prêt pour l'examen.</p>
 
-  <div class="quiz" data-q="1">
-    <div class="quiz-q">1. Un processus tente d'accéder à une adresse virtuelle > limite. Que se passe-t-il ?</div>
+  <div class="quiz" data-quiz="f1">
+    <div class="quiz-q">1. Un processus tente d'accéder à une adresse virtuelle &gt; limite. Que se passe-t-il ?</div>
     <button class="quiz-opt" data-c="false">Le kernel l'ajoute automatiquement</button>
     <button class="quiz-opt" data-c="true">Une exception est levée (segfault)</button>
     <button class="quiz-opt" data-c="false">L'adresse est ignorée silencieusement</button>
     <div class="quiz-fb"></div>
   </div>
 
-  <div class="quiz" data-q="2">
+  <div class="quiz" data-quiz="f2">
     <div class="quiz-q">2. Quelle stratégie choisit le PLUS PETIT bloc libre assez grand ?</div>
     <button class="quiz-opt" data-c="false">First Fit</button>
     <button class="quiz-opt" data-c="false">Next Fit</button>
@@ -1121,7 +1922,7 @@ brk(x1 + 8192)   <span class="com">// étend de 8 KB</span></code></pre>
     <div class="quiz-fb"></div>
   </div>
 
-  <div class="quiz" data-q="3">
+  <div class="quiz" data-quiz="f3">
     <div class="quiz-q">3. La pagination élimine quel type de fragmentation ?</div>
     <button class="quiz-opt" data-c="false">Interne</button>
     <button class="quiz-opt" data-c="true">Externe</button>
@@ -1129,7 +1930,7 @@ brk(x1 + 8192)   <span class="com">// étend de 8 KB</span></code></pre>
     <div class="quiz-fb"></div>
   </div>
 
-  <div class="quiz" data-q="4">
+  <div class="quiz" data-quiz="f4">
     <div class="quiz-q">4. Que fait brk(NULL) ?</div>
     <button class="quiz-opt" data-c="false">Alloue 8 KB</button>
     <button class="quiz-opt" data-c="true">Retourne l'adresse actuelle du program break</button>
@@ -1137,4 +1938,425 @@ brk(x1 + 8192)   <span class="com">// étend de 8 KB</span></code></pre>
     <div class="quiz-fb"></div>
   </div>
 
-  <div class="quiz
+  <div class="quiz" data-quiz="f5">
+    <div class="quiz-q">5. Le TLB est…</div>
+    <button class="quiz-opt" data-c="true">Un cache matériel des traductions récentes</button>
+    <button class="quiz-opt" data-c="false">Une table de segments en RAM</button>
+    <button class="quiz-opt" data-c="false">Un algorithme de swap</button>
+    <div class="quiz-fb"></div>
+  </div>
+
+  <div class="quiz" data-quiz="f6">
+    <div class="quiz-q">6. malloc utilise l'arène pour…</div>
+    <button class="quiz-opt" data-c="true">Éviter les syscalls sur les petites allocations</button>
+    <button class="quiz-opt" data-c="false">Contourner le kernel</button>
+    <button class="quiz-opt" data-c="false">Écrire directement dans la RAM physique</button>
+    <div class="quiz-fb"></div>
+  </div>
+
+  <div class="quiz" data-quiz="f7">
+    <div class="quiz-q">7. Le bit dirty d'une PTE indique…</div>
+    <button class="quiz-opt" data-c="false">Que la page est invalide</button>
+    <button class="quiz-opt" data-c="true">Que la page a été modifiée depuis le dernier swap</button>
+    <button class="quiz-opt" data-c="false">Que la page appartient au kernel</button>
+    <div class="quiz-fb"></div>
+  </div>
+
+  <div class="quiz" data-quiz="f8">
+    <div class="quiz-q">8. Sur AArch64, quel registre contient le numéro de syscall ?</div>
+    <button class="quiz-opt" data-c="false">x0</button>
+    <button class="quiz-opt" data-c="true">w8</button>
+    <button class="quiz-opt" data-c="false">x30</button>
+    <button class="quiz-opt" data-c="false">x29</button>
+    <div class="quiz-fb"></div>
+  </div>
+
+  <div class="card ok" style="margin-top:24px;">
+    <div class="callout">🧠 Conseil pour demain</div>
+    <p style="margin:0;">Relis les flashcards 2 fois. Concentre-toi sur : <strong>Base+Limit</strong>, <strong>fragmentation</strong>, <strong>stratégies de placement</strong>, <strong>page walk</strong>, <strong>brk vs mmap</strong>. Dors bien — c'est plus rentable que 3h de révision en plus.</p>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER NAV ============ -->
+<nav class="slide-nav">
+  <div class="slide-nav-inner">
+    <button class="nav-btn" id="prevBtn" onclick="goPrev()">← Précédent</button>
+    <div class="slide-counter" id="slideCounter">1 / 18</div>
+    <button class="nav-btn primary" id="nextBtn" onclick="goNext()">Suivant →</button>
+  </div>
+</nav>
+
+<script>
+/* ============ STATE ============ */
+const slides = Array.from(document.querySelectorAll('.slide'));
+const total = slides.length;
+let current = 0;
+const visited = new Set([0]);
+
+/* ============ NAVIGATION ============ */
+const sideProgress = document.getElementById('sideProgress');
+const stage = document.getElementById('stage');
+
+/* Build side nav */
+slides.forEach((s, i) => {
+  if (i === 0) return; // skip welcome in sidebar
+  const btn = document.createElement('button');
+  btn.className = 'step-link';
+  btn.dataset.idx = i;
+  btn.innerHTML = `<span class="dot"></span><span class="num">${String(i).padStart(2,'0')}</span><span>${s.dataset.title}</span>`;
+  btn.addEventListener('click', () => goTo(i));
+  sideProgress.appendChild(btn);
+});
+
+function updateUI() {
+  // Slides visibility
+  slides.forEach((s, i) => s.classList.toggle('active', i === current));
+
+  // Side nav
+  document.querySelectorAll('.step-link').forEach(el => {
+    const idx = +el.dataset.idx;
+    el.classList.toggle('active', idx === current);
+    el.classList.toggle('done', visited.has(idx) && idx !== current);
+  });
+
+  // Progress
+  const pct = (current / (total - 1)) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${current} / ${total - 1}`;
+
+  // Counter
+  document.getElementById('slideCounter').textContent = `${current + 1} / ${total}`;
+
+  // Buttons
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = current === total - 1;
+  document.getElementById('nextBtn').textContent = current === total - 1 ? '✓ Terminé' : 'Suivant →';
+
+  // Scroll top
+  stage.scrollTop = 0;
+}
+
+function goTo(i) {
+  if (i < 0 || i >= total) return;
+  current = i;
+  visited.add(i);
+  updateUI();
+}
+
+function goNext() {
+  if (current < total - 1) goTo(current + 1);
+}
+
+function goPrev() {
+  if (current > 0) goTo(current - 1);
+}
+
+/* Keyboard navigation */
+document.addEventListener('keydown', (e) => {
+  if (e.target.matches('input, textarea')) return;
+  if (e.key === 'ArrowRight') goNext();
+  if (e.key === 'ArrowLeft') goPrev();
+});
+
+/* ============ QUIZ ============ */
+document.querySelectorAll('.quiz').forEach(quiz => {
+  quiz.querySelectorAll('.quiz-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      if (quiz.dataset.done) return;
+      quiz.dataset.done = '1';
+      const ok = opt.dataset.c === 'true';
+      opt.classList.add(ok ? 'correct' : 'wrong');
+      if (!ok) {
+        quiz.querySelectorAll('.quiz-opt').forEach(x => {
+          if (x.dataset.c === 'true') x.classList.add('correct');
+        });
+      }
+      quiz.querySelectorAll('.quiz-opt').forEach(x => x.disabled = true);
+      const fb = quiz.querySelector('.quiz-fb');
+      fb.classList.add('show', ok ? 'ok' : 'ko');
+      fb.textContent = ok ? '✅ Bravo ! Bonne réponse.' : '❌ Pas tout à fait. La bonne réponse est en vert.';
+    });
+  });
+});
+
+/* ============ LATENCY SIMULATOR ============ */
+const latencies = [
+  { n: 'Registres', v: 0.3, c: '#10b981' },
+  { n: 'Cache L1', v: 1, c: '#14b8a6' },
+  { n: 'Cache L2', v: 3, c: '#4f46e5' },
+  { n: 'Cache L3', v: 10, c: '#8b5cf6' },
+  { n: 'DRAM', v: 100, c: '#f59e0b' },
+  { n: 'SSD', v: 10000, c: '#ec4899' },
+  { n: 'Disque dur', v: 10000000, c: '#ef4444' }
+];
+
+function updateLat() {
+  const scale = +document.getElementById('latScale').value;
+  document.getElementById('scaleVal').textContent = scale + ' seconde' + (scale > 1 ? 's' : '');
+  let html = '';
+  latencies.forEach(({ n, v, c }) => {
+    const s = (v / 0.3) * scale;
+    let disp;
+    if (s < 60) disp = s.toFixed(1) + ' s';
+    else if (s < 3600) disp = (s / 60).toFixed(1) + ' min';
+    else if (s < 86400) disp = (s / 3600).toFixed(1) + ' h';
+    else disp = (s / 86400).toFixed(1) + ' jours';
+    const w = Math.min(100, Math.log10(s + 1) * 22);
+    html += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;font-size:12.5px;">
+      <div style="width:80px;font-weight:800;">${n}</div>
+      <div style="flex:1;background:var(--border);height:16px;border-radius:8px;overflow:hidden;">
+        <div style="width:${w}%;background:${c};height:100%;transition:width 0.25s;border-radius:8px;"></div>
+      </div>
+      <div style="width:85px;text-align:right;font-family:'SF Mono',monospace;font-weight:800;color:var(--text-2);">${disp}</div>
+    </div>`;
+  });
+  document.getElementById('latOut').innerHTML = html;
+}
+const latScaleEl = document.getElementById('latScale');
+if (latScaleEl) {
+  latScaleEl.addEventListener('input', updateLat);
+  updateLat();
+}
+
+/* ============ MMU SIMULATOR ============ */
+function parseHex(s) {
+  if (!s) return 0;
+  const clean = String(s).trim().replace(/^0x/i, '');
+  const n = parseInt(clean, 16);
+  return isNaN(n) ? 0 : n;
+}
+function toHex(n) {
+  if (n < 0) return '0x0';
+  return '0x' + n.toString(16).toUpperCase();
+}
+
+function runMMU() {
+  const lim = parseHex(document.getElementById('limIn').value);
+  const base = parseHex(document.getElementById('baseIn').value);
+  const va = parseHex(document.getElementById('vaIn').value);
+  const out = document.getElementById('mmuOut');
+
+  if (va > lim) {
+    out.innerHTML = `
+      <div class="result-box ko">
+        ❌ <strong>Exception (segmentation fault)</strong><br>
+        VA ${toHex(va)} > LIMIT ${toHex(lim)}
+      </div>`;
+  } else {
+    const pa = base + va;
+    out.innerHTML = `
+      <div class="result-box ok">
+        ✅ <strong>Accès autorisé</strong><br>
+        PA = BASE + VA = ${toHex(base)} + ${toHex(va)} = <strong>${toHex(pa)}</strong>
+      </div>`;
+  }
+}
+runMMU();
+
+/* ============ PLACEMENT SIMULATOR ============ */
+const initHoles = [10, 5, 7.5];
+const requests = [5, 3, 3, 4, 4];
+
+function renderPlace(holes, log) {
+  const viz = document.getElementById('plViz');
+  const max = Math.max(...initHoles, ...holes, 10);
+  viz.innerHTML = holes.map((h, i) =>
+    `<div style="display:inline-block;width:${(h/max)*120}px;min-width:60px;height:40px;background:var(--border);color:var(--text-2);margin:3px;border-radius:7px;text-align:center;line-height:40px;font-size:11.5px;font-weight:800;">${h.toFixed(1)} KB</div>`
+  ).join('');
+  document.getElementById('plLog').innerHTML = log.map(l => {
+    if (l.startsWith('  ✓')) return `<span class="ok">${l}</span>`;
+    if (l.startsWith('  ✗')) return `<span class="fail">${l}</span>`;
+    return `<span class="info">${l}</span>`;
+  }).join('\n');
+}
+
+function runPlace(strat) {
+  let holes = [...initHoles];
+  const log = ['Stratégie : ' + strat.toUpperCase()];
+  let lastIdx = 0;
+  let allOk = true;
+
+  for (const req of requests) {
+    let idx = -1;
+    if (strat === 'first') {
+      idx = holes.findIndex(h => h >= req);
+    } else if (strat === 'best') {
+      let best = Infinity;
+      holes.forEach((h, i) => { if (h >= req && h < best) { best = h; idx = i; } });
+    } else if (strat === 'worst') {
+      let w = -1;
+      holes.forEach((h, i) => { if (h >= req && h > w) { w = h; idx = i; } });
+    } else if (strat === 'next') {
+      for (let i = 0; i < holes.length; i++) {
+        const j = (lastIdx + i) % holes.length;
+        if (holes[j] >= req) { idx = j; lastIdx = j; break; }
+      }
+    }
+
+    if (idx === -1) {
+      log.push(`  ✗ ${req} KB → ÉCHEC (fragmentation externe)`);
+      allOk = false;
+      break;
+    }
+    holes[idx] -= req;
+    log.push(`  ✓ ${req} KB → placé dans trou #${idx} (reste ${holes[idx].toFixed(1)} KB)`);
+    if (holes[idx] < 0.5) holes.splice(idx, 1);
+  }
+
+  if (allOk) log.push('✅ Toutes les requêtes réussies.');
+  renderPlace(holes, log);
+}
+
+function resetPlace() {
+  renderPlace(initHoles, ['Prêt. Choisis une stratégie ci-dessus.']);
+}
+resetPlace();
+
+/* ============ COMPACTION ============ */
+function doCompact() {
+  document.getElementById('compactViz').innerHTML = `
+    <div class="mem-block p0" style="flex:1;">P0</div>
+    <div class="mem-block p1" style="flex:1;">P1</div>
+    <div class="mem-block p2" style="flex:1;">P2</div>
+    <div class="mem-block free" style="flex:2;">libre (contigu)</div>
+  `;
+}
+
+/* ============ SEGMENT TRANSLATION ============ */
+const segTab = {
+  0: { base: 0x1000, lim: 0x400, perm: 'R-X' },
+  1: { base: 0x2000, lim: 0x800, perm: 'RW-' },
+  2: { base: 0x3000, lim: 0x200, perm: 'RW-' }
+};
+
+function runSeg() {
+  const s = +document.getElementById('segNum').value;
+  const off = parseHex(document.getElementById('segOff').value);
+  const out = document.getElementById('segOut');
+
+  if (!segTab[s]) {
+    out.innerHTML = `<div class="result-box ko">❌ Segment ${s} invalide. Choisis 0, 1 ou 2.</div>`;
+    return;
+  }
+  const t = segTab[s];
+  if (off > t.lim) {
+    out.innerHTML = `<div class="result-box ko">❌ <strong>Exception</strong> — offset ${toHex(off)} > limite ${toHex(t.lim)}</div>`;
+  } else {
+    const pa = t.base + off;
+    out.innerHTML = `<div class="result-box ok">
+      ✅ (${s}, ${toHex(off)}) → <strong>${toHex(pa)}</strong><br>
+      <span style="font-size:12px;font-weight:600;">Permissions : ${t.perm}</span>
+    </div>`;
+  }
+}
+
+/* ============ PAGE WALK ============ */
+let walkI = 0;
+const walkSteps = [
+  '① Adresse virtuelle = 0xb2b4',
+  '② L0 = "10" → index 2 dans la table L0',
+  '③ L0[2] = 0x0300 → pointe vers la table L1',
+  '④ L1 = "110" → index 6 dans la table L1',
+  '⑤ L1[6] = 0x0370 → pointe vers la table L2',
+  '⑥ L2 = "010" → index 2 dans la table L2 (feuille)',
+  '⑦ L2[2] = 0x0800 → adresse de la frame physique',
+  '⑧ PA = 0x0800 + offset 0xb4 = 0x08B4'
+];
+
+function stepWalk() {
+  const el = document.getElementById('walkOut');
+  if (walkI === 0) el.innerHTML = '';
+  if (walkI < walkSteps.length) {
+    const isLast = walkI === walkSteps.length - 1;
+    el.innerHTML += `<div style="${isLast ? 'color:#6ee7b7;font-weight:800;' : ''}">${walkSteps[walkI]}</div>`;
+    walkI++;
+  } else {
+    walkI = 0;
+    el.innerHTML = '';
+    stepWalk();
+  }
+}
+
+/* ============ TLB ANIMATION ============ */
+function animTLB() {
+  const c = document.getElementById('tlbFlow');
+  const steps = [
+    { l: 'get pa', c: '#10b981' },
+    { l: 'TLB hit ?', c: '#f59e0b' },
+    { l: 'Page hit ?', c: '#f59e0b' },
+    { l: 'Page valid ?', c: '#f59e0b' },
+    { l: 'TLB update', c: '#8b5cf6' },
+    { l: '✅ done', c: '#4f46e5' }
+  ];
+  c.innerHTML = '';
+  steps.forEach((s, i) => {
+    const d = document.createElement('div');
+    d.style.cssText = `background:${s.c};color:white;padding:11px;border-radius:9px;text-align:center;font-weight:800;font-size:12.5px;opacity:0.15;transition:opacity 0.35s;`;
+    d.textContent = s.l;
+    c.appendChild(d);
+    setTimeout(() => { d.style.opacity = '1'; }, i * 350);
+  });
+  document.getElementById('tlbMsg').innerHTML = `<span class="badge blue">Traduction réussie en ~${(Math.random() * 2 + 1).toFixed(1)} ns</span>`;
+}
+
+/* ============ STACK STEPPER ============ */
+let stackI = 0;
+const stackSteps = [
+  'x0=4, x1=3 → appel _pow(4, 3)',
+  'STP x29,x30 → push fp et lr. SP -= 32',
+  'x29 = SP (nouveau frame pointer)',
+  'x1 = 3-1 = 2 → cbz → continue',
+  'STR x0 (4) à [sp+16] → sauvegarde la base',
+  'BL _pow → appel récursif',
+  '  → récursion jusqu\'à x1 = 0',
+  'ldr x1 → restaure 4 depuis [sp+16]',
+  'mul x0, x0, x1 → 4 × 4 = 16',
+  'LDP x29,x30 → pop fp et lr. SP += 32',
+  'RET → saute à l\'adresse de x30',
+  '✅ Résultat final : 4³ = 64'
+];
+
+function stepStack() {
+  const el = document.getElementById('stackOut');
+  if (stackI === 0) el.innerHTML = '';
+  if (stackI < stackSteps.length) {
+    const isLast = stackI === stackSteps.length - 1;
+    el.innerHTML += `<div style="${isLast ? 'color:#6ee7b7;font-weight:800;' : ''}">${stackSteps[stackI]}</div>`;
+    stackI++;
+  } else {
+    stackI = 0;
+    el.innerHTML = '';
+    stepStack();
+  }
+}
+
+/* ============ LAYOUT SEGMENTS ============ */
+const segInfo = {
+  kernel: { t: 'Kernel space', d: 'Mémoire du kernel. Les applications ne peuvent pas y accéder directement.' },
+  args: { t: 'Command line args', d: 'Arguments passés au programme (argv). Taille dynamique au lancement.' },
+  stack: { t: 'Stack', d: 'Pile d\'exécution. Croît vers les basses adresses. Variables locales + cadres de fonction.' },
+  mmap: { t: 'Memory mapping', d: 'Région utilisée par mmap pour mapper des fichiers ou de la mémoire anonyme.' },
+  heap: { t: 'Heap', d: 'Allocation dynamique (malloc). Croît vers les hautes adresses. Durée de vie indépendante.' },
+  bss: { t: 'BSS', d: 'Variables globales non initialisées. Mises à zéro au démarrage.' },
+  data: { t: 'Initialized data', d: 'Variables globales initialisées explicitement.' },
+  code: { t: 'Program code', d: 'Instructions exécutables. Segment en lecture + exécution (R-X).' }
+};
+
+document.querySelectorAll('.seg-it').forEach(el => {
+  el.addEventListener('click', () => {
+    const d = segInfo[el.dataset.s];
+    document.getElementById('segInfo').innerHTML = `
+      <div class="callout" style="color:var(--accent);">${d.t}</div>
+      <p style="font-size:13px;color:var(--text-2);margin:0;">${d.d}</p>
+    `;
+  });
+});
+
+/* ============ INIT ============ */
+updateUI();
+</script>
+
+</body>
+</html>
