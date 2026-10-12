@@ -1,0 +1,1976 @@
+<!DOCTYPE html><html lang="fr">
+<head><script>
+(function() {
+  function sendError(msg, stack, lineno, colno) {
+    try {
+      window.parent.postMessage({
+        type: "BDS_VISUALIZER_ERROR",
+        message: String(msg || "Script error"),
+        stack: stack ? String(stack) : null,
+        lineno: lineno ?? null,
+        colno: colno ?? null
+      }, "*");
+    } catch(e) {}
+  }
+  window.addEventListener("error", function(e) {
+    sendError(e.message, e.error ? e.error.stack : null, e.lineno, e.colno);
+  });
+  window.addEventListener("unhandledrejection", function(e) {
+    var reason = e.reason;
+    var msg = reason ? (reason.message || String(reason)) : "Unhandled Promise Rejection";
+    var stack = reason && reason.stack ? reason.stack : null;
+    sendError(msg, stack);
+  });
+})();
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARM64 Simulator</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px;
+    color: #222;
+    background: #fff;
+  }
+  .app { display: flex; gap: 20px; align-items: flex-start; }
+  .left-col { flex: 1 1 55%; min-width: 0; }
+  .right-col { flex: 1 1 45%; min-width: 0; }
+  .section-title {
+    font-size: 17px;
+    font-weight: 500;
+    margin: 0 0 10px;
+    color: #222;
+  }
+  .section-title.mt { margin-top: 22px; }
+/* ── editor ── */
+.editor-container {
+display: flex;
+border: 1px solid #d0d0d0;
+border-radius: 3px;
+background: #fff;
+height: 220px;
+overflow: hidden;
+margin-bottom: 14px;
+}
+.gutter {
+background: #fff;
+border-right: 1px solid #eee;
+padding: 8px 6px 8px 10px;
+font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+font-size: 12.5px;
+line-height: 1.5;
+color: #999;
+text-align: right;
+user-select: none;
+min-width: 28px;
+overflow: hidden;
+}
+.gutter .ln { cursor: pointer; padding-right: 2px; }
+.gutter .ln:hover { background: #eef2ff; color: #4d6bfe; }
+.gutter .ln.bp { background: #fee2e2; color: #b91c1c; font-weight: 700; }
+.gutter .ln.cur { background: #dbe4ff; color: #2c46c9; font-weight: 700; }
+#editor {
+flex: 1;
+border: 0;
+outline: none;
+resize: none;
+padding: 8px 12px;
+font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+font-size: 12.5px;
+line-height: 1.5;
+color: #222;
+background: #fff;
+tab-size: 4;
+}
+
+/* ── control buttons ── */
+.controls {
+display: flex;
+gap: 0;
+margin-bottom: 14px;
+align-items: stretch;
+}
+.controls button {
+flex: 1;
+border: 0;
+color: #fff;
+font-size: 13px;
+font-weight: 500;
+padding: 10px 0;
+cursor: pointer;
+border-right: 1px solid rgba(255,255,255,.3);
+font-family: inherit;
+}
+.controls button:first-child { border-radius: 3px 0 0 3px; }
+.btn-reset { background: #d9534f; }
+.btn-reset:hover { background: #c9302c; }
+.btn-step { background: #f0ad4e; }
+.btn-step:hover { background: #ec971f; }
+.btn-run { background: #5cb85c; }
+.btn-run:hover { background: #449d44; }
+.controls button:disabled { opacity: .5; cursor: not-allowed; }
+.speed-wrap {
+display: flex;
+align-items: center;
+background: #fff;
+border: 1px solid #d0d0d0;
+border-left: 0;
+padding: 0 12px;
+border-radius: 0 3px 3px 0;
+font-size: 12px;
+color: #333;
+gap: 6px;
+white-space: nowrap;
+}
+.speed-wrap select {
+border: 0;
+font-family: inherit;
+font-size: 12px;
+background: transparent;
+color: #333;
+outline: none;
+cursor: pointer;
+}
+
+/* ── console ── */
+.console {
+border: 1px solid #d0d0d0;
+border-radius: 3px;
+background: #f7f7f7;
+padding: 10px 14px;
+min-height: 100px;
+max-height: 180px;
+overflow-y: auto;
+font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+font-size: 12px;
+line-height: 1.6;
+color: #333;
+white-space: pre-wrap;
+word-break: break-word;
+}
+.console .line { margin: 0; }
+.console .line.current { color: #4d6bfe; font-weight: 600; }
+.console .line.hlt { color: #b91c1c; }
+.console .line.ok { color: #2e7d32; }
+.console .empty { color: #999; font-style: italic; }
+
+/* ── features + download ── */
+.features {
+list-style: disc;
+padding-left: 22px;
+margin: 0 0 4px;
+color: #333;
+line-height: 1.8;
+font-size: 13px;
+}
+.features code {
+background: #f0f0f0;
+padding: 1px 5px;
+border-radius: 3px;
+font-size: 12px;
+}
+.features a { color: #4d6bfe; text-decoration: underline; cursor: pointer; }
+.dl-buttons {
+display: flex;
+gap: 0;
+margin-bottom: 14px;
+}
+.dl-buttons button {
+flex: 1;
+border: 0;
+background: #4d6bfe;
+color: #fff;
+font-family: inherit;
+font-size: 13px;
+font-weight: 500;
+padding: 10px 0;
+cursor: pointer;
+border-right: 1px solid rgba(255,255,255,.3);
+}
+.dl-buttons button:first-child { border-radius: 3px 0 0 3px; }
+.dl-buttons button:last-child { border-radius: 0 3px 3px 0; border-right: 0; }
+.dl-buttons button:hover { background: #3a58e5; }
+
+/* ── tables ── */
+table {
+width: 100%;
+border-collapse: collapse;
+font-size: 12px;
+font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+th {
+text-align: left;
+font-weight: 600;
+padding: 6px 8px;
+border-bottom: 2px solid #e0e0e0;
+color: #333;
+background: #fafafa;
+position: sticky;
+top: 0;
+font-size: 12px;
+}
+td {
+padding: 4px 8px;
+border-bottom: 1px solid #f0f0f0;
+color: #333;
+vertical-align: middle;
+}
+tr.changed td { background: #eef2ff; }
+tr.hit td { background: #e0e7ff; }
+.reg-table-wrap {
+max-height: 700px;
+overflow-y: auto;
+border: 1px solid #e0e0e0;
+border-radius: 3px;
+}
+.mem-table-wrap {
+max-height: 320px;
+overflow-y: auto;
+border: 1px solid #e0e0e0;
+border-radius: 3px;
+margin-top: 8px;
+}
+td input.init-val {
+width: 70px;
+border: 1px solid #d0d0d0;
+border-radius: 3px;
+padding: 2px 5px;
+font-family: inherit;
+font-size: 11.5px;
+text-align: right;
+color: #333;
+outline: none;
+}
+td input.init-val:focus { border-color: #4d6bfe; }
+.mem-controls {
+display: flex;
+align-items: center;
+gap: 10px;
+margin-bottom: 6px;
+font-size: 13px;
+}
+.mem-controls input {
+border: 1px solid #d0d0d0;
+border-radius: 3px;
+padding: 5px 10px;
+font-family: ui-monospace, monospace;
+font-size: 12.5px;
+width: 130px;
+outline: none;
+}
+.mem-controls input:focus { border-color: #4d6bfe; }
+.mem-controls button {
+background: #4d6bfe;
+color: #fff;
+border: 0;
+border-radius: 3px;
+padding: 6px 16px;
+font-family: inherit;
+font-size: 12.5px;
+cursor: pointer;
+}
+.mem-controls button:hover { background: #3a58e5; }
+
+/* ── reference tables ── */
+.ref-section {
+margin-top: 34px;
+padding-top: 20px;
+border-top: 2px solid #e5e7eb;
+}
+.ref-title {
+font-size: 20px;
+font-weight: 600;
+margin: 0 0 6px;
+color: #222;
+}
+.ref-subtitle {
+font-size: 12px;
+font-style: italic;
+color: #666;
+margin-bottom: 4px;
+}
+.ref-isabadge {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+font-size: 12px;
+color: #333;
+margin-bottom: 12px;
+}
+.ref-dot {
+display: inline-block;
+width: 20px;
+height: 20px;
+border-radius: 50%;
+background: #16a34a;
+color: #fff;
+text-align: center;
+line-height: 20px;
+font-size: 13px;
+font-weight: 700;
+}
+.ref-table {
+width: 100%;
+border-collapse: collapse;
+font-size: 12.5px;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+margin-bottom: 30px;
+}
+.ref-table th {
+text-align: left;
+font-weight: 600;
+padding: 8px 10px;
+border-bottom: 2px solid #d5d5d5;
+color: #222;
+background: #f7f7f7;
+font-size: 12.5px;
+position: static;
+}
+.ref-table td {
+padding: 7px 10px;
+border-bottom: 1px solid #eee;
+color: #333;
+vertical-align: middle;
+font-size: 12.5px;
+}
+.ref-table td code {
+font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+font-size: 12px;
+color: #1a1a1a;
+background: transparent;
+padding: 0;
+}
+.ref-table tbody tr:hover { background: #fafbff; }
+.badge {
+display: inline-block;
+font-size: 10.5px;
+font-weight: 600;
+padding: 2px 7px;
+border-radius: 3px;
+color: #fff;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+white-space: nowrap;
+}
+.badge-r { background: #3b82f6; }
+.badge-i { background: #f59e0b; }
+.badge-s { background: #16a34a; }
+.badge-b { background: #06b6d4; }
+.badge-u { background: #ef4444; }
+.badge-j { background: #6b7280; }
+.saver {
+display: inline-block;
+font-size: 10.5px;
+font-weight: 600;
+padding: 2px 7px;
+border-radius: 3px;
+background: #1f2937;
+color: #fff;
+}
+
+@media (max-width: 900px) {
+.app { flex-direction: column; }
+.ref-table { font-size: 11.5px; }
+.ref-table td, .ref-table th { padding: 5px 6px; }
+}
+</style>
+<style>
+:root {
+  --v-bg: #ffffff;
+  --v-panel: #ffffff;
+  --v-border: #e5e5e5;
+  --v-border-strong: #d1d5db;
+  --v-accent: #4d6bfe;
+  --v-accent-glow: rgba(77, 107, 254, 0.1);
+  --v-text: #0d0d0d;
+  --v-text-secondary: #6b6b6b;
+  --v-text-dim: #999999;
+  --v-radius: 12px;
+  --v-radius-sm: 8px;
+  --v-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+}
+body {
+  margin: 0;
+  padding: clamp(12px, 2vw, 28px);
+  background: var(--v-bg);
+  color: var(--v-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--v-border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--v-border-strong);
+}
+.v-card {
+  background: var(--v-panel);
+  border: 1px solid var(--v-border);
+  border-radius: var(--v-radius);
+  padding: clamp(1rem, 2vw, 1.5rem);
+  box-shadow: var(--v-shadow);
+  animation: v-fade-in 0.25s ease-out;
+}
+.v-glass {
+  background: transparent;
+  border: 1px solid var(--v-border);
+  border-radius: var(--v-radius-sm);
+}
+.v-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--v-text);
+  border-bottom: 2px solid var(--v-border);
+  padding-bottom: 6px;
+  display: inline-block;
+}
+.v-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 1.5rem;
+}
+.v-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--v-text-secondary);
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--v-border);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  margin: 8px 0;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--v-accent);
+  border: 2px solid var(--v-panel);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--v-accent);
+  border: 2px solid var(--v-panel);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  cursor: pointer;
+}
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  background: var(--v-bg);
+  color: var(--v-text);
+  border: 1px solid var(--v-border);
+  border-radius: var(--v-radius-sm);
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--v-accent);
+  box-shadow: 0 0 0 2px var(--v-accent-glow);
+}
+select {
+  cursor: pointer;
+}
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+.v-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+.v-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.8125rem;
+  color: var(--v-accent);
+  font-weight: 700;
+  background: var(--v-accent-glow);
+  padding: 3px 10px;
+  border-radius: var(--v-radius-sm);
+}
+button.v-btn {
+  background: var(--v-accent);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--v-radius-sm);
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+}
+button.v-btn:hover {
+  filter: brightness(0.9);
+  transform: translateY(-1px);
+}
+button.v-btn:active {
+  transform: translateY(0);
+}
+button.v-btn-outline {
+  background: transparent;
+  color: var(--v-accent);
+  border: 1px solid var(--v-accent);
+}
+button.v-btn-outline:hover {
+  background: var(--v-accent-glow);
+}
+.v-animate-float {
+  animation: v-float 3s ease-in-out infinite;
+}
+@keyframes v-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+pre, code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.8125rem;
+}
+pre {
+  background: var(--v-bg);
+  border: 1px solid var(--v-border);
+  border-radius: var(--v-radius-sm);
+  padding: 12px 16px;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+code {
+  background: var(--v-accent-glow);
+  color: var(--v-accent);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+}
+input[type="checkbox"] {
+  accent-color: var(--v-accent);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+canvas {
+  width: 100%;
+  border: 1px solid var(--v-border-strong);
+  border-radius: var(--v-radius-sm);
+  background: var(--v-panel);
+}
+@keyframes v-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+  </style></head>
+<body><div class="app">
+  <div class="left-col">
+    <div class="section-title">Input your ARM64 code here:</div>
+    <div class="editor-container">
+      <div class="gutter" id="gutter"></div>
+      <textarea id="editor" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+    </div>    <div class="controls">
+      <button class="btn-reset" id="btnReset">Reset</button>
+      <button class="btn-step" id="btnStep">Step</button>
+      <button class="btn-run" id="btnRun">Run</button>
+      <div class="speed-wrap">
+        <span>CPU:</span>
+        <select id="speed">
+          <option value="500">2 Hz</option>
+          <option value="200">5 Hz</option>
+          <option value="100">10 Hz</option>
+          <option value="50">20 Hz</option>
+          <option value="20" selected>50 Hz</option>
+          <option value="0">Max</option>
+        </select>
+      </div>
+    </div>    <div class="console" id="console"><span class="empty">Console output will appear here.</span></div>    <div class="section-title mt">Features</div>
+    <ul class="features">
+      <li><b>Reset</b> to load the code, <b>Step</b> one instruction, or <b>Run</b> all instructions</li>
+      <li>Set a breakpoint by clicking on the line number (only for <b>Run</b>)</li>
+      <li>View registers on the right, memory below</li>
+    </ul>    <div class="section-title mt">Download</div>
+    <div class="dl-buttons">
+      <button data-dl="all">All</button>
+      <button data-dl="code">Code</button>
+      <button data-dl="reg">Registers</button>
+      <button data-dl="mem">Memory</button>
+    </div>
+  </div>  <div class="right-col">
+    <div class="section-title">Registers</div>
+    <div class="reg-table-wrap">
+      <table class="reg-table" id="regTable"></table>
+    </div>
+  </div>
+</div><div class="section-title mt" style="margin-top:26px;">Memory</div>
+<div class="mem-controls">
+  <span>Memory Address</span>
+  <input id="memAddr" value="0x4000">
+  <button id="memGo">Go</button>
+</div>
+<div class="mem-table-wrap">
+  <table class="mem-table" id="memTable"></table>
+</div><!-- ═══════════════════════════════════════════════════════════
+     REFERENCE SECTION
+     ═══════════════════════════════════════════════════════════ --><div class="ref-section">  <div class="ref-title">Supported Instructions</div>
+  <div class="ref-subtitle">SIMULATOR ISA</div>
+  <div class="ref-isabadge"><span class="ref-dot">✓</span> ARMv8-A (AArch64)</div>  <table class="ref-table">
+    <thead>
+      <tr>
+        <th style="width:100px;">Instr Type</th>
+        <th style="width:70px;">Instr</th>
+        <th style="width:230px;">Struct</th>
+        <th style="width:290px;">Operation</th>
+        <th>Function</th>
+        <th style="width:80px;">Type</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Arithmetic -->
+      <tr><td>Arithmetic</td><td><code>add</code></td><td><code>add rd, rn, rm</code></td><td><code>rd = rn + rm</code></td><td>Addition</td><td><span class="badge badge-r">R-Type</span></td></tr>
+      <tr><td>Arithmetic</td><td><code>add</code></td><td><code>add rd, rn, #imm</code></td><td><code>rd = rn + imm</code></td><td>Addition Immediate</td><td><span class="badge badge-i">I-Type</span></td></tr>
+      <tr><td>Arithmetic</td><td><code>adds</code></td><td><code>adds rd, rn, rm</code></td><td><code>rd = rn + rm</code> (updates NZCV)</td><td>Add &amp; Set Flags</td><td><span class="badge badge-r">R-Type</span></td></tr>
+      <tr><td>Arithmetic</td><td><code>sub</code></td><td><code>sub rd, rn, rm</code></td><td><code>rd = rn - rm</code></td><td>Subtraction</td><td><span class="badge badge-r">R-Type</span></td></tr>
+      <tr><td>Arithmetic</td><td><code>sub</code></td><td><code>sub rd, rn, #imm</code></td><td><code>rd = rn - imm</code></td><td>Subtract Immediate</td><td><span class="badge badge-i">I-Type</span></td></tr>
+      <tr><td>Arithmetic</td><td><code>subs</code></td><td><code>subs rd, rn, rm</code></td><td><code>rd = rn - rm</code> (updates NZCV)</td><td>Sub &amp; Set Flags</td><td><span class="badge badge-r">R-Type</span></td></tr>
+      <tr><td>Arithmetic</td><td><code>mul</code></td><td><code>mul rd, rn, rm</code></td><td><code>rd = rn * rm</code></td><td>Multiplication</td><td><span class="badge badge-r">R-Type</span></td></tr>
+      <tr><td>Arithmetic</td><td><code>madd</code></td><td><code>madd rd, rn, rm, ra</code></td><td><code>rd = ra + rn * rm</code></td><td>Multiply-Accumulate</td><td><span class="badge badge-r">R-Type</span></td></tr>      <!-- Comparison -->      <tr><td>Compare</td><td><code>cmp</code></td><td><code>cmp rn, rm</code></td><td><code>rn - rm</code> (updates NZCV only)</td><td>Compare</td><td><span class="badge badge-r">R-Type</span></td></tr>
+      <tr><td>Compare</td><td><code>cmp</code></td><td><code>cmp rn, #imm</code></td><td><code>rn - imm</code> (updates NZCV only)</td><td>Compare Immediate</td><td><span class="badge badge-i">I-Type</span></td></tr>      <!-- Logical -->      <tr><td>Logical</td><td><code>and</code></td><td><code>and rd, rn, rm</code></td><td><code>rd = rn &amp; rm</code></td><td>AND</td><td><span class="badge badge-r">R-Type</span></td></tr>
+      <tr><td>Logical</td><td><code>orr</code></td><td><code>orr rd, rn, rm</code></td><td><code>rd = rn | rm</code></td><td>OR</td><td><span class="badge badge-r">R-Type</span></td></tr>
+      <tr><td>Logical</td><td><code>eor</code></td><td><code>eor rd, rn, rm</code></td><td><code>rd = rn ^ rm</code></td><td>Exclusive OR</td><td><span class="badge badge-r">R-Type</span></td></tr>
+      <tr><td>Logical</td><td><code>mvn</code></td><td><code>mvn rd, rm</code></td><td><code>rd = ~rm</code></td><td>Bitwise NOT</td><td><span class="badge badge-r">R-Type</span></td></tr>      <!-- Move -->      <tr><td>Move</td><td><code>mov</code></td><td><code>mov rd, rm</code></td><td><code>rd = rm</code></td><td>Move register</td><td><span class="badge badge-r">R-Type</span></td></tr>
+      <tr><td>Move</td><td><code>mov</code></td><td><code>mov rd, #imm</code></td><td><code>rd = imm</code></td><td>Move immediate</td><td><span class="badge badge-i">I-Type</span></td></tr>
+      <tr><td>Move</td><td><code>movz</code></td><td><code>movz rd, #imm{, lsl #n}</code></td><td><code>rd = imm &lt;&lt; n</code></td><td>Move wide with zero</td><td><span class="badge badge-i">I-Type</span></td></tr>
+      <tr><td>Move</td><td><code>movk</code></td><td><code>movk rd, #imm{, lsl #n}</code></td><td><code>rd[field] = imm</code></td><td>Move wide with keep</td><td><span class="badge badge-i">I-Type</span></td></tr>      <!-- Shifts -->      <tr><td>Shifts</td><td><code>lsl</code></td><td><code>lsl rd, rn, #sh</code></td><td><code>rd = rn &lt;&lt; sh</code></td><td>Shift Left Logical</td><td><span class="badge badge-i">I-Type</span></td></tr>
+      <tr><td>Shifts</td><td><code>lsr</code></td><td><code>lsr rd, rn, #sh</code></td><td><code>rd = rn &gt;&gt; sh</code> (zero-fill)</td><td>Shift Right Logical</td><td><span class="badge badge-i">I-Type</span></td></tr>
+      <tr><td>Shifts</td><td><code>asr</code></td><td><code>asr rd, rn, #sh</code></td><td><code>rd = rn &gt;&gt;&gt; sh</code> (sign-fill)</td><td>Shift Right Arithmetic</td><td><span class="badge badge-i">I-Type</span></td></tr>
+      <tr><td>Shifts</td><td><code>ror</code></td><td><code>ror rd, rn, #sh</code></td><td><code>rd = rotate_right(rn, sh)</code></td><td>Rotate Right</td><td><span class="badge badge-i">I-Type</span></td></tr>      <!-- Memory -->      <tr><td>Memory</td><td><code>ldr</code></td><td><code>ldr rd, [rn{, #imm}]</code></td><td><code>rd = Memory[rn + imm]</code></td><td>Load Register (64-bit)</td><td><span class="badge badge-i">I-Type</span></td></tr>
+      <tr><td>Memory</td><td><code>ldr</code></td><td><code>ldr Wd, [rn{, #imm}]</code></td><td><code>Wd = Memory[rn + imm]</code></td><td>Load Register (32-bit)</td><td><span class="badge badge-i">I-Type</span></td></tr>
+      <tr><td>Memory</td><td><code>ldrb</code></td><td><code>ldrb Wd, [rn{, #imm}]</code></td><td><code>Wd = ZeroExtend(Memory[rn+imm][7:0])</code></td><td>Load Byte</td><td><span class="badge badge-i">I-Type</span></td></tr>
+      <tr><td>Memory</td><td><code>ldrh</code></td><td><code>ldrh Wd, [rn{, #imm}]</code></td><td><code>Wd = ZeroExtend(Memory[rn+imm][15:0])</code></td><td>Load Halfword</td><td><span class="badge badge-i">I-Type</span></td></tr>
+      <tr><td>Memory</td><td><code>ldp</code></td><td><code>ldp rt, rt2, [rn{, #imm}]</code></td><td><code>rt = Mem[rn+imm]; rt2 = Mem[rn+imm+8]</code></td><td>Load Pair</td><td><span class="badge badge-i">I-Type</span></td></tr>
+      <tr><td>Memory</td><td><code>str</code></td><td><code>str rs, [rn{, #imm}]</code></td><td><code>Memory[rn + imm] = rs</code></td><td>Store Register</td><td><span class="badge badge-s">S-Type</span></td></tr>
+      <tr><td>Memory</td><td><code>strb</code></td><td><code>strb Ws, [rn{, #imm}]</code></td><td><code>Memory[rn+imm][7:0] = Ws[7:0]</code></td><td>Store Byte</td><td><span class="badge badge-s">S-Type</span></td></tr>
+      <tr><td>Memory</td><td><code>strh</code></td><td><code>strh Ws, [rn{, #imm}]</code></td><td><code>Memory[rn+imm][15:0] = Ws[15:0]</code></td><td>Store Halfword</td><td><span class="badge badge-s">S-Type</span></td></tr>
+      <tr><td>Memory</td><td><code>stp</code></td><td><code>stp rt, rt2, [rn{, #imm}]</code></td><td><code>Mem[rn+imm] = rt; Mem[rn+imm+8] = rt2</code></td><td>Store Pair</td><td><span class="badge badge-s">S-Type</span></td></tr>      <!-- PC-relative -->      <tr><td>PC-rel</td><td><code>adr</code></td><td><code>adr rd, label</code></td><td><code>rd = PC + offset</code></td><td>Address of label</td><td><span class="badge badge-i">I-Type</span></td></tr>
+      <tr><td>PC-rel</td><td><code>adrp</code></td><td><code>adrp rd, label</code></td><td><code>rd = (PC &amp; ~0xFFF) + (offset &lt;&lt; 12)</code></td><td>Address of 4KB page</td><td><span class="badge badge-i">I-Type</span></td></tr>      <!-- Jumps -->      <tr><td>Jumps</td><td><code>b</code></td><td><code>b label</code></td><td><code>PC = label</code></td><td>Unconditional Branch</td><td><span class="badge badge-j">J-Type</span></td></tr>
+      <tr><td>Jumps</td><td><code>bl</code></td><td><code>bl label</code></td><td><code>X30 = PC + 4; PC = label</code></td><td>Branch with Link</td><td><span class="badge badge-j">J-Type</span></td></tr>
+      <tr><td>Jumps</td><td><code>br</code></td><td><code>br rn</code></td><td><code>PC = rn</code></td><td>Branch to Register</td><td><span class="badge badge-r">R-Type</span></td></tr>
+      <tr><td>Jumps</td><td><code>blr</code></td><td><code>blr rn</code></td><td><code>X30 = PC + 4; PC = rn</code></td><td>Branch &amp; Link Register</td><td><span class="badge badge-r">R-Type</span></td></tr>
+      <tr><td>Jumps</td><td><code>ret</code></td><td><code>ret {rn}</code></td><td><code>PC = X30</code> (or rn)</td><td>Return from subroutine</td><td><span class="badge badge-r">R-Type</span></td></tr>
+      <tr><td>Jumps</td><td><code>cbz</code></td><td><code>cbz rt, label</code></td><td><code>if (rt == 0) PC = label</code></td><td>Compare &amp; Branch if Zero</td><td><span class="badge badge-b">B-Type</span></td></tr>
+      <tr><td>Jumps</td><td><code>cbnz</code></td><td><code>cbnz rt, label</code></td><td><code>if (rt != 0) PC = label</code></td><td>Compare &amp; Branch if Nonzero</td><td><span class="badge badge-b">B-Type</span></td></tr>      <!-- Conditional Branches -->      <tr><td>Branches</td><td><code>beq</code></td><td><code>b.eq label</code></td><td><code>if (Z == 1) PC = label</code></td><td>Branch if Equal</td><td><span class="badge badge-b">B-Type</span></td></tr>
+      <tr><td>Branches</td><td><code>bne</code></td><td><code>b.ne label</code></td><td><code>if (Z == 0) PC = label</code></td><td>Branch if Not Equal</td><td><span class="badge badge-b">B-Type</span></td></tr>
+      <tr><td>Branches</td><td><code>blt</code></td><td><code>b.lt label</code></td><td><code>if (N != V) PC = label</code></td><td>Branch if Less Than (signed)</td><td><span class="badge badge-b">B-Type</span></td></tr>
+      <tr><td>Branches</td><td><code>ble</code></td><td><code>b.le label</code></td><td><code>if (Z == 1 || N != V) PC = label</code></td><td>Branch if Less or Equal</td><td><span class="badge badge-b">B-Type</span></td></tr>
+      <tr><td>Branches</td><td><code>bgt</code></td><td><code>b.gt label</code></td><td><code>if (Z == 0 &amp;&amp; N == V) PC = label</code></td><td>Branch if Greater Than (signed)</td><td><span class="badge badge-b">B-Type</span></td></tr>
+      <tr><td>Branches</td><td><code>bge</code></td><td><code>b.ge label</code></td><td><code>if (N == V) PC = label</code></td><td>Branch if Greater or Equal</td><td><span class="badge badge-b">B-Type</span></td></tr>
+      <tr><td>Branches</td><td><code>bhi</code></td><td><code>b.hi label</code></td><td><code>if (C == 1 &amp;&amp; Z == 0) PC = label</code></td><td>Branch if Higher (unsigned)</td><td><span class="badge badge-b">B-Type</span></td></tr>
+      <tr><td>Branches</td><td><code>blo</code></td><td><code>b.lo label</code></td><td><code>if (C == 0) PC = label</code></td><td>Branch if Lower (unsigned)</td><td><span class="badge badge-b">B-Type</span></td></tr>      <!-- System -->      <tr><td>System</td><td><code>nop</code></td><td><code>nop</code></td><td>—</td><td>No Operation</td><td>—</td></tr>
+      <tr><td>System</td><td><code>hlt</code></td><td><code>hlt</code></td><td>—</td><td>Halt the CPU</td><td>—</td></tr>
+      <tr><td>System</td><td><code>svc</code></td><td><code>svc #imm</code></td><td>—</td><td>Supervisor Call</td><td>—</td></tr>
+    </tbody>
+  </table>  <div class="ref-title">Supported Registers</div>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th style="width:90px;">Register</th>
+        <th style="width:110px;">ABI Name</th>
+        <th>Description/Use</th>
+        <th style="width:90px;">Saver</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><code>x0</code></td><td><code>zero</code> / <code>arg0</code></td><td>Function argument 0 / return value 0 (also <code>xzr</code> hard-wired zero)</td><td>—</td></tr>
+      <tr><td><code>x1</code></td><td><code>ra</code> / <code>arg1</code></td><td>Function argument 1 / return value 1</td><td>Caller</td></tr>
+      <tr><td><code>x2–x7</code></td><td><code>a2–a7</code></td><td>Function arguments 2–7</td><td>Caller</td></tr>
+      <tr><td><code>x8</code></td><td><code>xr</code></td><td>Indirect result location register</td><td>Caller</td></tr>
+      <tr><td><code>x9–x15</code></td><td><code>t0–t6</code></td><td>Temporary registers (caller-saved)</td><td>Caller</td></tr>
+      <tr><td><code>x16</code></td><td><code>ip0</code></td><td>Intra-procedure-call scratch register</td><td>Caller</td></tr>
+      <tr><td><code>x17</code></td><td><code>ip1</code></td><td>Intra-procedure-call scratch register</td><td>Caller</td></tr>
+      <tr><td><code>x18</code></td><td><code>pr</code></td><td>Platform register (reserved on some platforms)</td><td>—</td></tr>
+      <tr><td><code>x19–x28</code></td><td><code>s0–s9</code></td><td>Callee-saved registers (must be preserved)</td><td><span class="saver">Callee</span></td></tr>
+      <tr><td><code>x29</code></td><td><code>fp</code></td><td>Frame Pointer</td><td><span class="saver">Callee</span></td></tr>
+      <tr><td><code>x30</code></td><td><code>lr</code></td><td>Link Register — return address for <code>bl</code>/<code>blr</code></td><td>Caller</td></tr>
+      <tr><td><code>sp</code></td><td><code>sp</code></td><td>Stack Pointer (must stay 16-byte aligned)</td><td>—</td></tr>
+      <tr><td><code>pc</code></td><td><code>pc</code></td><td>Program Counter — not directly writable by most instructions</td><td>—</td></tr>
+      <tr><td><code>xzr</code></td><td><code>zero</code></td><td>Hard-wired zero — reads return 0, writes are discarded</td><td>—</td></tr>
+      <tr><td><code>nzcv</code></td><td><code>flags</code></td><td>Condition flags: Negative, Zero, Carry, oVerflow</td><td>—</td></tr>
+    </tbody>
+  </table></div><script>
+(function () {
+  "use strict";
+
+  /* ═══════════════════════════════════════════════════
+     Constants
+     ═══════════════════════════════════════════════════ */
+  var CODE_BASE = 0x0;
+  var DATA_BASE = 0x4000;
+  var STACK_TOP = 0x10000;
+  var MEM_SIZE  = 0x20000;
+
+  var MASK64 = BigInt("0xFFFFFFFFFFFFFFFF");
+  var MASK32 = BigInt("0xFFFFFFFF");
+
+  function u64(v) { return BigInt(v) & MASK64; }
+  function u32(v) { return BigInt(v) & MASK32; }
+
+  function hex(v, bits) {
+    bits = bits || 64;
+    var s = (BigInt(v) & (bits === 32 ? MASK32 : MASK64)).toString(16).toUpperCase();
+    return bits === 32 ? "0x" + s.padStart(8, "0") : "0x" + s.padStart(16, "0");
+  }
+  function hexShort(v) {
+    return "0x" + (BigInt(v) & MASK64).toString(16).toUpperCase().padStart(4, "0");
+  }
+  function bin(v, bits) {
+    var s = (BigInt(v) & (bits === 32 ? MASK32 : MASK64)).toString(2);
+    return "0b" + s.padStart(bits || 64, "0");
+  }
+  function dec(v) {
+    var b = BigInt(v) & MASK64;
+    var sign = BigInt(1) << BigInt(63);
+    if (b & sign) b = b - (MASK64 + BigInt(1));
+    return b.toString();
+  }
+
+  /* ═══════════════════════════════════════════════════
+     Assembler
+     ═══════════════════════════════════════════════════ */
+  function stripComment(line) {
+    var inStr = false;
+    for (var i = 0; i < line.length; i++) {
+      if (line[i] === '"') inStr = !inStr;
+      if (inStr) continue;
+      if (line[i] === "/" && line[i + 1] === "/") return line.slice(0, i);
+      if (line[i] === ";") return line.slice(0, i);
+    }
+    return line;
+  }
+
+  function parseNum(s) {
+    s = String(s).trim();
+    var neg = false;
+    if (s[0] === "-") { neg = true; s = s.slice(1); }
+    else if (s[0] === "+") { s = s.slice(1); }
+    var v;
+    var low = s.toLowerCase();
+    if (low.slice(0, 2) === "0x") v = BigInt("0x" + s.slice(2));
+    else if (low.slice(0, 2) === "0b") v = BigInt("0b" + s.slice(2));
+    else v = BigInt(s);
+    return neg ? -v : v;
+  }
+
+  function assemble(source) {
+    var lines = String(source).replace(/\r\n?/g, "\n").split("\n");
+    var labels = {};
+    var items = [];
+    var section = "text";
+    var codeAddr = CODE_BASE;
+    var dataAddr = DATA_BASE;
+    var i;
+
+    for (i = 0; i < lines.length; i++) {
+      var line = stripComment(lines[i]).trim();
+      if (!line) { items.push({ idx: i, skip: true }); continue; }
+
+      var labelName = null;
+      var lm = /^([A-Za-z_.$][\w.$]*)\s*:\s*(.*)$/.exec(line);
+      if (lm) { labelName = lm[1]; line = lm[2].trim(); }
+
+      if (labelName) {
+        if (labels[labelName] !== undefined) {
+          items.push({ idx: i, error: "Duplicate label '" + labelName + "'" });
+          continue;
+        }
+        labels[labelName] = (section === "text" ? codeAddr : dataAddr);
+      }
+
+      if (!line) { items.push({ idx: i, label: labelName, skip: true, section: section }); continue; }
+
+      if (line[0] === ".") {
+        var dir = line.split(/\s+/)[0].toLowerCase();
+        if (dir === ".text" || dir === ".section") { section = "text"; items.push({ idx: i, skip: true, section: section }); continue; }
+        if (dir === ".data") { section = "data"; items.push({ idx: i, skip: true, section: section }); continue; }
+        if (dir === ".global" || dir === ".globl" || dir === ".type" ||
+            dir === ".size" || dir === ".align" || dir === ".p2align") {
+          items.push({ idx: i, skip: true, section: section }); continue;
+        }
+        if (dir === ".word" || dir === ".long" || dir === ".int" ||
+            dir === ".quad" || dir === ".byte" || dir === ".ascii" ||
+            dir === ".asciz" || dir === ".string") {
+          var argsStr = line.slice(dir.length).trim();
+          var parts = splitDataArgs(argsStr);
+          var sz = 0;
+          if (dir === ".word" || dir === ".long" || dir === ".int") sz = parts.length * 4;
+          else if (dir === ".quad") sz = parts.length * 8;
+          else if (dir === ".byte") sz = parts.length;
+          else if (dir === ".ascii") parts.forEach(function (p) { var m = /^"([\s\S]*)"$/.exec(p.trim()); if (m) sz += m[1].length; });
+          else if (dir === ".asciz" || dir === ".string") parts.forEach(function (p) { var m = /^"([\s\S]*)"$/.exec(p.trim()); if (m) sz += m[1].length + 1; });
+          items.push({ idx: i, label: labelName, section: "data", dir: dir, args: argsStr, addr: dataAddr });
+          dataAddr += sz;
+          continue;
+        }
+        items.push({ idx: i, error: "Unknown directive '" + dir + "'" });
+        continue;
+      }
+
+      if (section !== "text") {
+        items.push({ idx: i, error: "Instruction outside .text section" });
+        continue;
+      }
+
+      items.push({ idx: i, label: labelName, section: "text", text: line, addr: codeAddr });
+      codeAddr += 4;
+    }
+
+    var instructions = [];
+    var errors = [];
+    var dataSegments = [];
+
+    for (i = 0; i < items.length; i++) {
+      var it = items[i];
+      if (it.error) { errors.push({ line: it.idx, msg: it.error }); continue; }
+      if (it.skip) continue;
+
+      if (it.section === "data") {
+        try {
+          var bytes = buildData(it, labels);
+          dataSegments.push({ addr: it.addr, bytes: bytes });
+        } catch (e) { errors.push({ line: it.idx, msg: e.message }); }
+        continue;
+      }
+
+      try {
+        var ins = parseInstruction(it.text, it.addr, it.idx, labels);
+        instructions.push(ins);
+      } catch (e) {
+        errors.push({ line: it.idx, msg: e.message });
+      }
+    }
+
+    instructions.sort(function (a, b) { return a.addr - b.addr; });
+
+    var byAddr = {};
+    for (i = 0; i < instructions.length; i++) byAddr[instructions[i].addr] = instructions[i];
+
+    return {
+      instructions: instructions,
+      byAddr: byAddr,
+      labels: labels,
+      dataSegments: dataSegments,
+      errors: errors,
+      entry: instructions.length ? instructions[0].addr : CODE_BASE
+    };
+  }
+
+  function splitDataArgs(body) {
+    var out = [];
+    var cur = "";
+    var inStr = false;
+    for (var i = 0; i < body.length; i++) {
+      var c = body[i];
+      if (c === '"') inStr = !inStr;
+      if (c === "," && !inStr) { out.push(cur); cur = ""; continue; }
+      cur += c;
+    }
+    if (cur.trim()) out.push(cur);
+    return out;
+  }
+
+  function buildData(it, labels) {
+    var bytes = [];
+    var parts = splitDataArgs(it.args);
+    var dir = it.dir;
+
+    function pushLE(val, n) {
+      var b = BigInt(val);
+      var mod = BigInt(1) << BigInt(n * 8);
+      b = ((b % mod) + mod) % mod;
+      for (var k = 0; k < n; k++) { bytes.push(Number(b & BigInt(0xFF))); b = b >> BigInt(8); }
+    }
+    function pushStr(s) {
+      for (var k = 0; k < s.length; k++) bytes.push(s.charCodeAt(k) & 0xFF);
+    }
+    function resolveVal(tok) {
+      tok = tok.trim();
+      if (tok === "") throw new Error("Empty value");
+      if (/^-?(\d|0x|0b)/i.test(tok)) return parseNum(tok);
+      if (labels[tok] !== undefined) return BigInt(labels[tok]);
+      throw new Error("Unknown symbol '" + tok + "'");
+    }
+
+    parts.forEach(function (raw) {
+      var tok = raw.trim();
+      if (tok === "") return;
+      if (dir === ".word" || dir === ".long" || dir === ".int") pushLE(resolveVal(tok), 4);
+      else if (dir === ".quad") pushLE(resolveVal(tok), 8);
+      else if (dir === ".byte") pushLE(resolveVal(tok), 1);
+      else if (dir === ".ascii" || dir === ".asciz" || dir === ".string") {
+        var m = /^"([\s\S]*)"$/.exec(tok);
+        if (!m) throw new Error("Expected a string for " + dir);
+        var s = m[1].replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\0/g, "\0").replace(/\\\\/g, "\\");
+        pushStr(s);
+        if (dir !== ".ascii") bytes.push(0);
+      }
+    });
+    return bytes;
+  }
+
+  function parseInstruction(text, addr, lineIdx, labels) {
+    var parts = text.split(/\s+/);
+    var mnem = parts[0].toUpperCase();
+    var rest = text.slice(parts[0].length).trim();
+    var operands = splitOperands(rest);
+
+    var cond = null;
+    var baseMnem = mnem;
+    if (mnem.indexOf(".") > 0) {
+      var segs = mnem.split(".");
+      baseMnem = segs[0];
+      cond = segs[1];
+    }
+
+    return {
+      addr: addr,
+      lineIdx: lineIdx,
+      text: text,
+      mnemonic: mnem,
+      op: baseMnem,
+      cond: cond,
+      operands: operands.map(function (o) { return o.trim(); })
+    };
+  }
+
+  function splitOperands(s) {
+    var out = [];
+    var cur = "";
+    var depth = 0;
+    for (var i = 0; i < s.length; i++) {
+      var c = s[i];
+      if (c === "[") { depth++; cur += c; continue; }
+      if (c === "]") { depth--; cur += c; continue; }
+      if (c === "," && depth === 0) { out.push(cur.trim()); cur = ""; continue; }
+      cur += c;
+    }
+    if (cur.trim()) out.push(cur.trim());
+    return out;
+  }
+
+  /* ═══════════════════════════════════════════════════
+     Machine state
+     ═══════════════════════════════════════════════════ */
+  var memBytes = new Uint8Array(MEM_SIZE);
+
+  var regs = new Array(31);
+  for (var ri = 0; ri < 31; ri++) regs[ri] = BigInt(0);
+  var sp = BigInt(STACK_TOP);
+  var pc = BigInt(CODE_BASE);
+  var flags = { N: 0, Z: 0, C: 0, V: 0 };
+  var halted = true;
+  var haltReason = "";
+  var stepCount = 0;
+  var changedRegs = {};
+  var lastAccess = null;
+  var program = null;
+  var initialValues = {};
+  var breakpoints = {};
+
+  function resetMachine() {
+    for (var i = 0; i < 31; i++) regs[i] = BigInt(0);
+    for (var k in initialValues) {
+      if (!initialValues.hasOwnProperty(k)) continue;
+      var idx = parseInt(k.slice(1), 10);
+      if (!isNaN(idx) && idx >= 0 && idx <= 30) {
+        try { regs[idx] = u64(parseNum(initialValues[k])); } catch (e) {}
+      }
+    }
+    sp = BigInt(STACK_TOP);
+    pc = BigInt(program ? program.entry : CODE_BASE);
+    flags = { N: 0, Z: 0, C: 0, V: 0 };
+    halted = !program || program.instructions.length === 0;
+    haltReason = "";
+    stepCount = 0;
+    changedRegs = {};
+    lastAccess = null;
+    memBytes.fill(0);
+    if (program) {
+      for (var s = 0; s < program.dataSegments.length; s++) {
+        var seg = program.dataSegments[s];
+        for (var b = 0; b < seg.bytes.length; b++) {
+          memBytes[seg.addr + b] = seg.bytes[b];
+        }
+      }
+    }
+  }
+
+  function readReg(name) {
+    var n = String(name).toLowerCase();
+    if (n === "xzr" || n === "wzr") return BigInt(0);
+    if (n === "sp" || n === "wsp") return sp;
+    if (n === "pc") return pc;
+    if (n === "lr" || n === "x30") return regs[30];
+    if (n === "fp" || n === "x29") return regs[29];
+    var m = /^([xw])(\d{1,2})$/.exec(n);
+    if (m) {
+      var idx = Number(m[2]);
+      if (idx > 30) throw new Error("Unknown register '" + name + "'");
+      return regs[idx];
+    }
+    throw new Error("Unknown register '" + name + "'");
+  }
+
+  function writeReg(name, value) {
+    var n = String(name).toLowerCase();
+    if (n === "xzr" || n === "wzr") return;
+    if (n === "sp" || n === "wsp") { sp = u64(value); changedRegs.sp = true; return; }
+    if (n === "pc") { pc = u64(value); changedRegs.pc = true; return; }
+    if (n === "lr" || n === "x30") { regs[30] = u64(value); changedRegs.x30 = true; return; }
+    if (n === "fp" || n === "x29") { regs[29] = u64(value); changedRegs.x29 = true; return; }
+    var m = /^([xw])(\d{1,2})$/.exec(n);
+    if (m) {
+      var idx = Number(m[2]);
+      if (idx > 30) throw new Error("Unknown register '" + name + "'");
+      regs[idx] = (m[1] === "w" ? u32(value) : u64(value));
+      changedRegs["x" + idx] = true;
+      return;
+    }
+    throw new Error("Unknown register '" + name + "'");
+  }
+
+  function regWidth(name) {
+    var n = String(name).toLowerCase();
+    if (n === "wzr" || n === "wsp") return 32;
+    if (/^w\d/.test(n)) return 32;
+    return 64;
+  }
+
+  function readMem(addr, size) {
+    var a = Number(addr);
+    if (a < 0 || a + size > MEM_SIZE) throw new Error("Memory access out of range at " + hexShort(BigInt(a)));
+    lastAccess = { addr: a, size: size };
+    var v = BigInt(0);
+    for (var k = 0; k < size; k++) v = v | (BigInt(memBytes[a + k]) << BigInt(k * 8));
+    return v;
+  }
+  function writeMem(addr, size, value) {
+    var a = Number(addr);
+    if (a < 0 || a + size > MEM_SIZE) throw new Error("Memory access out of range at " + hexShort(BigInt(a)));
+    lastAccess = { addr: a, size: size };
+    var v = BigInt(value);
+    for (var k = 0; k < size; k++) {
+      memBytes[a + k] = Number(v & BigInt(0xFF));
+      v = v >> BigInt(8);
+    }
+  }
+
+  function parseMemOp(op) {
+    var pre = false;
+    if (op.slice(-1) === "!") { pre = true; op = op.slice(0, -1); }
+    var inner = op.replace(/^\[/, "").replace(/\]$/, "").trim();
+    var parts = inner.split(",").map(function (s) { return s.trim(); });
+    var base = parts[0].toLowerCase();
+    var off = BigInt(0);
+    var offReg = null;
+    if (parts[1]) {
+      var p1 = parts[1].replace(/^#/, "");
+      if (/^[xw]\d+$/i.test(p1)) offReg = p1.toLowerCase();
+      else off = parseNum(p1);
+    }
+    return { base: base, off: off, offReg: offReg, pre: pre };
+  }
+
+  function toSigned(v, bits) {
+    var mask = bits === 32 ? MASK32 : MASK64;
+    v = v & mask;
+    var signBit = BigInt(1) << BigInt(bits - 1);
+    return (v & signBit) ? v - (mask + BigInt(1)) : v;
+  }
+
+  function applyAddFlags(a, b, cin, bits, isSub) {
+    var mask = bits === 32 ? MASK32 : MASK64;
+    var av = a & mask, bv = b & mask;
+    var full, res, C, V;
+    if (isSub) {
+      var borrow = BigInt(1) - cin;
+      full = av - bv - borrow;
+      res = full & mask;
+      C = full >= BigInt(0) ? 1 : 0;
+      var sa = toSigned(av, bits), sb = toSigned(bv, bits), sr = toSigned(res, bits);
+      V = (sa - sb - borrow !== sr) ? 1 : 0;
+    } else {
+      full = av + bv + cin;
+      res = full & mask;
+      C = (full >> BigInt(bits)) & BigInt(1) ? 1 : 0;
+      var sa2 = toSigned(av, bits), sb2 = toSigned(bv, bits), sr2 = toSigned(res, bits);
+      V = (sa2 + sb2 + cin !== sr2) ? 1 : 0;
+    }
+    var signBit = (res >> BigInt(bits - 1)) & BigInt(1);
+    flags.N = signBit ? 1 : 0;
+    flags.Z = res === BigInt(0) ? 1 : 0;
+    flags.C = C;
+    flags.V = V;
+    return res;
+  }
+
+  function execute(ins) {
+    var op = ins.op;
+    var o = ins.operands;
+    var cond = ins.cond;
+
+    if (cond) {
+      if (!condTrue(cond)) {
+        writeReg("pc", pc + BigInt(4));
+        return { text: ins.text, effect: "condition ." + cond + " false → not taken", cond: true };
+      }
+    }
+
+    switch (op) {
+      case "MOV": {
+        var dst = o[0], src = o[1];
+        var val;
+        if (src && src[0] === "#") val = parseNum(src.slice(1));
+        else if (/^[xw]\d+$/i.test(src) || src === "xzr" || src === "wzr" || src === "sp" || src === "lr") val = readReg(src);
+        else val = parseNum(src);
+        var sf = regWidth(dst);
+        if (sf === 32) val = u32(val);
+        writeReg(dst, val);
+        return { text: ins.text, effect: dst.toUpperCase() + " ← " + hex(val, sf) };
+      }
+
+      case "MOVZ": {
+        var dstz = o[0];
+        var immz = o[1] && o[1][0] === "#" ? parseNum(o[1].slice(1)) : BigInt(0);
+        var shz = BigInt(0);
+        if (o[2]) {
+          var mm = /lsl\s+#?(\d+)/i.exec(o[2]);
+          if (mm) shz = BigInt(mm[1]);
+        }
+        var sfz = regWidth(dstz);
+        var valz = (immz & BigInt(0xFFFF)) << shz;
+        if (sfz === 32) valz = u32(valz); else valz = u64(valz);
+        writeReg(dstz, valz);
+        return { text: ins.text, effect: dstz.toUpperCase() + " ← " + hex(valz, sfz) };
+      }
+
+      case "MOVK": {
+        var dstk = o[0];
+        var immk = o[1] && o[1][0] === "#" ? parseNum(o[1].slice(1)) : BigInt(0);
+        var shk = BigInt(0);
+        if (o[2]) {
+          var mmk = /lsl\s+#?(\d+)/i.exec(o[2]);
+          if (mmk) shk = BigInt(mmk[1]);
+        }
+        var oldk = readReg(dstk);
+        var maskk = BigInt(0xFFFF) << shk;
+        var valk = (oldk & ~maskk & MASK64) | ((immk & BigInt(0xFFFF)) << shk);
+        writeReg(dstk, valk);
+        return { text: ins.text, effect: dstk.toUpperCase() + " field ← " + immk };
+      }
+
+      case "ADD": case "ADDS":
+      case "SUB": case "SUBS": {
+        var rd = o[0], rn = o[1], op2 = o[2];
+        var isSub = (op === "SUB" || op === "SUBS");
+        var setF = (op === "ADDS" || op === "SUBS");
+        var bits = regWidth(rd);
+        var a = readReg(rn);
+        var b;
+        if (op2[0] === "#") b = parseNum(op2.slice(1));
+        else b = readReg(op2);
+        var res = applyAddFlags(a, b, BigInt(0), bits, isSub);
+        writeReg(rd, res);
+        var tail = setF ? "  [N=" + flags.N + " Z=" + flags.Z + " C=" + flags.C + " V=" + flags.V + "]" : "";
+        return { text: ins.text, effect: rd.toUpperCase() + " ← " + (isSub ? "sub" : "add") + " = " + hex(res, bits) + tail };
+      }
+
+      case "ADC": {
+        var rda = o[0], rna = o[1], rma = o[2];
+        var bitsa = regWidth(rda);
+        var resa = applyAddFlags(readReg(rna), readReg(rma), BigInt(flags.C), bitsa, false);
+        writeReg(rda, resa);
+        return { text: ins.text, effect: rda.toUpperCase() + " ← add with carry = " + hex(resa, bitsa) };
+      }
+
+      case "SBC": {
+        var rds = o[0], rns = o[1], rms = o[2];
+        var bitss = regWidth(rds);
+        var resb = applyAddFlags(readReg(rns), readReg(rms), BigInt(flags.C), bitss, true);
+        writeReg(rds, resb);
+        return { text: ins.text, effect: rds.toUpperCase() + " ← sub with borrow = " + hex(resb, bitss) };
+      }
+
+      case "MUL": {
+        var rd2 = o[0], rn2 = o[1], rm2 = o[2];
+        var bits2 = regWidth(rd2);
+        var p = readReg(rn2) * readReg(rm2);
+        p = bits2 === 32 ? u32(p) : u64(p);
+        writeReg(rd2, p);
+        return { text: ins.text, effect: rd2.toUpperCase() + " ← product = " + hex(p, bits2) };
+      }
+
+      case "MADD": {
+        var rdm = o[0], rnm = o[1], rmm = o[2], ram = o[3];
+        var bitsm = regWidth(rdm);
+        var pm = readReg(ram) + readReg(rnm) * readReg(rmm);
+        pm = bitsm === 32 ? u32(pm) : u64(pm);
+        writeReg(rdm, pm);
+        return { text: ins.text, effect: rdm.toUpperCase() + " ← accumulate = " + hex(pm, bitsm) };
+      }
+
+      case "MSUB": {
+        var rds2 = o[0], rns2 = o[1], rms2 = o[2], ras2 = o[3];
+        var bitss2 = regWidth(rds2);
+        var ps2 = readReg(ras2) - readReg(rns2) * readReg(rms2);
+        ps2 = bitss2 === 32 ? u32(ps2) : u64(ps2);
+        writeReg(rds2, ps2);
+        return { text: ins.text, effect: rds2.toUpperCase() + " ← msub = " + hex(ps2, bitss2) };
+      }
+
+      case "SDIV": {
+        var rdd = o[0], rnd = o[1], rmd = o[2];
+        var bitsd = regWidth(rdd);
+        var nd = toSigned(readReg(rnd), bitsd), dd = toSigned(readReg(rmd), bitsd);
+        var qd = dd === BigInt(0) ? BigInt(0) : (nd / dd);
+        writeReg(rdd, qd);
+        return { text: ins.text, effect: rdd.toUpperCase() + " ← sdiv = " + hex(qd, bitsd) };
+      }
+
+      case "UDIV": {
+        var rdu = o[0], rnu = o[1], rmu = o[2];
+        var bitsu = regWidth(rdu);
+        var nu = readReg(rnu) & (bitsu === 32 ? MASK32 : MASK64);
+        var du = readReg(rmu) & (bitsu === 32 ? MASK32 : MASK64);
+        var qu = du === BigInt(0) ? BigInt(0) : (nu / du);
+        writeReg(rdu, qu);
+        return { text: ins.text, effect: rdu.toUpperCase() + " ← udiv = " + hex(qu, bitsu) };
+      }
+
+      case "CMP": case "CMN": {
+        var rn3 = o[0], op3 = o[1];
+        var bits3 = regWidth(rn3);
+        var a3 = readReg(rn3);
+        var b3;
+        if (op3[0] === "#") b3 = parseNum(op3.slice(1));
+        else b3 = readReg(op3);
+        applyAddFlags(a3, b3, BigInt(0), bits3, op === "CMP");
+        return { text: ins.text, effect: (op === "CMP" ? "compare" : "cmn") + " → [N=" + flags.N + " Z=" + flags.Z + " C=" + flags.C + " V=" + flags.V + "]" };
+      }
+
+      case "TST": {
+        var rnt = o[0], op2t = o[1];
+        var bitst = regWidth(rnt);
+        var at = readReg(rnt);
+        var bt = op2t[0] === "#" ? parseNum(op2t.slice(1)) : readReg(op2t);
+        var rest = at & bt;
+        var maskt = bitst === 32 ? MASK32 : MASK64;
+        rest = rest & maskt;
+        var srt = toSigned(rest, bitst);
+        flags.N = srt < BigInt(0) ? 1 : 0;
+        flags.Z = rest === BigInt(0) ? 1 : 0;
+        flags.C = 0;
+        flags.V = 0;
+        return { text: ins.text, effect: "tst → [N=" + flags.N + " Z=" + flags.Z + "]" };
+      }
+
+      case "AND": case "ANDS":
+      case "ORR": case "EOR": {
+        var rdl = o[0], rnl = o[1], opl = o[2];
+        var bitsl = regWidth(rdl);
+        var al = readReg(rnl);
+        var bl = opl[0] === "#" ? parseNum(opl.slice(1)) : readReg(opl);
+        var maskl = bitsl === 32 ? MASK32 : MASK64;
+        var rl;
+        if (op === "AND" || op === "ANDS") rl = al & bl;
+        else if (op === "ORR") rl = al | bl;
+        else rl = al ^ bl;
+        rl = rl & maskl;
+        writeReg(rdl, rl);
+        if (op === "ANDS") {
+          var srl = toSigned(rl, bitsl);
+          flags.N = srl < BigInt(0) ? 1 : 0;
+          flags.Z = rl === BigInt(0) ? 1 : 0;
+          flags.C = 0;
+          flags.V = 0;
+        }
+        return { text: ins.text, effect: rdl.toUpperCase() + " ← " + op.toLowerCase() + " = " + hex(rl, bitsl) };
+      }
+
+      case "MVN": {
+        var rdmv = o[0], rmmv = o[1];
+        var bitsmv = regWidth(rdmv);
+        var maskmv = bitsmv === 32 ? MASK32 : MASK64;
+        var vmv = (~readReg(rmmv)) & maskmv;
+        writeReg(rdmv, vmv);
+        return { text: ins.text, effect: rdmv.toUpperCase() + " ← ~" + rmmv.toUpperCase() + " = " + hex(vmv, bitsmv) };
+      }
+
+      case "NEG": {
+        var rdng = o[0], rmng = o[1];
+        var bitsng = regWidth(rdng);
+        var maskng = bitsng === 32 ? MASK32 : MASK64;
+        var vng = (BigInt(0) - readReg(rmng)) & maskng;
+        writeReg(rdng, vng);
+        return { text: ins.text, effect: rdng.toUpperCase() + " ← -" + rmng.toUpperCase() + " = " + hex(vng, bitsng) };
+      }
+
+      case "LSL": case "LSR": case "ASR": case "ROR": {
+        var rdsf = o[0], rnsf = o[1], opsf = o[2];
+        var bitssf = regWidth(rdsf);
+        var masksf = bitssf === 32 ? MASK32 : MASK64;
+        var vsf = readReg(rnsf) & masksf;
+        var shsf = BigInt(0);
+        if (opsf) {
+          if (opsf[0] === "#") shsf = parseNum(opsf.slice(1)) % BigInt(bitssf);
+          else shsf = readReg(opsf) % BigInt(bitssf);
+        }
+        var rsf;
+        if (op === "LSL") rsf = (vsf << shsf) & masksf;
+        else if (op === "LSR") rsf = (vsf >> shsf) & masksf;
+        else if (op === "ASR") rsf = (toSigned(vsf, bitssf) >> shsf) & masksf;
+        else {
+          // ROR
+          var w = BigInt(bitssf);
+          rsf = shsf === BigInt(0) ? vsf : (((vsf >> shsf) | (vsf << (w - shsf))) & masksf);
+        }
+        writeReg(rdsf, rsf);
+        return { text: ins.text, effect: rdsf.toUpperCase() + " ← " + op.toLowerCase() + " = " + hex(rsf, bitssf) };
+      }
+
+      case "B": {
+        var lbl = o[0];
+        if (lbl === undefined) throw new Error("B needs a label");
+        var target = labels[lbl];
+        if (target === undefined) throw new Error("Unknown label '" + lbl + "'");
+        writeReg("pc", BigInt(target));
+        return { text: ins.text, effect: "branch → " + lbl + " (" + hexShort(BigInt(target)) + ")" };
+      }
+
+      case "BL": {
+        var lbl2 = o[0];
+        if (lbl2 === undefined) throw new Error("BL needs a label");
+        var target2 = labels[lbl2];
+        if (target2 === undefined) throw new Error("Unknown label '" + lbl2 + "'");
+        var ret = pc + BigInt(4);
+        writeReg("x30", ret);
+        writeReg("pc", BigInt(target2));
+        return { text: ins.text, effect: "call " + lbl2 + " → X30 = " + hexShort(ret) };
+      }
+
+      case "BR": {
+        var rnbr = o[0];
+        var tbr = readReg(rnbr);
+        writeReg("pc", tbr);
+        return { text: ins.text, effect: "branch → " + hexShort(tbr) };
+      }
+
+      case "BLR": {
+        var rnbl = o[0];
+        var tbl = readReg(rnbl);
+        var retbl = pc + BigInt(4);
+        writeReg("x30", retbl);
+        writeReg("pc", tbl);
+        return { text: ins.text, effect: "call → " + hexShort(tbl) };
+      }
+
+      case "RET": {
+        var target3 = (o[0] ? readReg(o[0]) : regs[30]);
+        writeReg("pc", target3);
+        if (target3 === BigInt(0)) return { text: ins.text, effect: "return → X30 = 0, halt", halt: true };
+        return { text: ins.text, effect: "return → " + hexShort(target3) };
+      }
+
+      case "CBZ": case "CBNZ": {
+        var rt = o[0], lbl3 = o[1];
+        if (!lbl3) throw new Error(op + " needs a label");
+        var v = readReg(rt);
+        var taken = (op === "CBZ" ? v === BigInt(0) : v !== BigInt(0));
+        var target4 = labels[lbl3];
+        if (target4 === undefined) throw new Error("Unknown label '" + lbl3 + "'");
+        if (taken) {
+          writeReg("pc", BigInt(target4));
+          return { text: ins.text, effect: rt.toUpperCase() + " = " + hex(v) + " → branch taken" };
+        } else {
+          writeReg("pc", pc + BigInt(4));
+          return { text: ins.text, effect: rt.toUpperCase() + " = " + hex(v) + " → not taken" };
+        }
+      }
+
+      case "LDR": case "LDRB": case "LDRH": {
+        var rd4 = o[0], memOp = o[1];
+        if (!memOp) throw new Error(op + " needs a memory operand");
+        if (memOp[0] === "=") {
+          var sym = memOp.slice(1);
+          var val2 = labels[sym];
+          if (val2 === undefined) throw new Error("Unknown label '" + sym + "'");
+          writeReg(rd4, BigInt(val2));
+          return { text: ins.text, effect: rd4.toUpperCase() + " ← address of " + sym };
+        }
+        var m = parseMemOp(memOp);
+        var addr = readReg(m.base) + m.off;
+        if (m.offReg) addr = addr + readReg(m.offReg);
+        var sz = op === "LDRB" ? 1 : (op === "LDRH" ? 2 : regWidth(rd4) / 8);
+        var loaded = readMem(addr, sz);
+        writeReg(rd4, loaded);
+        if (m.pre) writeReg(m.base, addr);
+        return { text: ins.text, effect: rd4.toUpperCase() + " ← [" + hexShort(addr) + "] = " + hex(loaded, sz * 8) };
+      }
+
+      case "STR": case "STRB": case "STRH": {
+        var rs = o[0], memOp2 = o[1];
+        if (!memOp2) throw new Error(op + " needs a memory operand");
+        var m2 = parseMemOp(memOp2);
+        var addr2 = readReg(m2.base) + m2.off;
+        if (m2.offReg) addr2 = addr2 + readReg(m2.offReg);
+        var sz2 = op === "STRB" ? 1 : (op === "STRH" ? 2 : regWidth(rs) / 8);
+        var val3 = readReg(rs);
+        writeMem(addr2, sz2, val3);
+        if (m2.pre) writeReg(m2.base, addr2);
+        return { text: ins.text, effect: "[" + hexShort(addr2) + "] ← " + rs.toUpperCase() + " = " + hex(val3, sz2 * 8) };
+      }
+
+      case "LDP": {
+        var rt5 = o[0], rt6 = o[1], memOp3 = o[2];
+        if (!memOp3) throw new Error("LDP needs a memory operand");
+        var m3 = parseMemOp(memOp3);
+        var addr3 = readReg(m3.base) + m3.off;
+        if (m3.offReg) addr3 = addr3 + readReg(m3.offReg);
+        var sz3 = regWidth(rt5) / 8;
+        var v1 = readMem(addr3, sz3);
+        var v2 = readMem(addr3 + BigInt(sz3), sz3);
+        writeReg(rt5, v1);
+        writeReg(rt6, v2);
+        if (m3.pre) writeReg(m3.base, addr3);
+        return { text: ins.text, effect: rt5.toUpperCase() + ", " + rt6.toUpperCase() + " ← [" + hexShort(addr3) + "]" };
+      }
+
+      case "STP": {
+        var rt7 = o[0], rt8 = o[1], memOp4 = o[2];
+        if (!memOp4) throw new Error("STP needs a memory operand");
+        var m4 = parseMemOp(memOp4);
+        var addr4 = readReg(m4.base) + m4.off;
+        if (m4.offReg) addr4 = addr4 + readReg(m4.offReg);
+        var sz4 = regWidth(rt7) / 8;
+        writeMem(addr4, sz4, readReg(rt7));
+        writeMem(addr4 + BigInt(sz4), sz4, readReg(rt8));
+        if (m4.pre) writeReg(m4.base, addr4);
+        return { text: ins.text, effect: "[" + hexShort(addr4) + "] ← pair" };
+      }
+
+      case "ADR": {
+        var rdadr = o[0], symadr = o[1];
+        var tgtadr = labels[symadr];
+        if (tgtadr === undefined) throw new Error("Unknown label '" + symadr + "'");
+        writeReg(rdadr, BigInt(tgtadr));
+        return { text: ins.text, effect: rdadr.toUpperCase() + " ← address of " + symadr };
+      }
+
+      case "ADRP": {
+        var rdap = o[0], symap = o[1];
+        var tgtap = labels[symap];
+        if (tgtap === undefined) throw new Error("Unknown label '" + symap + "'");
+        var page = BigInt(tgtap) & ~BigInt(0xFFF);
+        writeReg(rdap, page);
+        return { text: ins.text, effect: rdap.toUpperCase() + " ← page of " + symap };
+      }
+
+      case "NOP":
+        writeReg("pc", pc + BigInt(4));
+        return { text: ins.text, effect: "no operation" };
+
+      case "SVC":
+      case "HLT":
+        return { text: ins.text, effect: "halt", halt: true };
+
+      default:
+        throw new Error("Instruction '" + op + "' is not implemented");
+    }
+  }
+
+  function condTrue(c) {
+    var N = flags.N, Z = flags.Z, C = flags.C, V = flags.V;
+    switch (c.toUpperCase()) {
+      case "EQ": return Z === 1;
+      case "NE": return Z === 0;
+      case "CS": case "HS": return C === 1;
+      case "CC": case "LO": return C === 0;
+      case "MI": return N === 1;
+      case "PL": return N === 0;
+      case "VS": return V === 1;
+      case "VC": return V === 0;
+      case "HI": return C === 1 && Z === 0;
+      case "LS": return !(C === 1 && Z === 0);
+      case "GE": return N === V;
+      case "LT": return N !== V;
+      case "GT": return Z === 0 && N === V;
+      case "LE": return !(Z === 0 && N === V);
+      case "AL": return true;
+    }
+    return false;
+  }
+
+  /* ═══════════════════════════════════════════════════
+     UI
+     ═══════════════════════════════════════════════════ */
+  var editorEl, gutterEl, consoleEl, regTableEl, memTableEl, btnStep, btnRun, btnReset, speedEl, memAddrEl;
+
+  function $(id) { return document.getElementById(id); }
+
+  function updateGutter() {
+    var lines = editorEl.value.split("\n");
+    var html = "";
+    for (var i = 0; i < lines.length; i++) {
+      var cls = "ln" + (breakpoints[i + 1] ? " bp" : "");
+      html += '<div class="' + cls + '" data-line="' + (i + 1) + '">' + (i + 1) + "</div>";
+    }
+    gutterEl.innerHTML = html;
+  }
+
+  function updateHighlight() {
+    var curLine = -1;
+    if (program && !halted) {
+      var ins = program.byAddr[Number(pc)];
+      if (ins) curLine = ins.lineIdx + 1;
+    }
+    var nodes = gutterEl.querySelectorAll(".ln");
+    for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove("cur");
+    if (curLine > 0) {
+      var el = gutterEl.querySelector('.ln[data-line="' + curLine + '"]');
+      if (el) el.classList.add("cur");
+    }
+  }
+
+  function renderRegs() {
+    var html = "<thead><tr>" +
+      "<th style='width:80px;'>Init Value</th>" +
+      "<th style='width:90px;'>Register</th>" +
+      "<th style='width:80px;'>Decimal</th>" +
+      "<th>Hex</th>" +
+      "<th>Binary</th>" +
+      "</tr></thead><tbody>";
+
+    var rows = [];
+    for (var i = 0; i <= 30; i++) rows.push({ name: "x" + i, label: "x" + i + alias(i) });
+    rows.push({ name: "sp", label: "sp" });
+    rows.push({ name: "pc", label: "pc" });
+
+    for (var r = 0; r < rows.length; r++) {
+      var row = rows[r];
+      var val;
+      if (row.name === "sp") val = sp;
+      else if (row.name === "pc") val = pc;
+      else val = regs[parseInt(row.name.slice(1), 10)];
+
+      var changed = changedRegs[row.name];
+      var initVal = initialValues[row.name] || "";
+
+      html += "<tr" + (changed ? ' class="changed"' : "") + ">" +
+        '<td><input class="init-val" data-reg="' + row.name + '" value="' + initVal + '" placeholder="0"></td>' +
+        "<td>" + row.label + "</td>" +
+        "<td>" + dec(val) + "</td>" +
+        "<td>" + hex(val, 64) + "</td>" +
+        "<td style='font-size:10px;color:#666;'>" + bin(val, 64) + "</td>" +
+        "</tr>";
+    }
+    html += "</tbody>";
+    regTableEl.innerHTML = html;
+
+    var inputs = regTableEl.querySelectorAll("input.init-val");
+    for (var ii = 0; ii < inputs.length; ii++) {
+      inputs[ii].addEventListener("change", function (e) {
+        var reg = e.target.getAttribute("data-reg");
+        var v = e.target.value.trim();
+        if (v === "") delete initialValues[reg];
+        else initialValues[reg] = v;
+        resetMachine();
+        renderAll();
+      });
+    }
+  }
+
+  function alias(i) {
+    var names = { 29: " (fp)", 30: " (lr)" };
+    return names[i] || "";
+  }
+
+  var memBase = DATA_BASE;
+  function renderMem() {
+    var html = "<thead><tr>" +
+      "<th style='width:110px;'>Memory Address</th>" +
+      "<th style='width:80px;'>Decimal</th>" +
+      "<th style='width:140px;'>Hex</th>" +
+      "<th>Binary</th>" +
+      "</tr></thead><tbody>";
+
+    for (var r = 0; r < 12; r++) {
+      var addr = memBase + r * 8;
+      if (addr + 8 > MEM_SIZE) break;
+      var v = BigInt(0);
+      for (var k = 0; k < 8; k++) v = v | (BigInt(memBytes[addr + k]) << BigInt(k * 8));
+      var hit = false;
+      if (lastAccess && lastAccess.addr >= addr && lastAccess.addr < addr + 8) hit = true;
+      html += "<tr" + (hit ? ' class="hit"' : "") + ">" +
+        "<td>" + hex(addr, 32).toLowerCase() + "</td>" +
+        "<td>" + dec(v) + "</td>" +
+        "<td>" + hex(v, 64) + "</td>" +
+        "<td style='font-size:10px;color:#666;'>" + bin(v, 64) + "</td>" +
+        "</tr>";
+    }
+    html += "</tbody>";
+    memTableEl.innerHTML = html;
+  }
+
+  function renderConsole() {
+    if (!consoleEl._lines) consoleEl._lines = [];
+    if (consoleEl._lines.length === 0) {
+      consoleEl.innerHTML = '<span class="empty">Console output will appear here.</span>';
+      return;
+    }
+    var html = "";
+    for (var i = 0; i < consoleEl._lines.length; i++) {
+      var l = consoleEl._lines[i];
+      html += '<div class="line' + (l.cls ? " " + l.cls : "") + '">' + escapeHtml(l.text) + "</div>";
+    }
+    consoleEl.innerHTML = html;
+    consoleEl.scrollTop = consoleEl.scrollHeight;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function logLine(text, cls) {
+    if (!consoleEl._lines) consoleEl._lines = [];
+    consoleEl._lines.push({ text: text, cls: cls || "" });
+    if (consoleEl._lines.length > 300) consoleEl._lines.shift();
+    renderConsole();
+  }
+
+  function clearLog() {
+    consoleEl._lines = [];
+    renderConsole();
+  }
+
+  function renderAll() {
+    updateGutter();
+    updateHighlight();
+    renderRegs();
+    renderMem();
+    renderConsole();
+    btnStep.disabled = halted || !program;
+    btnRun.textContent = running ? "Pause" : "Run";
+    memAddrEl.value = "0x" + memBase.toString(16).toUpperCase();
+  }
+
+  /* ═══════════════════════════════════════════════════
+     Control
+     ═══════════════════════════════════════════════════ */
+  var running = false;
+  var runTimer = null;
+
+  function doAssemble() {
+    program = assemble(editorEl.value);
+    if (program.errors.length) {
+      clearLog();
+      program.errors.forEach(function (e) { logLine("Error (line " + (e.line + 1) + "): " + e.msg, "hlt"); });
+      return false;
+    }
+    resetMachine();
+    clearLog();
+    logLine("Assembled — " + program.instructions.length + " instruction(s).", "ok");
+    renderAll();
+    return true;
+  }
+
+  function doReset() {
+    stopRun();
+    if (!program) doAssemble();
+    else { resetMachine(); clearLog(); logLine("Reset. Ready to step.", "ok"); }
+    renderAll();
+  }
+
+  function doStep() {
+    if (halted || !program) return;
+    var ins = program.byAddr[Number(pc)];
+    if (!ins) {
+      halted = true;
+      haltReason = "No instruction at " + hexShort(pc);
+      logLine("No instruction at " + hexShort(pc), "hlt");
+      renderAll();
+      return;
+    }
+
+    changedRegs = {};
+    lastAccess = null;
+
+    var result;
+    try {
+      result = execute(ins);
+    } catch (e) {
+      logLine("Runtime error at " + hexShort(pc) + ": " + e.message, "hlt");
+      halted = true;
+      haltReason = e.message;
+      renderAll();
+      return;
+    }
+
+    stepCount++;
+    logLine("[line " + (ins.lineIdx + 1) + "]: " + ins.text + "    → " + (result.effect || ""));
+
+    var pcHandled = (ins.op === "B" || ins.op === "BL" || ins.op === "BR" || ins.op === "BLR" ||
+                     ins.op === "RET" || ins.op === "CBZ" || ins.op === "CBNZ");
+    if (ins.cond) pcHandled = true;
+    if (!pcHandled) pc = pc + BigInt(4);
+
+    if (result.halt) {
+      halted = true;
+      haltReason = "Program halted";
+      logLine("Program halted after " + stepCount + " instruction(s).", "hlt");
+    }
+
+    if (stepCount > 50000) {
+      halted = true;
+      haltReason = "Step limit reached";
+      logLine("Step limit reached (50000). Infinite loop?", "hlt");
+    }
+
+    renderAll();
+  }
+
+  function stopRun() {
+    running = false;
+    if (runTimer) { clearTimeout(runTimer); runTimer = null; }
+  }
+
+  function startRun() {
+    if (running) { stopRun(); renderAll(); return; }
+    if (halted) {
+      if (!program) doAssemble();
+      if (halted) return;
+    }
+    running = true;
+    renderAll();
+
+    var speed = Number(speedEl.value);
+
+    function tick() {
+      if (!running) return;
+      if (halted) { running = false; renderAll(); return; }
+
+      var budget = speed === 0 ? 200 : (speed < 50 ? 20 : (speed < 150 ? 5 : 1));
+
+      for (var i = 0; i < budget; i++) {
+        if (halted) break;
+        doStep();
+        var nextIns = program.byAddr[Number(pc)];
+        if (nextIns && breakpoints[nextIns.lineIdx + 1]) {
+          logLine("Breakpoint at line " + (nextIns.lineIdx + 1), "hlt");
+          running = false;
+          renderAll();
+          return;
+        }
+      }
+      renderAll();
+      runTimer = setTimeout(tick, speed === 0 ? 16 : Math.max(20, speed / budget));
+    }
+    tick();
+  }
+
+  /* ═══════════════════════════════════════════════════
+     Download
+     ═══════════════════════════════════════════════════ */
+  function download(filename, text) {
+    var blob = new Blob([text], { type: "text/plain" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function downloadAll(which) {
+    var code = editorEl.value;
+    var regText = "Register,Decimal,Hex,Binary\n";
+    for (var i = 0; i <= 30; i++) {
+      regText += "x" + i + "," + dec(regs[i]) + "," + hex(regs[i], 64) + "," + bin(regs[i], 64) + "\n";
+    }
+    regText += "sp," + dec(sp) + "," + hex(sp, 64) + "," + bin(sp, 64) + "\n";
+    regText += "pc," + dec(pc) + "," + hex(pc, 64) + "," + bin(pc, 64) + "\n";
+
+    var memText = "Address,Decimal,Hex,Binary\n";
+    for (var a = 0; a < MEM_SIZE; a += 8) {
+      var v = BigInt(0);
+      for (var k = 0; k < 8; k++) v = v | (BigInt(memBytes[a + k]) << BigInt(k * 8));
+      memText += "0x" + a.toString(16).padStart(8, "0") + "," + dec(v) + "," + hex(v, 64) + "," + bin(v, 64) + "\n";
+    }
+
+    if (which === "code") download("program.s", code);
+    else if (which === "reg") download("registers.csv", regText);
+    else if (which === "mem") download("memory.csv", memText);
+    else {
+      download("arm64-simulation.txt",
+        "=== CODE ===\n" + code + "\n\n=== REGISTERS ===\n" + regText + "\n\n=== MEMORY ===\n" + memText);
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════
+     Default program
+     ═══════════════════════════════════════════════════ */
+  var DEFAULT_CODE =
+"// Sample: compute 1 + 2 + ... + 20\n" +
+"        .text\n" +
+"main:\n" +
+"        MOV     X0, #0          // accumulator\n" +
+"        MOV     X1, #1          // counter\n" +
+"        MOV     X2, #20         // limit\n" +
+"\n" +
+"loop:\n" +
+"        ADD     X0, X0, X1      // sum += counter\n" +
+"        ADD     X1, X1, #1      // counter++\n" +
+"        CMP     X1, X2          // compare with limit\n" +
+"        B.LE    loop            // continue if <= limit\n" +
+"\n" +
+"        // X0 now holds 210 (0xD2)\n" +
+"        HLT\n";
+
+  /* ═══════════════════════════════════════════════════
+     Init
+     ═══════════════════════════════════════════════════ */
+  function init() {
+    editorEl = $("editor");
+    gutterEl = $("gutter");
+    consoleEl = $("console");
+    regTableEl = $("regTable");
+    memTableEl = $("memTable");
+    btnStep = $("btnStep");
+    btnRun = $("btnRun");
+    btnReset = $("btnReset");
+    speedEl = $("speed");
+    memAddrEl = $("memAddr");
+
+    editorEl.value = DEFAULT_CODE;
+
+    editorEl.addEventListener("input", function () {
+      updateGutter();
+      clearTimeout(editorEl._t);
+      editorEl._t = setTimeout(function () { doAssemble(); }, 400);
+    });
+
+    editorEl.addEventListener("keydown", function (e) {
+      if (e.key === "Tab") {
+        e.preventDefault();
+        var s = editorEl.selectionStart;
+        var en = editorEl.selectionEnd;
+        editorEl.value = editorEl.value.slice(0, s) + "    " + editorEl.value.slice(en);
+        editorEl.selectionStart = editorEl.selectionEnd = s + 4;
+        editorEl.dispatchEvent(new Event("input"));
+      }
+    });
+
+    editorEl.addEventListener("scroll", function () {
+      gutterEl.scrollTop = editorEl.scrollTop;
+    });
+
+    gutterEl.addEventListener("click", function (e) {
+      var t = e.target;
+      if (t.classList.contains("ln")) {
+        var ln = Number(t.getAttribute("data-line"));
+        if (breakpoints[ln]) delete breakpoints[ln];
+        else breakpoints[ln] = true;
+        updateGutter();
+        updateHighlight();
+      }
+    });
+
+    btnReset.addEventListener("click", doReset);
+    btnStep.addEventListener("click", function () { stopRun(); doStep(); });
+    btnRun.addEventListener("click", startRun);
+
+    $("memGo").addEventListener("click", function () {
+      var v = memAddrEl.value.trim();
+      try {
+        var n = parseNum(v);
+        if (n >= BigInt(0) && n < BigInt(MEM_SIZE - 96)) {
+          memBase = Number(n) & ~7;
+          renderMem();
+        }
+      } catch (e) {}
+      memAddrEl.value = "0x" + memBase.toString(16).toUpperCase();
+    });
+
+    memAddrEl.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") $("memGo").click();
+    });
+
+    var dlBtns = document.querySelectorAll(".dl-buttons button");
+    for (var i = 0; i < dlBtns.length; i++) {
+      dlBtns[i].addEventListener("click", function (e) {
+        downloadAll(e.target.getAttribute("data-dl"));
+      });
+    }
+
+    window.addEventListener("error", function (e) {
+      try { logLine("Error: " + (e.message || "unknown"), "hlt"); } catch (x) {}
+    });
+
+    doAssemble();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+
+})();
+</script></body>
+</html>

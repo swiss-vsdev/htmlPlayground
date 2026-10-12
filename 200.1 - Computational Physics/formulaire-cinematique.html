@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Formulaire — Cinématique</title>
+<style>
+  :root{
+    --ink:#0f172a; --muted:#667085; --line:#e4e7ec; --soft:#f8fafc;
+    --blue:#2563eb; --blue-bg:#eff4ff; --blue-br:#c7d7fe;
+    --orange:#ea580c; --orange-bg:#fff6ed; --orange-br:#fed7aa;
+    --green:#027a48; --green-bg:#ecfdf3; --green-br:#a6f4c5;
+    --violet:#6941c6; --violet-bg:#f4f3ff; --violet-br:#d9d6fe;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:#eef1f7;color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    line-height:1.55;font-size:15px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 20px 64px}
+
+  /* ---------- En-tête ---------- */
+  .hero{
+    background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 100%);
+    color:#fff;border-radius:18px;padding:32px 34px 28px;margin-bottom:20px;
+    box-shadow:0 12px 32px rgba(15,23,42,.20);
+  }
+  .hero-tag{
+    display:inline-block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:#bfdbfe;border:1px solid rgba(191,219,254,.35);border-radius:99px;
+    padding:3px 11px;margin-bottom:14px;font-weight:600;
+  }
+  .hero h1{margin:0 0 8px;font-size:30px;line-height:1.2;letter-spacing:-.02em}
+  .hero p{margin:0;color:#c7d2fe;font-size:14.5px;max-width:60ch}
+
+  /* ---------- Navigation ---------- */
+  .nav{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 20px}
+  .nav a{
+    font-size:12px;font-weight:600;text-decoration:none;color:#344054;
+    background:#fff;border:1px solid var(--line);border-radius:99px;padding:5px 13px;
+    transition:.15s;
+  }
+  .nav a:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-bg)}
+
+  /* ---------- Grille ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(345px,1fr));gap:16px;align-items:start}
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:16px;padding:19px 21px 21px;
+    box-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 18px rgba(16,24,40,.05);
+    scroll-margin-top:16px;
+  }
+  .card.wide{grid-column:1/-1}
+
+  .chead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .card h2{font-size:16px;margin:0;letter-spacing:-.01em;font-weight:700}
+  .lead{margin:6px 0 0;font-size:13px;color:var(--muted);line-height:1.5}
+
+  .chip{
+    font-size:11px;font-weight:700;border-radius:99px;padding:3px 10px;white-space:nowrap;
+    border:1px solid transparent;
+  }
+  .c-blue{background:var(--blue-bg);color:#1d4ed8;border-color:var(--blue-br)}
+  .c-orange{background:var(--orange-bg);color:#c2410c;border-color:var(--orange-br)}
+  .c-green{background:var(--green-bg);color:#047857;border-color:var(--green-br)}
+  .c-violet{background:var(--violet-bg);color:#5b21b6;border-color:var(--violet-br)}
+
+  /* ---------- Formules ---------- */
+  .formulas{display:grid;gap:7px;margin:13px 0 0}
+  .f{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    background:var(--soft);border:1px solid #eaeef6;border-radius:10px;padding:7px 13px;
+  }
+  .f .tag{font-size:11px;color:var(--muted);white-space:nowrap}
+  .eq{
+    font-family:Georgia,"Cambria Math","Times New Roman",serif;
+    font-size:16.5px;color:var(--ink);letter-spacing:.01em;
+  }
+  .eq i{font-style:italic}
+  .eq sub,.eq sup{font-size:.66em}
+  .eq sub{vertical-align:-.25em}
+  .eq sup{vertical-align:.42em}
+
+  .frac{display:inline-flex;flex-direction:column;vertical-align:-.42em;text-align:center;font-size:.9em;margin:0 .16em}
+  .frac>span:first-child{border-bottom:1.4px solid currentColor;padding:0 .3em}
+  .frac>span:last-child{padding:0 .3em}
+
+  .vec{position:relative;font-style:italic}
+  .vec::after{
+    content:"→";position:absolute;left:50%;transform:translateX(-50%) scaleX(.75);
+    top:-.86em;font-size:.7em;font-style:normal;line-height:1;
+  }
+
+  /* ---------- Tableaux ---------- */
+  table{width:100%;border-collapse:collapse;margin-top:13px;font-size:12.5px}
+  th{
+    text-align:left;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);font-weight:700;padding:0 10px 7px;border-bottom:1.5px solid var(--line);
+  }
+  td{padding:7px 10px;border-bottom:1px solid #f1f4f9;vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td.sym{font-family:Georgia,"Cambria Math",serif;font-size:14px;white-space:nowrap}
+  td.unit{color:var(--blue);font-weight:600;white-space:nowrap}
+
+  /* ---------- Encadrés ---------- */
+  .note{
+    display:flex;gap:10px;margin-top:13px;padding:10px 13px;border-radius:10px;
+    font-size:12.5px;line-height:1.52;border:1px solid transparent;
+  }
+  .note b{font-weight:700}
+  .note .ico{flex:none;font-size:13px;line-height:1.4}
+  .n-blue{background:var(--blue-bg);border-color:var(--blue-br);color:#1e3a8a}
+  .n-warn{background:#fffaeb;border-color:#fedf89;color:#93370d}
+  .n-tip{background:var(--green-bg);border-color:var(--green-br);color:#054f31}
+  .n-violet{background:var(--violet-bg);border-color:var(--violet-br);color:#4c1d95}
+
+  /* ---------- Figures ---------- */
+  figure{margin:14px 0 0;background:var(--soft);border:1px solid #eaeef6;border-radius:11px;padding:10px 8px 6px}
+  figure svg{display:block;width:100%;height:auto}
+  figcaption{font-size:11px;color:var(--muted);text-align:center;margin-top:5px;padding:0 8px}
+  .fig text{font-size:11px;fill:#667085;font-family:-apple-system,"Segoe UI",Roboto,sans-serif}
+  .fig .ax{stroke:#cbd5e1;stroke-width:1.5;fill:none}
+  .fig .curve{stroke:var(--blue);stroke-width:2.2;fill:none;stroke-linecap:round}
+  .fig .curved{stroke:var(--orange);stroke-width:2.2;fill:none;stroke-linecap:round}
+  .fig .dash{stroke:#94a3b8;stroke-width:1.2;stroke-dasharray:4 3;fill:none}
+  .fig .dashb{stroke:#93b4f7;stroke-width:1.2;stroke-dasharray:4 3;fill:none}
+  .fig .lbl{font-weight:700}
+  .fig .lbl-b{fill:var(--blue);font-style:italic;font-weight:700}
+  .fig .lbl-o{fill:var(--orange);font-style:italic;font-weight:700}
+
+  /* ---------- Liste méthode ---------- */
+  ol.method{counter-reset:m;list-style:none;padding:0;margin:14px 0 0;display:grid;gap:9px}
+  ol.method li{
+    counter-increment:m;position:relative;padding-left:36px;font-size:13px;line-height:1.5;
+  }
+  ol.method li::before{
+    content:counter(m);position:absolute;left:0;top:-1px;width:24px;height:24px;
+    background:var(--blue);color:#fff;border-radius:8px;font-size:12px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+  ol.method li b{font-weight:700}
+
+  footer{
+    margin-top:26px;padding-top:16px;border-top:1px solid var(--line);
+    font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+
+  /* ---------- Impression ---------- */
+  @media print{
+    body{background:#fff;font-size:10.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .wrap{max-width:none;padding:0}
+    .hero{border-radius:0;padding:16px 18px;box-shadow:none;margin-bottom:12px}
+    .hero h1{font-size:21px}
+    .hero p{font-size:11.5px}
+    .nav{display:none}
+    .grid{grid-template-columns:1fr 1fr;gap:9px}
+    .card{break-inside:avoid;page-break-inside:avoid;box-shadow:none;padding:12px 14px;border-radius:10px}
+    .card.wide{grid-column:1/-1}
+    .eq{font-size:13px}
+    .f{padding:5px 10px}
+    figure{margin-top:9px}
+    footer{margin-top:14px}
+    @page{size:A4;margin:9mm}
+  }
+</style>
+</head>
+<body>
+
+<!-- Définitions des flèches réutilisées par toutes les figures -->
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#475467"/>
+    </marker>
+    <marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#ea580c"/>
+    </marker>
+  </defs>
+</svg>
+
+<div class="wrap">
+
+  <header class="hero">
+    <span class="hero-tag">Physique · Mécanique</span>
+    <h1>Formulaire de cinématique</h1>
+    <p>Toutes les formules du mouvement — rectiligne, circulaire, parabolique — avec les graphiques associés, les conventions de signes et les réflexes à avoir le jour de l'épreuve.</p>
+  </header>
+
+  <nav class="nav">
+    <a href="#bases">Grandeurs de base</a>
+    <a href="#graphes">Lecture des graphiques</a>
+    <a href="#mru">MRU</a>
+    <a href="#mrua">MRUA</a>
+    <a href="#chute">Chute libre</a>
+    <a href="#circulaire">Mouvement circulaire</a>
+    <a href="#parabolique">Mouvement parabolique</a>
+    <a href="#composition">Composition des mouvements</a>
+    <a href="#frenet">Repère de Frenet</a>
+    <a href="#methode">Méthode</a>
+  </nav>
+
+  <div class="grid">
+
+    <!-- ═══════════ 1. GRANDEURS DE BASE ═══════════ -->
+    <section class="card wide" id="bases">
+      <div class="chead">
+        <h2>Les grandeurs de base</h2>
+        <span class="chip c-blue">fondations</span>
+      </div>
+      <p class="lead">La cinématique décrit le mouvement <em>sans</em> s'occuper de ses causes (les forces, c'est la dynamique). Tout repose sur trois grandeurs : où l'on est, à quelle vitesse on y va, et comment cette vitesse change.</p>
+
+      <table>
+        <thead>
+          <tr><th>Grandeur</th><th>Notation</th><th>Unité SI</th><th>Définition</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Position</td>
+            <td class="sym">x, z ou <span class="vec">r</span></td>
+            <td class="unit">m</td>
+            <td>Repère le mobile sur l'axe choisi. Son signe dépend de l'origine et du sens positif, qui sont des <em>choix</em>.</td>
+          </tr>
+          <tr>
+            <td>Déplacement</td>
+            <td class="sym">Δx = x₂ − x₁</td>
+            <td class="unit">m</td>
+            <td>Variation de position entre deux instants. Peut être négatif — contrairement à la distance parcourue.</td>
+          </tr>
+          <tr>
+            <td>Vitesse moyenne</td>
+            <td class="sym"><i>v</i>̄ = <span class="frac"><span>Δx</span><span>Δt</span></span></td>
+            <td class="unit">m/s</td>
+            <td>Vitesse « en moyenne » sur un trajet, sans dire ce qui s'est passé entre les deux instants.</td>
+          </tr>
+          <tr>
+            <td>Vitesse instantanée</td>
+            <td class="sym"><i>v</i> = <span class="frac"><span>d<i>x</i></span><span>d<i>t</i></span></span></td>
+            <td class="unit">m/s</td>
+            <td>Vitesse à un instant précis : c'est la <strong>dérivée</strong> de la position par rapport au temps.</td>
+          </tr>
+          <tr>
+            <td>Accélération</td>
+            <td class="sym"><i>a</i> = <span class="frac"><span>d<i>v</i></span><span>d<i>t</i></span></span> = <span class="frac"><span>d²<i>x</i></span><span>d<i>t</i>²</span></span></td>
+            <td class="unit">m/s²</td>
+            <td>Mesure la façon dont la vitesse varie. <strong>Dérivée seconde</strong> de la position.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note n-blue">
+        <span class="ico">⇄</span>
+        <div><b>Conversion indispensable :</b> 1 m/s = 3,6 km/h. Pour passer des km/h aux m/s, on <b>divise</b> par 3,6 ; dans l'autre sens, on multiplie. 90 km/h = 25 m/s.</div>
+      </div>
+
+      <div class="note n-warn">
+        <span class="ico">±</span>
+        <div><b>Le piège des signes :</b> le signe de <i>v</i> donne le <b>sens</b> du mouvement. Le signe de <i>a</i> indique, lui, si la vitesse <b>augmente</b> (<i>a</i> et <i>v</i> de même signe) ou <b>diminue</b> (signes opposés). Une voiture qui freine en marche arrière a une accélération positive.</div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 2. LECTURE DES GRAPHES ═══════════ -->
+    <section class="card wide" id="graphes">
+      <div class="chead">
+        <h2>Lire un graphique sans se tromper</h2>
+        <span class="chip c-violet">méthode</span>
+      </div>
+      <p class="lead">Trois courbes suffisent à décrire n'importe quel mouvement rectiligne. Deux idées les relient : <strong>la pente donne la grandeur dérivée</strong>, <strong>l'aire donne la grandeur intégrée</strong>.</p>
+
+      <div class="formulas">
+        <div class="f"><span class="eq">pente de <i>x</i>(<i>t</i>) &nbsp;⟶&nbsp; <i>v</i></span><span class="tag">une droite ⇒ vitesse constante</span></div>
+        <div class="f"><span class="eq">pente de <i>v</i>(<i>t</i>) &nbsp;⟶&nbsp; <i>a</i></span><span class="tag">une droite ⇒ accélération constante</span></div>
+        <div class="f"><span class="eq">aire sous <i>v</i>(<i>t</i>) &nbsp;⟶&nbsp; Δ<i>x</i></span><span class="tag">déplacement, signe compris</span></div>
+        <div class="f"><span class="eq">aire sous <i>a</i>(<i>t</i>) &nbsp;⟶&nbsp; Δ<i>v</i></span><span class="tag">variation de vitesse</span></div>
+      </div>
+
+      <div class="note n-violet">
+        <span class="ico">◆</span>
+        <div><b>Reconnaissance immédiate :</b> <i>x</i>(<i>t</i>) est une <b>droite</b> ⟹ mouvement uniforme. <i>x</i>(<i>t</i>) est une <b>parabole</b> ⟹ mouvement uniformément accéléré. <i>v</i>(<i>t</i>) horizontale ⟹ accélération nulle.</div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 3. MRU ═══════════ -->
+    <section class="card" id="mru">
+      <div class="chead">
+        <h2>MRU</h2>
+        <span class="chip c-blue">a = 0</span>
+      </div>
+      <p class="lead">Mouvement rectiligne uniforme : la trajectoire est une droite et la vitesse ne change pas — ni en valeur, ni en direction, ni en sens.</p>
+
+      <div class="formulas">
+        <div class="f"><span class="eq"><i>x</i>(<i>t</i>) = <i>x</i>₀ + <i>v</i> · <i>t</i></span><span class="tag">équation horaire</span></div>
+        <div class="f"><span class="eq"><i>v</i>(<i>t</i>) = <i>v</i>₀ = constante</span><span class="tag">vitesse</span></div>
+        <div class="f"><span class="eq"><i>a</i>(<i>t</i>) = 0</span><span class="tag">accélération</span></div>
+      </div>
+
+      <figure>
+        <svg class="fig" viewBox="0 0 300 118" role="img" aria-label="Graphes x(t), v(t) et a(t) pour un mouvement rectiligne uniforme">
+          <!-- x(t) : droite -->
+          <line class="ax" x1="10" y1="12" x2="10" y2="84" marker-end="url(#ar)"/>
+          <line class="ax" x1="10" y1="84" x2="92" y2="84" marker-end="url(#ar)"/>
+          <line class="curve" x1="14" y1="78" x2="88" y2="24"/>
+          <text class="lbl" x="51" y="104" text-anchor="middle">x(t)</text>
+
+          <!-- v(t) : horizontale -->
+          <line class="ax" x1="108" y1="12" x2="108" y2="84" marker-end="url(#ar)"/>
+          <line class="ax" x1="108" y1="84" x2="190" y2="84" marker-end="url(#ar)"/>
+          <line class="curve" x1="112" y1="42" x2="186" y2="42"/>
+          <text class="lbl" x="149" y="104" text-anchor="middle">v(t)</text>
+
+          <!-- a(t) : nulle -->
+          <line class="ax" x1="206" y1="12" x2="206" y2="84" marker-end="url(#ar)"/>
+          <line class="ax" x1="206" y1="84" x2="288" y2="84" marker-end="url(#ar)"/>
+          <line class="curved" x1="210" y1="84" x2="284" y2="84"/>
+          <text class="lbl-o" x="247" y="74" text-anchor="middle">a = 0</text>
+          <text class="lbl" x="247" y="104" text-anchor="middle">a(t)</text>
+        </svg>
+        <figcaption>x(t) est une droite dont la pente vaut la vitesse ; v(t) est plate ; a(t) reste sur l'axe.</figcaption>
+      </figure>
+
+      <div class="note n-blue">
+        <span class="ico">▸</span>
+        <div><i>x</i>₀ est la position à <i>t</i> = 0. On choisit souvent l'origine là où le mouvement commence, ce qui donne <i>x</i>₀ = 0 et allège tous les calculs.</div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 4. MRUA ═══════════ -->
+    <section class="card" id="mrua">
+      <div class="chead">
+        <h2>MRUA</h2>
+        <span class="chip c-orange">a = constante</span>
+      </div>
+      <p class="lead">Mouvement rectiligne uniformément accéléré : l'accélération garde la même valeur, mais la vitesse, elle, change à chaque instant.</p>
+
+      <div class="formulas">
+        <div class="f"><span class="eq"><i>v</i>(<i>t</i>) = <i>v</i>₀ + <i>a</i> · <i>t</i></span><span class="tag">vitesse</span></div>
+        <div class="f"><span class="eq"><i>x</i>(<i>t</i>) = <i>x</i>₀ + <i>v</i>₀<i>t</i> + ½ <i>a t</i>²</span><span class="tag">position</span></div>
+        <div class="f"><span class="eq"><i>v</i>² = <i>v</i>₀² + 2<i>a</i>(<i>x</i> − <i>x</i>₀)</span><span class="tag">relation sans le temps</span></div>
+        <div class="f"><span class="eq">Δ<i>x</i> = ½(<i>v</i>₀ + <i>v</i>) · <i>t</i></span><span class="tag">vitesse moyenne</span></div>
+      </div>
+
+      <figure>
+        <svg class="fig" viewBox="0 0 300 118" role="img" aria-label="Graphes x(t), v(t) et a(t) pour un mouvement rectiligne uniformément accéléré">
+          <!-- x(t) : parabole -->
+          <line class="ax" x1="10" y1="12" x2="10" y2="84" marker-end="url(#ar)"/>
+          <line class="ax" x1="10" y1="84" x2="92" y2="84" marker-end="url(#ar)"/>
+          <path class="curve" d="M14,80 C 50,78 74,58 88,14"/>
+          <text class="lbl" x="51" y="104" text-anchor="middle">x(t)</text>
+
+          <!-- v(t) : droite croissante -->
+          <line class="ax" x1="108" y1="12" x2="108" y2="84" marker-end="url(#ar)"/>
+          <line class="ax" x1="108" y1="84" x2="190" y2="84" marker-end="url(#ar)"/>
+          <line class="curve" x1="112" y1="80" x2="186" y2="16"/>
+          <text class="lbl" x="149" y="104" text-anchor="middle">v(t)</text>
+
+          <!-- a(t) : constante -->
+          <line class="ax" x1="206" y1="12" x2="206" y2="84" marker-end="url(#ar)"/>
+          <line class="ax" x1="206" y1="84" x2="288" y2="84" marker-end="url(#ar)"/>
+          <line class="curved" x1="210" y1="50" x2="284" y2="50"/>
+          <text class="lbl-o" x="247" y="42" text-anchor="middle">a &gt; 0</text>
+          <text class="lbl" x="247" y="104" text-anchor="middle">a(t)</text>
+        </svg>
+        <figcaption>x(t) devient une parabole, v(t) une droite dont la pente vaut l'accélération.</figcaption>
+      </figure>
+
+      <div class="note n-tip">
+        <span class="ico">★</span>
+        <div><b>La formule qui sauve :</b> <i>v</i>² = <i>v</i>₀² + 2<i>a</i>Δ<i>x</i> s'utilise quand l'énoncé ne parle pas de durée (distance de freinage, vitesse d'impact, longueur de piste…).</div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 5. CHUTE LIBRE ═══════════ -->
+    <section class="card" id="chute">
+      <div class="chead">
+        <h2>Chute libre</h2>
+        <span class="chip c-orange">a = g</span>
+      </div>
+      <p class="lead">Un corps en chute libre n'est soumis qu'à son poids ; on néglige les frottements de l'air. Son accélération est verticale, dirigée vers le bas, et vaut <i>g</i> ≈ 9,81 m/s².</p>
+
+      <p style="font-size:12.5px;color:#475467;margin:12px 0 0">Axe (O<i>z</i>) vertical orienté <strong>vers le haut</strong>, origine au point de lancement :</p>
+
+      <div class="formulas">
+        <div class="f"><span class="eq"><i>a</i> = −<i>g</i></span><span class="tag">accélération</span></div>
+        <div class="f"><span class="eq"><i>v</i>(<i>t</i>) = <i>v</i>₀ − <i>g t</i></span><span class="tag">vitesse</span></div>
+        <div class="f"><span class="eq"><i>z</i>(<i>t</i>) = <i>z</i>₀ + <i>v</i>₀<i>t</i> − ½ <i>g t</i>²</span><span class="tag">position</span></div>
+      </div>
+
+      <p style="font-size:12.5px;color:#475467;margin:14px 0 0">Cas particulier — chute <strong>sans vitesse initiale</strong> d'une hauteur <i>h</i> :</p>
+
+      <div class="formulas">
+        <div class="f"><span class="eq"><i>t</i><sub>chute</sub> = √(2<i>h</i> / <i>g</i>)</span><span class="tag">durée</span></div>
+        <div class="f"><span class="eq"><i>v</i><sub>sol</sub> = √(2<i>g h</i>)</span><span class="tag">vitesse d'impact</span></div>
+      </div>
+
+      <div class="note n-warn">
+        <span class="ico">⤓</span>
+        <div><i>g</i> varie très peu avec le lieu : 9,78 m/s² à l'équateur, 9,83 aux pôles. On retient 9,81 m/s² — ou 10 pour un calcul mental rapide.</div>
+      </div>
+
+      <div class="note n-blue">
+        <span class="ico">▸</span>
+        <div>Sans frottement, une plume et un marteau tombent exactement à la même vitesse. La différence qu'on observe sur Terre vient uniquement de la résistance de l'air.</div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 6. MOUVEMENT CIRCULAIRE ═══════════ -->
+    <section class="card" id="circulaire">
+      <div class="chead">
+        <h2>Mouvement circulaire</h2>
+        <span class="chip c-green">trajectoire = cercle</span>
+      </div>
+      <p class="lead">La trajectoire est un cercle de rayon <i>R</i>. On décrit le mouvement avec un angle plutôt qu'une distance : c'est la vitesse <em>angulaire</em>.</p>
+
+      <div class="formulas">
+        <div class="f"><span class="eq"><i>f</i> = <span class="frac"><span>1</span><span><i>T</i></span></span> &nbsp;&nbsp; <i>ω</i> = <span class="frac"><span>2π</span><span><i>T</i></span></span> = 2π<i>f</i></span><span class="tag">fréquence, pulsation</span></div>
+        <div class="f"><span class="eq"><i>v</i> = <i>R ω</i></span><span class="tag">vitesse linéaire (m/s)</span></div>
+        <div class="f"><span class="eq"><i>a</i><sub>n</sub> = <span class="frac"><span><i>v</i>²</span><span><i>R</i></span></span> = <i>R ω</i>²</span><span class="tag">accélération centripète</span></div>
+      </div>
+
+      <figure>
+        <svg class="fig" viewBox="0 0 200 140" role="img" aria-label="Mouvement circulaire : rayon, vecteur vitesse tangent et accélération centripète">
+          <circle cx="88" cy="72" r="46" fill="none" stroke="#cbd5e1" stroke-width="1.8"/>
+          <line class="dash" x1="88" y1="72" x2="88" y2="26"/>
+          <circle cx="88" cy="72" r="2.6" fill="#475467"/>
+          <!-- vecteur vitesse (tangent) -->
+          <line x1="88" y1="26" x2="146" y2="26" stroke="#2563eb" stroke-width="2" marker-end="url(#arB)"/>
+          <!-- vecteur accélération (vers le centre) -->
+          <line x1="88" y1="26" x2="88" y2="52" stroke="#ea580c" stroke-width="2" marker-end="url(#arO)"/>
+          <circle cx="88" cy="26" r="3" fill="#2563eb"/>
+          <text class="lbl-b" x="126" y="18" text-anchor="middle">v</text>
+          <text class="lbl-o" x="94" y="45">a</text>
+          <text class="lbl" x="80" y="52" text-anchor="end">R</text>
+          <text class="lbl" x="78" y="80" text-anchor="end">O</text>
+        </svg>
+        <figcaption>La vitesse est toujours tangente au cercle ; l'accélération, toujours dirigée vers le centre.</figcaption>
+      </figure>
+
+      <p style="font-size:12.5px;color:#475467;margin:14px 0 0"><strong>Mouvement circulaire uniforme (MCU)</strong> — <i>ω</i> constante :</p>
+      <div class="formulas">
+        <div class="f"><span class="eq"><i>θ</i>(<i>t</i>) = <i>θ</i>₀ + <i>ω t</i></span><span class="tag">position angulaire</span></div>
+      </div>
+
+      <p style="font-size:12.5px;color:#475467;margin:14px 0 0"><strong>Mouvement circulaire uniformément accéléré (MCUA)</strong> — accélération angulaire <i>α</i> constante :</p>
+      <div class="formulas">
+        <div class="f"><span class="eq"><i>ω</i>(<i>t</i>) = <i>ω</i>₀ + <i>α t</i></span><span class="tag">vitesse angulaire</span></div>
+        <div class="f"><span class="eq"><i>θ</i>(<i>t</i>) = <i>θ</i>₀ + <i>ω</i>₀<i>t</i> + ½ <i>α t</i>²</span><span class="tag">angle</span></div>
+        <div class="f"><span class="eq"><i>a</i><sub>t</sub> = <i>R α</i></span><span class="tag">accélération tangentielle</span></div>
+      </div>
+
+      <div class="note n-tip">
+        <span class="ico">★</span>
+        <div><b>L'erreur classique :</b> dans un mouvement circulaire <em>uniforme</em>, la vitesse ne change pas de valeur — mais le vecteur vitesse change constamment de direction. L'accélération n'est donc <b>pas nulle</b>, elle vaut <i>v</i>²/<i>R</i>.</div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 7. MOUVEMENT PARABOLIQUE ═══════════ -->
+    <section class="card wide" id="parabolique">
+      <div class="chead">
+        <h2>Mouvement parabolique (projectile)</h2>
+        <span class="chip c-orange">superposition de 2 mouvements</span>
+      </div>
+      <p class="lead">Un projectile lancé avec une vitesse <i>v</i>₀ faisant un angle <i>α</i> avec l'horizontale est soumis à la seule gravité. C'est la superposition d'un <strong>MRU horizontal</strong> et d'une <strong>chute libre verticale</strong> — les deux se traitent indépendamment.</p>
+
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:14px">
+
+        <div>
+          <div class="formulas" style="margin-top:0">
+            <div class="f"><span class="eq"><i>v</i><sub>x</sub> = <i>v</i>₀ cos <i>α</i></span><span class="tag">constante</span></div>
+            <div class="f"><span class="eq"><i>v</i><sub>y</sub> = <i>v</i>₀ sin <i>α</i> − <i>g t</i></span><span class="tag">varie</span></div>
+            <div class="f"><span class="eq"><i>x</i>(<i>t</i>) = (<i>v</i>₀ cos <i>α</i>) <i>t</i></span><span class="tag">horizontal</span></div>
+            <div class="f"><span class="eq"><i>y</i>(<i>t</i>) = (<i>v</i>₀ sin <i>α</i>) <i>t</i> − ½ <i>g t</i>²</span><span class="tag">vertical</span></div>
+          </div>
+
+          <p style="font-size:12.5px;color:#475467;margin:14px 0 0"><strong>Équation de la trajectoire</strong> (en éliminant <i>t</i>) :</p>
+          <div class="formulas">
+            <div class="f"><span class="eq"><i>y</i> = <i>x</i> tan <i>α</i> − <span class="frac"><span><i>g x</i>²</span><span>2<i>v</i>₀² cos²<i>α</i></span></span></span><span class="tag">une parabole</span></div>
+          </div>
+
+          <p style="font-size:12.5px;color:#475467;margin:14px 0 0"><strong>Points remarquables</strong> (départ et arrivée à la même altitude) :</p>
+          <div class="formulas">
+            <div class="f"><span class="eq"><i>H</i> = <span class="frac"><span><i>v</i>₀² sin²<i>α</i></span><span>2<i>g</i></span></span></span><span class="tag">flèche (hauteur max)</span></div>
+            <div class="f"><span class="eq"><i>L</i> = <span class="frac"><span><i>v</i>₀² sin 2<i>α</i></span><span><i>g</i></span></span></span><span class="tag">portée</span></div>
+            <div class="f"><span class="eq"><i>t</i><sub>vol</sub> = <span class="frac"><span>2<i>v</i>₀ sin <i>α</i></span><span><i>g</i></span></span></span><span class="tag">durée du vol</span></div>
+          </div>
+        </div>
+
+        <figure style="margin-top:0">
+          <svg class="fig" viewBox="0 0 300 142" role="img" aria-label="Trajectoire parabolique d'un projectile avec vitesse initiale, angle alpha, hauteur maximale et portée">
+            <!-- axes -->
+            <line class="ax" x1="18" y1="104" x2="286" y2="104" marker-end="url(#ar)"/>
+            <line class="ax" x1="18" y1="104" x2="18" y2="16" marker-end="url(#ar)"/>
+            <text class="lbl" x="10" y="20" text-anchor="end">y</text>
+            <text class="lbl" x="290" y="98" text-anchor="end">x</text>
+
+            <!-- composantes -->
+            <line class="dashb" x1="18" y1="104" x2="76" y2="104"/>
+            <line class="dashb" x1="76" y1="104" x2="76" y2="60"/>
+            <text class="lbl-b" x="46" y="116" text-anchor="middle">v₀cos α</text>
+            <text class="lbl-b" x="82" y="84">v₀sin α</text>
+
+            <!-- trajectoire -->
+            <path class="curve" d="M18,104 Q147,-14 276,104"/>
+
+            <!-- vecteur vitesse initiale -->
+            <line x1="18" y1="104" x2="76" y2="60" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arB)"/>
+            <text class="lbl-b" x="34" y="72">v₀</text>
+
+            <!-- angle alpha -->
+            <path d="M54,104 A36,36 0 0 0 46.7,82.2" fill="none" stroke="#ea580c" stroke-width="1.6"/>
+            <text class="lbl-o" x="58" y="97">α</text>
+
+            <!-- hauteur max -->
+            <line class="dash" x1="147" y1="45" x2="147" y2="104"/>
+            <text class="lbl" x="153" y="76">h</text>
+            <circle cx="147" cy="45" r="2.6" fill="#2563eb"/>
+
+            <!-- portée -->
+            <line x1="18" y1="120" x2="276" y2="120" stroke="#94a3b8" stroke-width="1.2"
+                  marker-start="url(#ar)" marker-end="url(#ar)"/>
+            <text class="lbl" x="147" y="136" text-anchor="middle">portée L</text>
+          </svg>
+          <figcaption>Le mouvement horizontal est uniforme, le mouvement vertical est uniformément décéléré puis accéléré.</figcaption>
+        </figure>
+      </div>
+
+      <div class="note n-tip">
+        <span class="ico">★</span>
+        <div><b>La portée est maximale pour <i>α</i> = 45°.</b> Deux angles complémentaires donnent la même portée : 30° et 60° retombent au même endroit — mais avec des trajectoires et des durées de vol différentes.</div>
+      </div>
+
+      <div class="note n-blue">
+        <span class="ico">▸</span>
+        <div>Au sommet de la trajectoire, la vitesse n'est jamais nulle : seule sa composante verticale <i>v</i><sub>y</sub> s'annule. Il reste <i>v</i><sub>x</sub> = <i>v</i>₀ cos <i>α</i>.</div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 8. COMPOSITION DES MOUVEMENTS ═══════════ -->
+    <section class="card" id="composition">
+      <div class="chead">
+        <h2>Composition des mouvements</h2>
+        <span class="chip c-violet">changement de référentiel</span>
+      </div>
+      <p class="lead">Décrire un mouvement n'a de sens qu'une fois le référentiel choisi. Pour passer d'un référentiel à un autre, on compose les vitesses et les accélérations.</p>
+
+      <div class="formulas">
+        <div class="f"><span class="eq"><span class="vec">v</span><sub>abs</sub> = <span class="vec">v</span><sub>rel</sub> + <span class="vec">v</span><sub>ent</sub></span><span class="tag">loi de composition</span></div>
+        <div class="f"><span class="eq"><span class="vec">a</span><sub>abs</sub> = <span class="vec">a</span><sub>rel</sub> + <span class="vec">a</span><sub>ent</sub></span><span class="tag">si le référentiel mobile est en translation</span></div>
+      </div>
+
+      <p style="font-size:12.5px;color:#475467;margin:14px 0 0">Vocabulaire : <b>absolu</b> = par rapport au référentiel fixe (le sol), <b>relatif</b> = par rapport au référentiel mobile, <b>entraînement</b> = mouvement du mobile s'il était solidaire du référentiel mobile.</p>
+
+      <div class="note n-violet">
+        <span class="ico">◆</span>
+        <div><b>Principe de relativité galiléenne :</b> si le référentiel mobile est en <b>translation rectiligne uniforme</b> par rapport au référentiel fixe, alors <span class="vec">a</span><sub>ent</sub> = <span class="vec">0</span> et <span class="vec">a</span><sub>abs</sub> = <span class="vec">a</span><sub>rel</sub>. Les lois de la physique s'écrivent donc de la même façon dans les deux référentiels — c'est ce qui fait qu'on ne « sent » pas le mouvement d'un train à vitesse constante.</div>
+      </div>
+
+      <div class="note n-warn">
+        <span class="ico">⚠</span>
+        <div><b>On additionne des vecteurs, pas des nombres.</b> Faire un schéma, puis utiliser Pythagore (directions perpendiculaires) ou la trigonométrie (directions quelconques). Exemple classique : un nageur qui traverse une rivière, un avion dans le vent.</div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 9. REPÈRE DE FRENET ═══════════ -->
+    <section class="card" id="frenet">
+      <div class="chead">
+        <h2>Repère de Frenet</h2>
+        <span class="chip c-green">trajectoire quelconque</span>
+      </div>
+      <p class="lead">Pour une trajectoire courbe quelconque, on décompose l'accélération selon deux directions liées au mouvement : la tangente et la normale.</p>
+
+      <div class="formulas">
+        <div class="f"><span class="eq"><i>a</i><sub>t</sub> = <span class="frac"><span>d<i>v</i></span><span>d<i>t</i></span></span></span><span class="tag">modifie la valeur de v</span></div>
+        <div class="f"><span class="eq"><i>a</i><sub>n</sub> = <span class="frac"><span><i>v</i>²</span><span><i>R</i></span></span></span><span class="tag">modifie la direction de v</span></div>
+        <div class="f"><span class="eq"><i>a</i> = √(<i>a</i><sub>t</sub>² + <i>a</i><sub>n</sub>²)</span><span class="tag">norme totale</span></div>
+      </div>
+
+      <figure>
+        <svg class="fig" viewBox="0 0 220 130" role="img" aria-label="Repère de Frenet : vecteur unitaire tangent et vecteur unitaire normal le long d'une trajectoire courbe">
+          <path class="curve" d="M18,96 Q110,-16 202,96"/>
+          <circle cx="110" cy="40" r="3" fill="#2563eb"/>
+          <!-- tangente -->
+          <line x1="110" y1="40" x2="170" y2="40" stroke="#2563eb" stroke-width="2" marker-end="url(#arB)"/>
+          <!-- normale vers le centre de courbure -->
+          <line x1="110" y1="40" x2="110" y2="76" stroke="#ea580c" stroke-width="2" marker-end="url(#arO)"/>
+          <circle cx="110" cy="80" r="2.4" fill="#ea580c"/>
+          <text class="lbl-b" x="152" y="32" text-anchor="middle">uₜ</text>
+          <text class="lbl-o" x="118" y="64">uₙ</text>
+          <text class="lbl" x="118" y="86">C</text>
+        </svg>
+        <figcaption><i>u</i><sub>t</sub> suit le sens du mouvement, <i>u</i><sub>n</sub> pointe vers le centre de courbure <i>C</i>.</figcaption>
+      </figure>
+
+      <div class="note n-blue">
+        <span class="ico">▸</span>
+        <div>Si <i>a</i><sub>t</sub> = 0, la vitesse garde la même valeur : mouvement <b>uniforme</b>. Si <i>a</i><sub>n</sub> = 0, la trajectoire reste droite : mouvement <b>rectiligne</b>. Les deux nuls ⟹ mouvement rectiligne uniforme.</div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 10. MÉTHODE ═══════════ -->
+    <section class="card wide" id="methode">
+      <div class="chead">
+        <h2>Méthode : résoudre un exercice de cinématique</h2>
+        <span class="chip c-blue">les 5 réflexes</span>
+      </div>
+      <p class="lead">Quasiment tous les exercices se traitent avec la même séquence. La difficulté n'est presque jamais le calcul : c'est le choix du repère et la gestion des signes.</p>
+
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;margin-top:6px">
+        <ol class="method">
+          <li><b>Choisir un référentiel et un repère.</b> Origine, axe, sens positif. On place souvent l'origine au point de départ et le sens positif dans la direction du mouvement.</li>
+          <li><b>Lister les données.</b> Nommer chaque grandeur connue avec son signe, et repérer l'inconnue demandée.</li>
+          <li><b>Identifier le type de mouvement.</b> <i>a</i> = 0 ? <i>a</i> constante ? circulaire ? parabolique ? C'est ce qui détermine quelles formules sont valables.</li>
+          <li><b>Écrire les équations horaires</b> puis remplacer les valeurs littéralement avant de calculer.</li>
+          <li><b>Vérifier.</b> Unité cohérente, ordre de grandeur plausible, signe du résultat interprété physiquement.</li>
+        </ol>
+
+        <div>
+          <div class="note n-tip" style="margin-top:0">
+            <span class="ico">✓</span>
+            <div><b>Test d'homogénéité — à faire systématiquement.</b> Chaque terme d'une somme doit avoir la même unité.<br>
+            <i>x</i> = <i>x</i>₀ + <i>v t</i> → m + (m/s)·s = m ✔<br>
+            <i>v</i>² = <i>v</i>₀² + 2<i>a</i>Δ<i>x</i> → (m/s)² + (m/s²)·m = (m/s)² ✔<br>
+            Si une unité ne colle pas, la formule est fausse — inutile de refaire le calcul.</div>
+          </div>
+
+          <div class="note n-warn">
+            <span class="ico">⚠</span>
+            <div><b>Trois erreurs qui coûtent le plus de points :</b> oublier de convertir les km/h en m/s ; mélanger les signes en choisissant un axe qui descend ; appliquer une formule de MRUA à un mouvement dont l'accélération n'est pas constante.</div>
+          </div>
+
+          <div class="note n-blue">
+            <span class="ico">◆</span>
+            <div><b>Réflexe de contrôle :</b> une voiture qui freine de 90 km/h (25 m/s) à l'arrêt avec <i>a</i> = −5 m/s² parcourt Δ<i>x</i> = <i>v</i>²/(2<i>a</i>) = 625/10 = 62,5 m. Si vous trouvez 6 m ou 600 m, il y a une erreur d'unité.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    <span><strong>Formulaire de cinématique</strong> — g = 9,81 m/s² · Unités SI : m, s, m/s, m/s²</span>
+    <span>Utilisez « Imprimer » puis « Enregistrer au format PDF » pour l'archiver.</span>
+  </footer>
+
+</div>
+</body>
+</html>

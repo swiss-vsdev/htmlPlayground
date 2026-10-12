@@ -1,0 +1,2401 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hide & Seek — Apprendre en jouant</title>
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --surface-2: #fafbfd;
+    --text: #0d0d0d;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --border-strong: #d1d5db;
+    --accent: #4d6bfe;
+    --accent-hover: #3a56e0;
+    --accent-soft: #eef2ff;
+    --success: #16a34a;
+    --success-soft: #dcfce7;
+    --warning: #f59e0b;
+    --warning-soft: #fef3c7;
+    --danger: #dc2626;
+    --danger-soft: #fee2e2;
+    --purple: #8b5cf6;
+    --purple-soft: #f3e8ff;
+    --radius: 14px;
+    --radius-sm: 10px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow: 0 4px 14px rgba(0,0,0,0.06);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    font-size: 15px;
+  }
+  code, .mono {
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.92em;
+  }
+  .app {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 20px 16px 80px;
+  }
+
+  /* ===== Topbar ===== */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(245,247,251,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    margin: -20px -16px 16px;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-inner {
+    max-width: 920px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 180px;
+  }
+  .brand-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    color: white;
+    box-shadow: var(--shadow-sm);
+  }
+  .brand-text h1 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .brand-text p {
+    margin: 0;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+
+  .xp-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 12px 5px 5px;
+    box-shadow: var(--shadow-sm);
+  }
+  .level-ring {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .xp-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+  .xp-info .num {
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .xp-info .lbl {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .streak-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--warning-soft);
+    color: #92400e;
+    border-radius: 999px;
+    padding: 5px 11px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .timer-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 4px 4px 12px;
+    box-shadow: var(--shadow-sm);
+  }
+  .timer-display {
+    font-family: ui-monospace, monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    min-width: 46px;
+    text-align: center;
+  }
+  .timer-display.done { color: var(--success); }
+  .timer-btn {
+    border: none;
+    background: var(--accent);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    transition: transform 0.15s;
+  }
+  .timer-btn:active { transform: scale(0.92); }
+
+  /* ===== Tabs ===== */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 18px;
+    scrollbar-width: thin;
+  }
+  .tabs::-webkit-scrollbar { height: 4px; }
+  .tabs::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+  .tab {
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 7px 13px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab:hover { border-color: var(--border-strong); }
+  .tab.active {
+    background: var(--text);
+    color: white;
+    border-color: var(--text);
+  }
+  .tab .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 10.5px;
+    font-weight: 700;
+  }
+  .tab.active .num {
+    background: rgba(255,255,255,0.2);
+    color: white;
+  }
+  .tab.done .num {
+    background: var(--success);
+    color: white;
+  }
+
+  /* ===== Cards ===== */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s;
+  }
+  .card:hover { box-shadow: var(--shadow); }
+  .card h2 {
+    margin: 0 0 6px;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .card h3 {
+    margin: 18px 0 8px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .card h3:first-child { margin-top: 0; }
+  .card p { margin: 8px 0; }
+  .card .muted { color: var(--muted); font-size: 13px; }
+
+  .hero {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--accent-soft) 200%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 26px 24px;
+    margin-bottom: 18px;
+  }
+  .hero h2 {
+    margin: 0 0 8px;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .hero p {
+    margin: 6px 0;
+    color: var(--muted);
+    font-size: 14.5px;
+    max-width: 600px;
+  }
+
+  /* Module cards in dashboard */
+  .module-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  @media (min-width: 640px) {
+    .module-grid { grid-template-columns: 1fr 1fr; }
+  }
+  .module-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .module-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+  .module-card.done {
+    background: var(--success-soft);
+    border-color: #86efac;
+  }
+  .module-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .module-emoji {
+    font-size: 24px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .module-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .module-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .module-desc {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin: 0 0 10px;
+    line-height: 1.45;
+  }
+  .mini-bar {
+    height: 5px;
+    background: #ececec;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .mini-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+  .module-card.done .mini-bar-fill { background: var(--success); }
+  .module-progress {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .module-progress .pct { font-weight: 600; color: var(--text); }
+
+  /* Lesson content */
+  .lesson {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin: 12px 0;
+  }
+  .lesson p { margin: 6px 0; font-size: 14px; }
+  .lesson ul { margin: 6px 0; padding-left: 20px; }
+  .lesson li { margin: 4px 0; font-size: 14px; }
+
+  .concept {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .concept:last-child { border-bottom: none; }
+  .concept-key {
+    font-family: ui-monospace, monospace;
+    font-size: 12.5px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 3px 8px;
+    border-radius: 6px;
+    height: fit-content;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .concept-body { font-size: 13.5px; line-height: 1.5; }
+  .concept-body strong { font-weight: 600; }
+
+  pre {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+    font-family: ui-monospace, monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin: 10px 0;
+  }
+  pre .k { color: #c792ea; }
+  pre .s { color: #c3e88d; }
+  pre .n { color: #f78c6c; }
+  pre .c { color: #64748b; font-style: italic; }
+  pre .f { color: #82aaff; }
+  code {
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 5px;
+    font-size: 0.9em;
+  }
+
+  /* Tasks */
+  .tasks-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin: 20px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 11px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-bottom: 4px;
+    user-select: none;
+  }
+  .task:hover { background: var(--surface-2); }
+  .task .cb {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-strong);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    transition: all 0.18s;
+    margin-top: 1px;
+  }
+  .task .cb svg { opacity: 0; transform: scale(0.5); transition: all 0.18s; }
+  .task.done .cb {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .task.done .cb svg { opacity: 1; transform: scale(1); }
+  .task-body { flex: 1; }
+  .task-label {
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: color 0.15s;
+  }
+  .task.done .task-label {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+  .task-xp {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    background: var(--accent-soft);
+    padding: 1px 7px;
+    border-radius: 999px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .task.done .task-xp {
+    background: var(--success-soft);
+    color: var(--success);
+  }
+
+  /* Quizzes */
+  .quiz {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin: 14px 0;
+  }
+  .quiz-q {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .quiz-q .icon {
+    flex-shrink: 0;
+    font-size: 15px;
+  }
+  .quiz-opts {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .quiz-opt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
+    width: 100%;
+  }
+  .quiz-opt:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .quiz-opt:disabled { cursor: default; }
+  .quiz-opt .letter {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .quiz-opt.correct {
+    background: var(--success-soft);
+    border-color: var(--success);
+  }
+  .quiz-opt.correct .letter { background: var(--success); color: white; }
+  .quiz-opt.wrong {
+    background: var(--danger-soft);
+    border-color: var(--danger);
+  }
+  .quiz-opt.wrong .letter { background: var(--danger); color: white; }
+  .quiz-explain {
+    margin-top: 12px;
+    padding: 11px 13px;
+    background: white;
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+    display: none;
+  }
+  .quiz-explain.show { display: block; animation: slideIn 0.25s ease; }
+  .quiz-explain strong { color: var(--accent); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Predict */
+  .predict {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin: 14px 0;
+  }
+  .predict pre { margin: 8px 0 12px; }
+  .predict label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .predict-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .predict input {
+    flex: 1;
+    min-width: 140px;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    background: white;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .predict input:focus { border-color: var(--accent); }
+  .predict input.correct { border-color: var(--success); background: var(--success-soft); }
+  .predict input.wrong { border-color: var(--danger); background: var(--danger-soft); }
+  .predict-result {
+    margin-top: 10px;
+    font-size: 13px;
+    display: none;
+    line-height: 1.5;
+  }
+  .predict-result.show { display: block; animation: slideIn 0.25s ease; }
+  .predict-result strong { color: var(--accent); }
+
+  /* Buttons */
+  .btn {
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover { background: var(--accent-hover); }
+  .btn:active { transform: scale(0.97); }
+  .btn-ghost {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--surface-2); border-color: var(--border-strong); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* Interactive widgets */
+  .widget {
+    background: linear-gradient(135deg, #fbfcff 0%, var(--surface) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin: 14px 0;
+    box-shadow: var(--shadow-sm);
+  }
+  .widget-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .widget-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+  }
+  .widget label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    min-width: 60px;
+  }
+  input[type="range"] {
+    flex: 1;
+    min-width: 120px;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: var(--border);
+    border-radius: 999px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(77,107,254,0.35);
+    transition: transform 0.15s;
+  }
+  input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.15); }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+  }
+  .val-badge {
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 3px 10px;
+    border-radius: 7px;
+    min-width: 40px;
+    text-align: center;
+  }
+  .visual-bar {
+    display: flex;
+    height: 40px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 14px 0;
+    border: 1px solid var(--border);
+    background: white;
+  }
+  .visual-bar > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    transition: width 0.3s ease;
+  }
+  .bar-size { background: var(--accent); }
+  .bar-pad { background: #fbbf24; }
+  .result-line {
+    margin-top: 12px;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .result-line .formula {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .result-line .result {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* Byte viewer */
+  .byte-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: ui-monospace, monospace;
+    font-size: 14px;
+    background: white;
+    outline: none;
+    margin-bottom: 12px;
+  }
+  .byte-input:focus { border-color: var(--accent); }
+  .byte-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 14px 0;
+    flex-wrap: wrap;
+  }
+  .byte {
+    width: 60px;
+    height: 72px;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, monospace;
+    transition: all 0.25s;
+    position: relative;
+  }
+  .byte .val {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .byte .addr {
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .byte.highlight { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .byte.sorted { animation: pop 0.4s ease; }
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); background: var(--success-soft); border-color: var(--success); }
+    100% { transform: scale(1); }
+  }
+
+  /* Pointer tagging */
+  .ptr-visual {
+    display: flex;
+    gap: 2px;
+    justify-content: center;
+    margin: 16px 0;
+    flex-wrap: wrap;
+  }
+  .bit {
+    width: 26px;
+    height: 34px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.2s;
+    color: var(--text);
+  }
+  .bit.fixed { background: var(--surface-2); color: var(--muted); }
+  .bit.tag {
+    background: var(--warning-soft);
+    border-color: var(--warning);
+    color: #92400e;
+    cursor: pointer;
+  }
+  .bit.tag.on {
+    background: var(--warning);
+    color: white;
+  }
+  .bit:hover.tag { transform: translateY(-2px); }
+  .tag-result {
+    text-align: center;
+    margin-top: 16px;
+    padding: 14px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .tag-result .val {
+    font-family: ui-monospace, monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .tag-result .lbl {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+  .tag-result .sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    font-family: ui-monospace, monospace;
+  }
+
+  /* Concept grid for OS theory */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 12px 0;
+  }
+  @media (min-width: 600px) {
+    .concept-grid { grid-template-columns: 1fr 1fr; }
+  }
+  .concept-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+  }
+  .concept-card h4 {
+    margin: 0 0 6px;
+    font-size: 13.5px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .concept-card p {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--text);
+    color: white;
+    padding: 11px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+  }
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  .toast .xp { color: #fbbf24; }
+
+  /* Section header */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .section-header .emoji {
+    font-size: 30px;
+    line-height: 1;
+  }
+  .section-header .info h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .section-header .info .meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 9px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  /* Progress overview */
+  .overview-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 16px 0 8px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Confetti */
+  .confetti {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    pointer-events: none;
+    z-index: 200;
+    border-radius: 2px;
+  }
+  @keyframes fall {
+    to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* Reset */
+  .reset-row {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .reset-row button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .reset-row button:hover { color: var(--danger); border-color: var(--danger); }
+
+  /* Hide helper */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-icon">🎯</div>
+        <div class="brand-text">
+          <h1>Hide & Seek</h1>
+          <p>Systèmes d'exploitation en Swift</p>
+        </div>
+      </div>
+
+      <div class="xp-badge">
+        <div class="level-ring" id="levelRing">1</div>
+        <div class="xp-info">
+          <span class="num"><span id="xpNum">0</span> XP</span>
+          <span class="lbl" id="xpNext">50 pour niv. 2</span>
+        </div>
+      </div>
+
+      <div class="streak-badge" id="streakBadge" title="Bonnes réponses consécutives">
+        <span>🔥</span><span id="streakNum">0</span>
+      </div>
+
+      <div class="timer-box">
+        <div class="timer-display" id="timerDisplay">15:00</div>
+        <button class="timer-btn" id="timerBtn" title="Démarrer / Pause">▶</button>
+        <button class="timer-btn" id="timerReset" style="background: var(--border); color: var(--muted);" title="Réinitialiser">↺</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs"></nav>
+
+  <main id="main"></main>
+
+  <div class="reset-row">
+    <button id="resetAll">↺ Réinitialiser toute la progression</button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =============================================================
+   ÉTAT & PERSISTANCE
+   ============================================================= */
+const KEY = 'hs_app_v1';
+
+const defaultState = {
+  xp: 0,
+  tasks: {},
+  quizzes: {},
+  predicts: {},
+  streak: 0,
+  bestStreak: 0,
+  currentView: 'dashboard'
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return { ...defaultState };
+    return { ...defaultState, ...JSON.parse(raw) };
+  } catch (e) { return { ...defaultState }; }
+}
+function saveState() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+}
+let state = loadState();
+
+/* =============================================================
+   CONTENU — MODULES
+   ============================================================= */
+const MODULES = [
+  {
+    id: 'm0', num: 0, emoji: '🔥',
+    title: 'Échauffement',
+    short: '3 minutes pour démarrer',
+    desc: 'Ton cerveau a besoin d\'un premier "ça marche" avant d\'accepter la suite. Objectif : ouvrir Xcode et faire tourner un programme.',
+    duration: 5,
+    tasks: [
+      { id: 'm0-t1', label: 'Créer un projet Swift vide', xp: 5 },
+      { id: 'm0-t2', label: 'Écrire print("go") et exécuter', xp: 5 },
+      { id: 'm0-t3', label: 'Voir "go" s\'afficher dans la console', xp: 5 },
+    ]
+  },
+  {
+    id: 'm1', num: 1, emoji: '🧠',
+    title: 'La mémoire en Swift',
+    short: 'MemoryLayout : size, alignment, stride',
+    desc: 'Comment Swift range les types en mémoire. La base pour comprendre tout le reste du TP.',
+    duration: 20,
+    tasks: [
+      { id: 'm1-t1', label: 'Lire la théorie size / alignment / stride', xp: 10 },
+      { id: 'm1-t2', label: 'Jouer avec le calculateur de stride', xp: 10 },
+      { id: 'm1-t3', label: 'Réussir le quiz sur les types', xp: 15 },
+      { id: 'm1-t4', label: 'Coder stride(size:alignment:) dans Xcode', xp: 25 },
+      { id: 'm1-t5', label: 'Tester avec 3 valeurs à la main', xp: 15 },
+    ]
+  },
+  {
+    id: 'm2', num: 2, emoji: '🔬',
+    title: 'Mémoire brute',
+    short: 'withUnsafeBytes, voir les octets',
+    desc: 'Par défaut Swift protège la mémoire. Les APIs Unsafe permettent de la voir telle qu\'elle est : une suite d\'octets.',
+    duration: 25,
+    tasks: [
+      { id: 'm2-t1', label: 'Lire la théorie sur withUnsafeBytes', xp: 10 },
+      { id: 'm2-t2', label: 'Manipuler le visualiseur d\'octets', xp: 15 },
+      { id: 'm2-t3', label: 'Prédire l\'output d\'un bout de code', xp: 15 },
+      { id: 'm2-t4', label: 'Coder l\'affichage des octets d\'un UInt32', xp: 25 },
+    ]
+  },
+  {
+    id: 'm3', num: 3, emoji: '🎲',
+    title: 'Trier les octets',
+    short: 'sortBytes sur un UInt32',
+    desc: 'Première version concrète du TP : trier les octets d\'un entier. Version fixe d\'abord, générique ensuite.',
+    duration: 25,
+    tasks: [
+      { id: 'm3-t1', label: 'Comprendre l\'algorithme de tri d\'octets', xp: 10 },
+      { id: 'm3-t2', label: 'Jouer avec le trieur d\'octets', xp: 15 },
+      { id: 'm3-t3', label: 'Prédire le résultat d\'un tri', xp: 15 },
+      { id: 'm3-t4', label: 'Coder sortBytes pour UInt32', xp: 30 },
+    ]
+  },
+  {
+    id: 'm4', num: 4, emoji: '🏷️',
+    title: 'Pointer Tagging',
+    short: 'Cacher des données dans les bits libres',
+    desc: 'Le cœur du TP : sur 64-bit, une adresse n\'utilise que 48 bits. Les autres sont libres — on y cache un tag.',
+    duration: 25,
+    tasks: [
+      { id: 'm4-t1', label: 'Comprendre pourquoi il y a des bits libres', xp: 10 },
+      { id: 'm4-t2', label: 'Manipuler le playground de bits', xp: 20 },
+      { id: 'm4-t3', label: 'Réussir le quiz tagging', xp: 15 },
+      { id: 'm4-t4', label: 'Coder l\'extraction du tag', xp: 30 },
+    ]
+  },
+  {
+    id: 'm5', num: 5, emoji: '🖥️',
+    title: 'Théorie OS',
+    short: 'Mémoire virtuelle, noyaux, syscalls',
+    desc: 'Relier ce qu\'on vient de faire aux concepts du cours : MMU, pagination, anneaux de privilèges, appels système.',
+    duration: 30,
+    tasks: [
+      { id: 'm5-t1', label: 'Lire les concepts mémoire virtuelle', xp: 10 },
+      { id: 'm5-t2', label: 'Réussir le quiz mémoire', xp: 15 },
+      { id: 'm5-t3', label: 'Réussir le quiz noyaux', xp: 15 },
+      { id: 'm5-t4', label: 'Réussir le quiz appels système', xp: 15 },
+      { id: 'm5-t5', label: 'Écrire 3 phrases sur la mémoire virtuelle avec tes mots', xp: 20 },
+    ]
+  }
+];
+
+/* =============================================================
+   QUIZ DATA
+   ============================================================= */
+const QUIZZES = {
+  'q-int-1': {
+    q: 'Sur une architecture 64-bit, combien d\'octets fait un Int en Swift ?',
+    opts: ['2', '4', '8', 'Ça dépend du compilateur'],
+    correct: 2,
+    explain: 'Sur 64-bit, <strong>Int = 8 octets</strong>. Sur 32-bit, Int = 4 octets. C\'est pour ça que dans le TP on utilise <code>Int64</code> ou <code>UInt32</code> : on veut une taille fixe, indépendante de la machine.'
+  },
+  'q-int-2': {
+    q: 'Qu\'est-ce que le "stride" d\'un type ?',
+    opts: [
+      'Le nombre d\'octets réellement occupés par le type',
+      'La contrainte d\'alignement (puissance de 2)',
+      'La distance en octets entre deux instances consécutives en mémoire',
+      'La taille maximale d\'un tableau',
+    ],
+    correct: 2,
+    explain: 'Le <strong>stride</strong> est la distance entre deux instances consécutives — il inclut le padding. Il vaut <code>ceil(size / alignment) * alignment</code>.'
+  },
+  'q-int-3': {
+    q: 'Peut-on écrire <code>let x: UInt32 = 5; let y: Int64 = x</code> en Swift ?',
+    opts: [
+      'Oui, Swift convertit automatiquement',
+      'Non, Swift interdit les conversions implicites entre types numériques',
+      'Oui, mais seulement si x est petit',
+      'Ça dépend de la version de Swift',
+    ],
+    correct: 1,
+    explain: 'Swift <strong>interdit</strong> les conversions implicites entre types numériques. Il faut écrire <code>Int64(x)</code> explicitement. C\'est une sécurité qui évite des bugs silencieux.'
+  },
+
+  'q-endian-1': {
+    q: 'Que va afficher ce code sur une machine little-endian ?',
+    code: `let x: UInt32 = 0x01020304
+withUnsafeBytes(of: x) { bytes in
+    for b in bytes { print(b, terminator: " ") }
+}`,
+    opts: ['1 2 3 4', '4 3 2 1', '4 4 4 4', '0 1 2 3'],
+    correct: 1,
+    explain: 'En <strong>little-endian</strong> (x86, ARM), l\'octet de poids faible est stocké à l\'adresse la plus basse. 0x01020304 devient donc <code>04 03 02 01</code> en mémoire.'
+  },
+  'q-endian-2': {
+    q: 'Quelle API Swift donne accès aux octets bruts d\'une variable ?',
+    opts: [
+      'withUnsafeBytes(of:)',
+      'bytes(of:)',
+      'rawView(of:)',
+      'MemoryLayout.bytes(of:)',
+    ],
+    correct: 0,
+    explain: '<code>withUnsafeBytes(of: &x) { bytes in ... }</code> donne une vue <code>UnsafeRawBufferPointer</code> sur la mémoire de x. On peut la parcourir octet par octet.'
+  },
+
+  'q-tag-1': {
+    q: 'Sur une architecture 64-bit, combien de bits d\'une adresse sont réellement utilisés ?',
+    opts: ['32 bits', '48 bits', '56 bits', '64 bits'],
+    correct: 1,
+    explain: 'Sur x86-64 et ARM64, les adresses canoniques n\'utilisent que <strong>48 bits</strong>. Les 16 bits du haut restent inutilisés (et doivent être une extension du bit 47). On peut y cacher des données.'
+  },
+  'q-tag-2': {
+    q: 'Sur une architecture 32-bit avec alignement sur 4 octets, quels bits d\'un pointeur sont toujours à 0 ?',
+    opts: ['Les 2 bits de poids faible', 'Les 4 bits de poids fort', 'Le bit de signe', 'Aucun'],
+    correct: 0,
+    explain: 'Si un pointeur est toujours aligné sur 4 octets, son adresse est un multiple de 4 → les <strong>2 bits de poids faible</strong> sont toujours 0. On y cache 4 valeurs possibles (0 à 3).'
+  },
+  'q-tag-3': {
+    q: 'Comment mettre un tag <code>0b10</code> dans les 2 bits bas d\'un pointeur <code>p</code> ?',
+    opts: [
+      'p = p + 2',
+      'p = (p & ~0b11) | 0b10',
+      'p = p << 2',
+      'p = p * 0b10',
+    ],
+    correct: 1,
+    explain: 'On efface d\'abord les 2 bits bas avec <code>& ~0b11</code>, puis on injecte le tag avec <code>| 0b10</code>. L\'adresse originale reste intacte.'
+  },
+
+  'q-os-1': {
+    q: 'Quel composant matériel traduit les adresses virtuelles en adresses physiques ?',
+    opts: ['Le CPU', 'La MMU', 'Le cache L1', 'Le contrôleur DRAM'],
+    correct: 1,
+    explain: 'La <strong>MMU</strong> (Memory Management Unit) est le composant du CPU qui traduit les adresses virtuelles en adresses physiques, en utilisant les tables de pages.'
+  },
+  'q-os-2': {
+    q: 'Sur ARM64, à quel niveau de privilège tourne le code utilisateur ?',
+    opts: ['EL0', 'EL1', 'EL2', 'EL3'],
+    correct: 0,
+    explain: 'Sur ARM64 : <strong>EL0</strong> = userland, EL1 = kernel, EL2 = hyperviseur, EL3 = secure monitor. Sur x86, c\'est Ring 3 pour l\'utilisateur et Ring 0 pour le noyau.'
+  },
+  'q-os-3': {
+    q: 'Quelle instruction déclenche un appel système sur ARM64 ?',
+    opts: ['int 0x80', 'syscall', 'svc #0', 'call kernel'],
+    correct: 2,
+    explain: 'Sur ARM64, l\'instruction <code>svc #0</code> (Supervisor Call) déclenche un appel système. Sur x86-64 c\'est <code>syscall</code>, sur x86-32 c\'est <code>int 0x80</code>.'
+  },
+  'q-os-4': {
+    q: 'Qu\'est-ce que la fragmentation interne ?',
+    opts: [
+      'De la mémoire libre entre deux blocs alloués',
+      'De la mémoire gaspillée à l\'intérieur d\'un bloc alloué (arrondi à la taille de la page)',
+      'Une erreur du noyau',
+      'La fragmentation du disque dur',
+    ],
+    correct: 1,
+    explain: 'La <strong>fragmentation interne</strong> est l\'espace perdu à l\'intérieur d\'un bloc alloué. Ex : on demande 5 Ko, le système alloue une page de 4 Ko + une autre page → 3 Ko perdus. La fragmentation externe est l\'espace libre entre les blocs.'
+  },
+};
+
+/* =============================================================
+   PREDICT DATA
+   ============================================================= */
+const PREDICTS = {
+  'p-stride-1': {
+    prompt: 'Que va afficher ce code ?',
+    code: `struct A { let a: UInt8; let b: UInt32 }
+print(MemoryLayout<A>.size)
+print(MemoryLayout<A>.stride)`,
+    answer: '8 8',
+    hint: 'UInt8 = 1 octet, UInt32 = 4 octets. Mais l\'alignement de UInt32 est 4, donc le UInt8 est suivi de 3 octets de padding.',
+    explain: '<strong>size = 8</strong> (1 octet + 3 de padding + 4 octets) et <strong>stride = 8</strong> (déjà multiple de 4). Sans padding, on aurait size = 5, mais le compilateur aligne le UInt32 sur 4 octets.'
+  },
+  'p-endian-1': {
+    prompt: 'Que va afficher ce code sur x86-64 (little-endian) ?',
+    code: `var x: UInt16 = 0xABCD
+withUnsafeBytes(of: &x) { bytes in
+    for b in bytes { print(String(b, radix: 16)) }
+}`,
+    answer: 'cd ab',
+    hint: 'Little-endian : l\'octet de poids faible en premier. 0xABCD → CD puis AB.',
+    explain: 'En <strong>little-endian</strong>, l\'octet bas (0xCD) est stocké à l\'adresse la plus basse. On affiche donc <code>cd</code> puis <code>ab</code>.'
+  },
+  'p-sort-1': {
+    prompt: 'Après avoir trié les octets de x dans l\'ordre croissant, quelle est la nouvelle valeur de x ?',
+    code: `var x: UInt32 = 0x02010403
+// Mémoire little-endian : 03 04 01 02
+// Après sortBytes(x) qui trie les octets croissants`,
+    answer: '0x04030201',
+    hint: 'Les octets en mémoire deviennent 01 02 03 04. Réinterprété en little-endian, ça donne 0x04030201.',
+    explain: 'Après tri, la mémoire contient <code>01 02 03 04</code> (adresses basses vers hautes). En little-endian, la valeur lue est <strong>0x04030201</strong>.'
+  },
+  'p-tag-1': {
+    prompt: 'Que va afficher ce code ?',
+    code: `var x = 42
+withUnsafeMutablePointer(to: &x) { ptr in
+    let addr = Int(bitPattern: ptr)
+    let tagged = addr | 0b10
+    let recovered = tagged & ~0b11
+    print(recovered == addr)
+}`,
+    answer: 'true',
+    hint: 'On met un tag dans les 2 bits bas, puis on les efface. L\'adresse redevient la même.',
+    explain: '<strong>true</strong>. Mettre un tag dans les 2 bits bas puis les effacer avec <code>& ~0b11</code> redonne l\'adresse d\'origine — c\'est tout l\'intérêt du tagging : on ne perd pas l\'information d\'adresse.'
+  },
+  'p-tag-2': {
+    prompt: 'Combien vaut <code>tagged & 0b11</code> si on a fait <code>tagged = addr | 0b01</code> ?',
+    code: `let tagged = addr | 0b01
+print(tagged & 0b11)`,
+    answer: '1',
+    hint: 'tagged & 0b11 isole les 2 bits bas.',
+    explain: '<strong>1</strong>. Le masque <code>0b11</code> isole les 2 bits bas, qui valent <code>0b01</code> = 1. C\'est exactement comme ça qu\'on relit un tag.'
+  },
+};
+
+/* =============================================================
+   RENDER — TABS
+   ============================================================= */
+function moduleProgress(mod) {
+  let done = 0;
+  mod.tasks.forEach(t => { if (state.tasks[t.id]) done++; });
+  return { done, total: mod.tasks.length, pct: mod.tasks.length ? done / mod.tasks.length : 0 };
+}
+
+function renderTabs() {
+  const tabs = document.getElementById('tabs');
+  let html = `<button class="tab ${state.currentView === 'dashboard' ? 'active' : ''}" data-view="dashboard">
+    <span class="num">★</span> Vue d'ensemble
+  </button>`;
+  MODULES.forEach(m => {
+    const p = moduleProgress(m);
+    const isDone = p.done === p.total;
+    const active = state.currentView === m.id;
+    html += `<button class="tab ${active ? 'active' : ''} ${isDone && !active ? 'done' : ''}" data-view="${m.id}">
+      <span class="num">${isDone ? '✓' : m.num}</span> ${m.emoji} ${m.title}
+    </button>`;
+  });
+  tabs.innerHTML = html;
+}
+
+/* =============================================================
+   RENDER — DASHBOARD
+   ============================================================= */
+function renderDashboard() {
+  let totalTasks = 0, doneTasks = 0;
+  MODULES.forEach(m => {
+    totalTasks += m.tasks.length;
+    m.tasks.forEach(t => { if (state.tasks[t.id]) doneTasks++; });
+  });
+  const pct = totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0;
+
+  let html = `
+    <div class="hero">
+      <h2>Bienvenue 👋</h2>
+      <p>Un parcours découpé en <strong>micro-blocs</strong> de 5 à 30 minutes. Chaque bloc finit par quelque chose de concret. Coche, gagne des XP, vois ta progression.</p>
+      <p class="muted" style="font-size:13px;">💡 <strong>Astuce TDAH :</strong> le bouton "Timer" en haut à droite est un Pomodoro 15 min. Quand il sonne, tu t'arrêtes, même si tu es presque au bout.</p>
+      <div class="overview-stats">
+        <div class="stat-card">
+          <div class="stat-value">${pct}%</div>
+          <div class="stat-label">Terminé</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${doneTasks}/${totalTasks}</div>
+          <div class="stat-label">Tâches</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${state.xp}</div>
+          <div class="stat-label">XP gagnés</div>
+        </div>
+      </div>
+    </div>
+    <div class="module-grid">
+  `;
+
+  MODULES.forEach(m => {
+    const p = moduleProgress(m);
+    const isDone = p.done === p.total;
+    html += `
+      <div class="module-card ${isDone ? 'done' : ''}" data-view="${m.id}">
+        <div class="module-card-head">
+          <div class="module-emoji">${m.emoji}</div>
+          <div style="flex:1;min-width:0;">
+            <h3 class="module-title">${m.num}. ${m.title}</h3>
+            <div class="module-meta">
+              <span>⏱ ${m.duration} min</span>
+              <span>·</span>
+              <span>${p.total} tâches</span>
+            </div>
+          </div>
+        </div>
+        <p class="module-desc">${m.desc}</p>
+        <div class="mini-bar"><div class="mini-bar-fill" style="width:${Math.round(p.pct*100)}%"></div></div>
+        <div class="module-progress">
+          <span>${isDone ? '✓ Terminé' : `${p.done}/${p.total} fait`}</span>
+          <span class="pct">${Math.round(p.pct*100)}%</span>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  return html;
+}
+
+/* =============================================================
+   RENDER — MODULE PAGE
+   ============================================================= */
+function findNextUncompletedModule() {
+  for (const m of MODULES) {
+    const p = moduleProgress(m);
+    if (p.done < p.total) return m.id;
+  }
+  return null;
+}
+
+function renderModule(mod) {
+  const p = moduleProgress(mod);
+  const nextMod = MODULES[MODULES.indexOf(mod) + 1];
+  const prevMod = MODULES[MODULES.indexOf(mod) - 1];
+
+  let html = `
+    <div class="card">
+      <div class="section-header">
+        <div class="emoji">${mod.emoji}</div>
+        <div class="info">
+          <h2>${mod.num}. ${mod.title}</h2>
+          <div class="meta">
+            <span class="pill">⏱ ${mod.duration} min</span>
+            <span class="pill">🎯 ${mod.tasks.length} tâches</span>
+            <span class="pill">${p.done}/${p.total} fait</span>
+          </div>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:12px;">${mod.desc}</p>
+    </div>
+  `;
+
+  html += renderModuleContent(mod.id);
+
+  // Tasks checklist
+  html += `
+    <div class="card">
+      <div class="tasks-title">📋 Tâches du bloc</div>
+  `;
+  mod.tasks.forEach(t => {
+    const isDone = !!state.tasks[t.id];
+    html += `
+      <div class="task ${isDone ? 'done' : ''}" data-task="${t.id}" data-xp="${t.xp}">
+        <div class="cb">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2.5 6.2L4.8 8.5L9.5 3.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="task-body">
+          <div class="task-label">${t.label}<span class="task-xp">+${t.xp} XP</span></div>
+        </div>
+      </div>
+    `;
+  });
+  html += `</div>`;
+
+  // Nav
+  html += `<div class="bottom-nav">`;
+  html += prevMod
+    ? `<button class="btn btn-ghost" data-view="${prevMod.id}">← ${prevMod.emoji} ${prevMod.title}</button>`
+    : `<button class="btn btn-ghost" data-view="dashboard">← Vue d'ensemble</button>`;
+  if (nextMod) {
+    html += `<button class="btn" data-view="${nextMod.id}">Suivant : ${nextMod.emoji} ${nextMod.title} →</button>`;
+  } else {
+    html += `<button class="btn" data-view="dashboard">Terminer ✓</button>`;
+  }
+  html += `</div>`;
+
+  return html;
+}
+
+/* =============================================================
+   MODULE CONTENT (HTML par module)
+   ============================================================= */
+function renderModuleContent(id) {
+  switch (id) {
+    case 'm0': return contentM0();
+    case 'm1': return contentM1();
+    case 'm2': return contentM2();
+    case 'm3': return contentM3();
+    case 'm4': return contentM4();
+    case 'm5': return contentM5();
+    default: return '';
+  }
+}
+
+function quiz(id) {
+  const q = QUIZZES[id];
+  if (!q) return '';
+  const chosen = state.quizzes[id];
+  return `
+    <div class="quiz" data-quiz="${id}">
+      <div class="quiz-q"><span class="icon">❓</span><span>${q.q}</span></div>
+      ${q.code ? `<pre>${escapeHtml(q.code)}</pre>` : ''}
+      <div class="quiz-opts">
+        ${q.opts.map((opt, i) => {
+          let cls = '';
+          if (chosen !== undefined) {
+            if (i === q.correct) cls = 'correct';
+            else if (i === chosen) cls = 'wrong';
+          }
+          return `<button class="quiz-opt ${cls}" data-opt="${i}" ${chosen !== undefined ? 'disabled' : ''}>
+            <span class="letter">${String.fromCharCode(65+i)}</span>
+            <span>${opt}</span>
+          </button>`;
+        }).join('')}
+      </div>
+      <div class="quiz-explain ${chosen !== undefined ? 'show' : ''}">
+        💡 ${q.explain}
+      </div>
+    </div>
+  `;
+}
+
+function predict(id) {
+  const p = PREDICTS[id];
+  if (!p) return '';
+  const submitted = state.predicts[id];
+  return `
+    <div class="predict" data-predict="${id}">
+      <div class="quiz-q"><span class="icon">🔮</span><span>${p.prompt}</span></div>
+      <pre>${escapeHtml(p.code)}</pre>
+      <label>Ta réponse :</label>
+      <div class="predict-row">
+        <input type="text" placeholder="Tape ta réponse..." value="${submitted ? escapeAttr(submitted.value) : ''}" ${submitted ? 'disabled' : ''}>
+        <button class="btn" data-predict-submit="${id}">${submitted ? '✓ Validé' : 'Vérifier'}</button>
+      </div>
+      <div class="predict-result ${submitted ? 'show' : ''}">
+        ${submitted ? `<div style="margin-bottom:6px;">${submitted.correct ? '✅ <strong>Correct !</strong>' : '❌ <strong>Pas tout à fait.</strong> Réponse attendue : <code>'+p.answer+'</code>'}</div>💡 ${p.explain}` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function contentM0() {
+  return `
+    <div class="card">
+      <h3>Pourquoi commencer par ça ?</h3>
+      <p>Ton cerveau a besoin d'un premier <em>"ça marche"</em> avant d'accepter la suite. Ce bloc prend 5 minutes maximum. Le but n'est pas d'apprendre, juste de lancer la machine.</p>
+      <div class="lesson">
+        <p><strong>Les 3 étapes :</strong></p>
+        <ul>
+          <li>Ouvre <strong>Xcode</strong> (ou Swift Playgrounds sur iPad/Mac)</li>
+          <li>Crée un <em>Command Line Tool</em> Swift vide</li>
+          <li>Dans <code>main.swift</code>, écris <code>print("go")</code> et exécute</li>
+        </ul>
+      </div>
+      <p class="muted">💡 Si Xcode met 10 minutes à démarrer, profite : prépare un verre d'eau, ouvre ce plan à côté. Le démarrage, c'est le plus dur — après, tout roule.</p>
+    </div>
+  `;
+}
+
+function contentM1() {
+  return `
+    <div class="card">
+      <h3>Théorie express</h3>
+      <p>Swift est un langage à types explicites. Contrairement à Python ou JS, il <strong>refuse</strong> de mélanger les types numériques tout seul. C'est une sécurité, mais ça oblige à être précis.</p>
+
+      <div class="concept">
+        <span class="concept-key">Int8 ... Int64</span>
+        <div class="concept-body">Types à taille <strong>fixe</strong>. <code>Int</code> s'adapte à l'architecture (4 octets sur 32-bit, 8 sur 64-bit). Pour du code bas niveau, on veut du fixe : <code>Int32</code>, <code>UInt32</code>, <code>Int64</code>…</div>
+      </div>
+
+      <div class="concept">
+        <span class="concept-key">size</span>
+        <div class="concept-body">Le nombre d'octets réellement occupés par une instance. <code>MemoryLayout&lt;UInt32&gt;.size == 4</code>.</div>
+      </div>
+
+      <div class="concept">
+        <span class="concept-key">alignment</span>
+        <div class="concept-body">La contrainte d'adresse mémoire. Presque toujours une puissance de 2. Un type aligné sur 4 doit être placé à une adresse multiple de 4.</div>
+      </div>
+
+      <div class="concept">
+        <span class="concept-key">stride</span>
+        <div class="concept-body">La distance en octets entre deux instances <strong>consécutives</strong> en mémoire. Inclut le <em>padding</em> (rembourrage) pour respecter l'alignement.</div>
+      </div>
+
+      <div class="lesson">
+        <p><strong>Formule :</strong></p>
+        <pre><span class="c">// stride = plus petit multiple de alignment ≥ size</span>
+<span class="k">func</span> <span class="f">stride</span>(size: <span class="k">Int</span>, alignment: <span class="k">Int</span>) -> <span class="k">Int</span> {
+    <span class="k">return</span> (size + alignment - 1) / alignment * alignment
+}</pre>
+        <p class="muted">Exemple : size = 5, alignment = 4 → (5 + 3) / 4 * 4 = 8 / 4 * 4 = <strong>8</strong>.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🎮 Calculateur de stride</h3>
+      <p class="muted">Bouge les curseurs et regarde la formule s'appliquer en direct.</p>
+      <div class="widget" id="strideWidget">
+        <div class="widget-title">🎛 Stride Calculator</div>
+        <div class="widget-row">
+          <label>size</label>
+          <input type="range" id="strideSize" min="1" max="20" value="5">
+          <span class="val-badge" id="strideSizeVal">5</span>
+        </div>
+        <div class="widget-row">
+          <label>alignment</label>
+          <input type="range" id="strideAlign" min="1" max="8" value="2">
+          <span class="val-badge" id="strideAlignVal">4</span>
+        </div>
+        <div class="visual-bar" id="strideBar">
+          <div class="bar-size" id="barSize" style="width:50%">size</div>
+          <div class="bar-pad" id="barPad" style="width:50%">padding</div>
+        </div>
+        <div class="result-line">
+          <span class="formula" id="strideFormula">(5 + 3) / 4 * 4</span>
+          <span class="result" id="strideResult">8</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🧪 Quiz — Types d'entiers</h3>
+      ${quiz('q-int-1')}
+      ${quiz('q-int-2')}
+      ${quiz('q-int-3')}
+    </div>
+  `;
+}
+
+function contentM2() {
+  return `
+    <div class="card">
+      <h3>Théorie express</h3>
+      <p>Swift protège la mémoire par défaut. Pour voir les octets bruts, on utilise des APIs dites <em>Unsafe</em> (non sûres) : elles donnent un accès direct, sans vérification. C'est ce qu'il faut pour le TP.</p>
+
+      <div class="concept">
+        <span class="concept-key">withUnsafeBytes</span>
+        <div class="concept-body">Donne une vue <code>UnsafeRawBufferPointer</code> sur la mémoire d'une variable. On peut la parcourir <strong>octet par octet</strong>.</div>
+      </div>
+
+      <div class="concept">
+        <span class="concept-key">withUnsafeMutablePointer</span>
+        <div class="concept-body">Donne un pointeur <strong>typé</strong> vers une variable. On peut lire et écrire via <code>ptr.pointee</code>.</div>
+      </div>
+
+      <div class="concept">
+        <span class="concept-key">withMemoryRebound</span>
+        <div class="concept-body">Réinterprète temporairement la mémoire : voir un <code>UInt32</code> comme 4 <code>UInt8</code>, ou comme 2 <code>UInt16</code>.</div>
+      </div>
+
+      <div class="lesson">
+        <p><strong>Exemple — lire les octets d'un UInt32 :</strong></p>
+        <pre><span class="k">let</span> x: <span class="k">UInt32</span> = <span class="n">0x01020304</span>
+<span class="f">withUnsafeBytes</span>(of: x) { bytes <span class="k">in</span>
+    <span class="k">for</span> b <span class="k">in</span> bytes {
+        <span class="f">print</span>(b, terminator: <span class="s">" "</span>)
+    }
+}
+<span class="c">// Sur little-endian : 4 3 2 1</span></pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🎮 Visualiseur d'octets</h3>
+      <p class="muted">Tape une valeur hexadécimale, regarde comment elle est stockée en mémoire (little-endian).</p>
+      <div class="widget" id="byteWidget">
+        <div class="widget-title">🔬 Byte Viewer</div>
+        <input type="text" class="byte-input" id="byteInput" value="0x01020304" placeholder="0x... ou nombre décimal">
+        <div class="byte-row" id="byteRow"></div>
+        <div class="result-line">
+          <span class="formula">Valeur lue en little-endian</span>
+          <span class="result" id="byteResult">0x01020304</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🧪 Quiz</h3>
+      ${quiz('q-endian-1')}
+      ${quiz('q-endian-2')}
+    </div>
+
+    <div class="card">
+      <h3>🔮 Prédis l'output</h3>
+      ${predict('p-endian-1')}
+    </div>
+  `;
+}
+
+function contentM3() {
+  return `
+    <div class="card">
+      <h3>Théorie express</h3>
+      <p>Trier les octets d'un entier, c'est simple : on les lit, on les trie par valeur croissante, on les réécrit au même endroit. La valeur numérique change, mais la taille reste identique.</p>
+
+      <div class="lesson">
+        <p><strong>Algorithme (version UInt32) :</strong></p>
+        <ol>
+          <li>Obtenir un pointeur mutable vers la variable</li>
+          <li>Le voir comme un tableau de 4 <code>UInt8</code> via <code>withMemoryRebound</code></li>
+          <li>Trier ces 4 octets (tri à bulles ou <code>sort()</code>)</li>
+          <li>C'est tout — la variable est modifiée en place</li>
+        </ol>
+        <pre><span class="k">func</span> <span class="f">sortBytes</span>(of x: <span class="k">inout</span> <span class="k">UInt32</span>) {
+    <span class="f">withUnsafeMutablePointer</span>(to: &x) { ptr <span class="k">in</span>
+        ptr.<span class="f">withMemoryRebound</span>(to: <span class="k">UInt8</span>.<span class="k">self</span>, capacity: <span class="n">4</span>) { bytes <span class="k">in</span>
+            <span class="k">let</span> buf = <span class="k">UnsafeMutableBufferPointer</span>(start: bytes, count: <span class="n">4</span>)
+            buf.<span class="f">sort</span>()
+        }
+    }
+}</pre>
+      </div>
+      <p class="muted">💡 Astuce TDAH : commence par la version fixe UInt32. Une fois qu'elle marche, tu la généraliseras avec <code>&lt;T&gt;</code>. Ne saute pas cette étape — finir quelque chose de concret, c'est ça qui motive.</p>
+    </div>
+
+    <div class="card">
+      <h3>🎮 Trieur d'octets</h3>
+      <p class="muted">Entre une valeur, puis clique sur les octets pour les trier manuellement. Ou utilise le bouton magique.</p>
+      <div class="widget" id="sortWidget">
+        <div class="widget-title">🎲 Byte Sorter</div>
+        <input type="text" class="byte-input" id="sortInput" value="0x02010403" placeholder="0x...">
+        <div class="byte-row" id="sortRow"></div>
+        <div class="widget-row" style="justify-content:center;">
+          <button class="btn btn-sm" id="sortAuto">✨ Trier automatiquement</button>
+          <button class="btn btn-ghost btn-sm" id="sortReset">↺ Réinitialiser</button>
+        </div>
+        <div class="result-line">
+          <span class="formula">Valeur après tri</span>
+          <span class="result" id="sortResult">0x02010403</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🔮 Prédis le résultat</h3>
+      ${predict('p-sort-1')}
+    </div>
+
+    <div class="card">
+      <h3>🔮 Prédis — layout mémoire</h3>
+      ${predict('p-stride-1')}
+    </div>
+  `;
+}
+
+function contentM4() {
+  return `
+    <div class="card">
+      <h3>Théorie express</h3>
+      <p>Sur une architecture 64-bit, une adresse mémoire n'utilise que ses <strong>48 bits inférieurs</strong>. Les 16 bits du haut restent inutilisés. On peut y cacher une information — un <em>tag</em> — sans consommer un octet de plus.</p>
+
+      <div class="concept">
+        <span class="concept-key">32-bit</span>
+        <div class="concept-body">Si un pointeur est toujours aligné sur 4 octets (multiple de 4), ses <strong>2 bits de poids faible</strong> sont toujours à 0. On y cache 4 valeurs possibles (0 à 3).</div>
+      </div>
+
+      <div class="concept">
+        <span class="concept-key">64-bit</span>
+        <div class="concept-body">Les adresses canoniques n'utilisent que 48 bits. Les <strong>16 bits de poids fort</strong> sont libres. On pourrait y cacher plus d'info, mais c'est plus délicat à porter.</div>
+      </div>
+
+      <div class="concept">
+        <span class="concept-key">Int(bitPattern:)</span>
+        <div class="concept-body">Convertit un pointeur en entier. On peut alors le manipuler avec des opérations bit à bit.</div>
+      </div>
+
+      <div class="concept">
+        <span class="concept-key">| et &amp; ~</span>
+        <div class="concept-body"><code>ptr | tag</code> pour injecter le tag. <code>ptr &amp; ~0b11</code> pour nettoyer les 2 bits bas. <code>ptr &amp; 0b11</code> pour relire le tag.</div>
+      </div>
+
+      <div class="lesson">
+        <p><strong>Pattern complet :</strong></p>
+        <pre><span class="c">// 1. Mettre un tag</span>
+<span class="k">let</span> addr = <span class="k">Int</span>(bitPattern: ptr)
+<span class="k">let</span> tagged = addr | <span class="n">0b10</span>
+
+<span class="c">// 2. Reconstruire le pointeur (sans le tag)</span>
+<span class="k">let</span> clean = tagged & ~<span class="n">0b11</span>
+<span class="k">let</span> recovered = <span class="k">UnsafeMutablePointer</span>&lt;<span class="k">Int</span>&gt;(bitPattern: clean)
+
+<span class="c">// 3. Relire le tag</span>
+<span class="k">let</span> tag = tagged & <span class="n">0b11</span></pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🎮 Playground de bits</h3>
+      <p class="muted">Clique sur les 2 bits oranges pour les activer / désactiver. Regarde l'adresse se transformer en direct.</p>
+      <div class="widget" id="tagWidget">
+        <div class="widget-title">🏷 Pointer Tagging</div>
+        <div class="ptr-visual" id="ptrVisual"></div>
+        <div class="tag-result">
+          <div class="lbl">Adresse avec tag</div>
+          <div class="val" id="taggedAddr">0x00000000</div>
+          <div class="sub" id="tagSub">addr (2 bits bas = 00)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🧪 Quiz</h3>
+      ${quiz('q-tag-1')}
+      ${quiz('q-tag-2')}
+      ${quiz('q-tag-3')}
+    </div>
+
+    <div class="card">
+      <h3>🔮 Prédis l'output</h3>
+      ${predict('p-tag-1')}
+      ${predict('p-tag-2')}
+    </div>
+  `;
+}
+
+function contentM5() {
+  return `
+    <div class="card">
+      <h3>Théorie express — Gestion mémoire</h3>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>🧠 Hiérarchie mémoire</h4>
+          <p>Registres (1 cycle) → Cache L1 (4) → L2 (12) → L3 (40) → DRAM (200+) → SSD (100k+). Chaque niveau est plus gros mais plus lent.</p>
+        </div>
+        <div class="concept-card">
+          <h4>🎯 MMU</h4>
+          <p>Memory Management Unit. Traduit les adresses virtuelles en adresses physiques via les tables de pages. C'est du matériel, pas du logiciel.</p>
+        </div>
+        <div class="concept-card">
+          <h4>📦 Pagination</h4>
+          <p>L'espace d'adressage est découpé en pages (4 Ko en général). Chaque page virtuelle pointe vers un frame physique. La table de pages stocke les correspondances.</p>
+        </div>
+        <div class="concept-card">
+          <h4>🧩 Fragmentation</h4>
+          <p><strong>Interne</strong> : gaspillage dans un bloc alloué (arrondi à la page).<br><strong>Externe</strong> : trous libres entre les blocs alloués.</p>
+        </div>
+        <div class="concept-card">
+          <h4>📏 Placement</h4>
+          <p>First fit (premier trou assez grand), Best fit (le plus petit trou), Worst fit (le plus grand), Next fit (reprend où on s'est arrêté).</p>
+        </div>
+        <div class="concept-card">
+          <h4>🔀 Segmentation vs Pagination</h4>
+          <p>Segmentation : blocs de taille variable (code, data, stack). Pagination : blocs de taille fixe. Souvent combinées.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Théorie express — Noyau & appels système</h3>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>🏛 Monolithique</h4>
+          <p>Tout le noyau dans un seul espace. Rapide mais gros. Linux, et historiquement Unix.</p>
+        </div>
+        <div class="concept-card">
+          <h4>🔬 Micronoyau</h4>
+          <p>Noyau minimal, services en userland. Plus sûr, plus lent. Minix, QNX, seL4.</p>
+        </div>
+        <div class="concept-card">
+          <h4>🧬 Hybride</h4>
+          <p>Compromis. Windows NT, macOS (XNU = Mach + BSD).</p>
+        </div>
+        <div class="concept-card">
+          <h4>🔐 Niveaux de privilèges</h4>
+          <p>x86 : Ring 0 (noyau) → Ring 3 (user). ARM64 : EL0 (user) → EL1 (noyau) → EL2 (hyperviseur) → EL3 (secure).</p>
+        </div>
+        <div class="concept-card">
+          <h4>📞 Appels système</h4>
+          <p>Passerelle user → noyau. ARM64 : <code>svc #0</code>. x86-64 : <code>syscall</code>. x86-32 : <code>int 0x80</code>. Le numéro d'appel est dans un registre.</p>
+        </div>
+        <div class="concept-card">
+          <h4>📡 Signaux</h4>
+          <p><code>SIGINT</code> = Ctrl-C, interruptible. <code>SIGKILL</code> = mort immédiate, non interceptable. <code>SIGTERM</code> = demande d'arrêt propre.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🧪 Quiz — Mémoire</h3>
+      ${quiz('q-os-1')}
+      ${quiz('q-os-4')}
+    </div>
+
+    <div class="card">
+      <h3>🧪 Quiz — Noyaux</h3>
+      ${quiz('q-os-2')}
+    </div>
+
+    <div class="card">
+      <h3>🧪 Quiz — Appels système</h3>
+      ${quiz('q-os-3')}
+    </div>
+  `;
+}
+
+/* =============================================================
+   HELPERS
+   ============================================================= */
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
+/* =============================================================
+   RENDER ROOT
+   ============================================================= */
+function render() {
+  renderTabs();
+  updateXpUI();
+  const main = document.getElementById('main');
+
+  if (state.currentView === 'dashboard') {
+    main.innerHTML = renderDashboard();
+  } else {
+    const mod = MODULES.find(m => m.id === state.currentView);
+    if (!mod) { state.currentView = 'dashboard'; return render(); }
+    main.innerHTML = renderModule(mod);
+  }
+  initWidgets();
+
+  // scroll to top on view change
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* =============================================================
+   XP & LEVELS
+   ============================================================= */
+function levelFromXp(xp) {
+  let level = 1;
+  let threshold = 50;
+  let remaining = xp;
+  while (remaining >= threshold) {
+    remaining -= threshold;
+    level++;
+    threshold = 50 + (level - 1) * 25;
+  }
+  return { level, remaining, next: threshold };
+}
+
+function updateXpUI() {
+  const { level, remaining, next } = levelFromXp(state.xp);
+  document.getElementById('levelRing').textContent = level;
+  document.getElementById('xpNum').textContent = state.xp;
+  document.getElementById('xpNext').textContent = `${next - remaining} pour niv. ${level + 1}`;
+  document.getElementById('streakNum').textContent = state.streak;
+}
+
+function showToast(msg, xp) {
+  const el = document.getElementById('toast');
+  el.innerHTML = xp ? `${msg} <span class="xp">+${xp} XP</span>` : msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function addXp(amount) {
+  state.xp += amount;
+  updateXpUI();
+}
+
+function confetti() {
+  for (let i = 0; i < 24; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.top = '-20px';
+    c.style.background = ['#4d6bfe', '#8b5cf6', '#f59e0b', '#16a34a'][i % 4];
+    c.style.animation = `fall ${1 + Math.random() * 1.5}s linear forwards`;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 2500);
+  }
+}
+
+/* =============================================================
+   EVENT HANDLERS
+   ============================================================= */
+document.addEventListener('click', (e) => {
+  // Navigation
+  const navEl = e.target.closest('[data-view]');
+  if (navEl) {
+    state.currentView = navEl.dataset.view;
+    saveState();
+    render();
+    return;
+  }
+
+  // Task toggle
+  const taskEl = e.target.closest('.task[data-task]');
+  if (taskEl) {
+    const id = taskEl.dataset.task;
+    const xp = parseInt(taskEl.dataset.xp, 10) || 0;
+    if (state.tasks[id]) {
+      // Uncheck — remove xp? Non, on garde les XP (récompense déjà méritée)
+      delete state.tasks[id];
+      taskEl.classList.remove('done');
+    } else {
+      state.tasks[id] = true;
+      taskEl.classList.add('done');
+      addXp(xp);
+      showToast('Tâche terminée !', xp);
+    }
+    saveState();
+    // Update tabs to reflect module completion
+    renderTabs();
+    return;
+  }
+
+  // Quiz option
+  const optBtn = e.target.closest('.quiz-opt');
+  if (optBtn && !optBtn.disabled) {
+    const quizEl = optBtn.closest('[data-quiz]');
+    const id = quizEl.dataset.quiz;
+    if (state.quizzes[id] !== undefined) return;
+    const chosen = parseInt(optBtn.dataset.opt, 10);
+    const q = QUIZZES[id];
+    const isCorrect = chosen === q.correct;
+
+    state.quizzes[id] = chosen;
+    if (isCorrect) {
+      state.streak++;
+      if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+      addXp(10);
+      showToast('Bonne réponse !', 10);
+    } else {
+      state.streak = 0;
+      showToast('Raté — lis l\'explication 👇');
+    }
+    saveState();
+    updateXpUI();
+
+    // Update UI in place
+    const opts = quizEl.querySelectorAll('.quiz-opt');
+    opts.forEach((b, i) => {
+      b.disabled = true;
+      if (i === q.correct) b.classList.add('correct');
+      else if (i === chosen) b.classList.add('wrong');
+    });
+    quizEl.querySelector('.quiz-explain').classList.add('show');
+    return;
+  }
+
+  // Predict submit
+  const predBtn = e.target.closest('[data-predict-submit]');
+  if (predBtn) {
+    const id = predBtn.dataset.predictSubmit;
+    const wrap = predBtn.closest('[data-predict]');
+    const input = wrap.querySelector('input');
+    const val = input.value.trim();
+    if (!val) return;
+    const p = PREDICTS[id];
+    const normalize = s => s.replace(/\s+/g, ' ').toLowerCase().trim();
+    const isCorrect = normalize(val) === normalize(p.answer);
+
+    state.predicts[id] = { value: val, correct: isCorrect };
+    if (isCorrect) {
+      state.streak++;
+      addXp(15);
+      showToast('Exact !', 15);
+    } else {
+      state.streak = 0;
+      showToast('Pas tout à fait.');
+    }
+    saveState();
+    updateXpUI();
+
+    input.disabled = true;
+    input.classList.add(isCorrect ? 'correct' : 'wrong');
+    predBtn.disabled = true;
+    predBtn.textContent = isCorrect ? '✓ Validé' : '✗ Raté';
+    const res = wrap.querySelector('.predict-result');
+    res.innerHTML = isCorrect
+      ? `✅ <strong>Correct !</strong><br>💡 ${p.explain}`
+      : `❌ <strong>Réponse attendue :</strong> <code>${escapeHtml(p.answer)}</code><br>💡 ${p.explain}`;
+    res.classList.add('show');
+    return;
+  }
+});
+
+document.getElementById('resetAll').addEventListener('click', () => {
+  if (confirm('Effacer toute la progression (XP, tâches, réponses) ?')) {
+    state = { ...defaultState };
+    saveState();
+    render();
+    showToast('Progression réinitialisée');
+  }
+});
+
+/* =============================================================
+   TIMER POMODORO
+   ============================================================= */
+let timerDuration = 15 * 60;
+let timerRemaining = timerDuration;
+let timerRunning = false;
+let timerInterval = null;
+const timerEl = document.getElementById('timerDisplay');
+const timerBtn = document.getElementById('timerBtn');
+
+function fmtTime(s) {
+  const m = Math.floor(s / 60).toString().padStart(2, '0');
+  const sec = (s % 60).toString().padStart(2, '0');
+  return `${m}:${sec}`;
+}
+function updateTimerDisplay() {
+  timerEl.textContent = fmtTime(timerRemaining);
+  timerEl.classList.toggle('done', timerRemaining === 0);
+}
+timerBtn.addEventListener('click', () => {
+  timerRunning = !timerRunning;
+  timerBtn.textContent = timerRunning ? '❚❚' : '▶';
+  if (timerRunning) {
+    timerInterval = setInterval(() => {
+      timerRemaining--;
+      if (timerRemaining <= 0) {
+        timerRemaining = 0;
+        clearInterval(timerInterval);
+        timerRunning = false;
+        timerBtn.textContent = '▶';
+        showToast('⏰ Pause ! Lève-toi, bois de l\'eau.');
+      }
+      updateTimerDisplay();
+    }, 1000);
+  } else {
+    clearInterval(timerInterval);
+  }
+});
+document.getElementById('timerReset').addEventListener('click', () => {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerBtn.textContent = '▶';
+  timerRemaining = timerDuration;
+  updateTimerDisplay();
+});
+updateTimerDisplay();
+
+/* =============================================================
+   WIDGETS INTERACTIFS
+   ============================================================= */
+function initWidgets() {
+  initStrideWidget();
+  initByteWidget();
+  initSortWidget();
+  initTagWidget();
+}
+
+/* --- Stride --- */
+function initStrideWidget() {
+  const sizeSlider = document.getElementById('strideSize');
+  const alignSlider = document.getElementById('strideAlign');
+  if (!sizeSlider) return;
+  // mapping align slider [1..8] → [1,2,4,8,16,32,64,128]
+  const alignValues = [1, 2, 4, 8, 16, 32, 64, 128];
+
+  function update() {
+    const size = parseInt(sizeSlider.value, 10);
+    const alignIdx = parseInt(alignSlider.value, 10) - 1;
+    const alignment = alignValues[alignIdx];
+    const stride = Math.ceil(size / alignment) * alignment;
+    const pad = stride - size;
+
+    document.getElementById('strideSizeVal').textContent = size;
+    document.getElementById('strideAlignVal').textContent = alignment;
+    document.getElementById('strideFormula').textContent = `(${size} + ${alignment - 1}) / ${alignment} * ${alignment}`;
+    document.getElementById('strideResult').textContent = stride;
+
+    const total = stride;
+    const sizePct = (size / total) * 100;
+    const padPct = (pad / total) * 100;
+    document.getElementById('barSize').style.width = sizePct + '%';
+    document.getElementById('barPad').style.width = padPct + '%';
+    document.getElementById('barSize').textContent = size + 'o';
+    document.getElementById('barPad').textContent = pad > 0 ? pad + 'o pad' : '';
+  }
+  sizeSlider.addEventListener('input', update);
+  alignSlider.addEventListener('input', update);
+  update();
+}
+
+/* --- Byte Viewer --- */
+function initByteWidget() {
+  const input = document.getElementById('byteInput');
+  const row = document.getElementById('byteRow');
+  const resultEl = document.getElementById('byteResult');
+  if (!input) return;
+
+  function parseValue(str) {
+    str = str.trim();
+    if (!str) return 0;
+    if (str.startsWith('0x') || str.startsWith('0X')) {
+      const v = parseInt(str, 16);
+      return isNaN(v) ? 0 : (v >>> 0);
+    }
+    const v = parseInt(str, 10);
+    return isNaN(v) ? 0 : (v >>> 0);
+  }
+  function update() {
+    const v = parseValue(input.value);
+    // little-endian bytes
+    const b0 = v & 0xff;
+    const b1 = (v >> 8) & 0xff;
+    const b2 = (v >> 16) & 0xff;
+    const b3 = (v >> 24) & 0xff;
+    const bytes = [b0, b1, b2, b3]; // memory order (low addr first)
+    row.innerHTML = bytes.map((b, i) => `
+      <div class="byte" title="octet ${i} en mémoire (adresse ${i})">
+        <div class="val">${b.toString(16).padStart(2, '0')}</div>
+        <div class="addr">@+${i}</div>
+      </div>
+    `).join('');
+    resultEl.textContent = '0x' + v.toString(16).padStart(8, '0').toUpperCase();
+  }
+  input.addEventListener('input', update);
+  update();
+}
+
+/* --- Sort Widget --- */
+function initSortWidget() {
+  const input = document.getElementById('sortInput');
+  const row = document.getElementById('sortRow');
+  const resultEl = document.getElementById('sortResult');
+  const autoBtn = document.getElementById('sortAuto');
+  const resetBtn = document.getElementById('sortReset');
+  if (!input) return;
+
+  let original = 0;
+  let current = 0;
+
+  function parseValue(str) {
+    str = str.trim();
+    if (str.startsWith('0x') || str.startsWith('0X')) {
+      const v = parseInt(str, 16);
+      return isNaN(v) ? 0 : (v >>> 0);
+    }
+    const v = parseInt(str, 10);
+    return isNaN(v) ? 0 : (v >>> 0);
+  }
+  function bytesFromValue(v) {
+    return [v & 0xff, (v >> 8) & 0xff, (v >> 16) & 0xff, (v >> 24) & 0xff];
+  }
+  function valueFromBytes(bytes) {
+    return (bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24)) >>> 0;
+  }
+  function renderBytes(bytes, highlightSorted) {
+    row.innerHTML = bytes.map((b, i) => `
+      <div class="byte ${highlightSorted ? 'sorted' : ''}" data-idx="${i}" style="cursor: pointer;" title="Clique pour échanger avec le suivant">
+        <div class="val">${b.toString(16).padStart(2, '0')}</div>
+        <div class="addr">@+${i}</div>
+      </div>
+    `).join('');
+    resultEl.textContent = '0x' + valueFromBytes(bytes).toString(16).padStart(8, '0').toUpperCase();
+  }
+  function update() {
+    original = parseValue(input.value);
+    current = original;
+    renderBytes(bytesFromValue(current), false);
+  }
+
+  // Click on a byte = swap with next
+  row.addEventListener('click', (e) => {
+    const el = e.target.closest('.byte');
+    if (!el) return;
+    const i = parseInt(el.dataset.idx, 10);
+    if (i >= 3) return;
+    const bytes = bytesFromValue(current);
+    [bytes[i], bytes[i+1]] = [bytes[i+1], bytes[i]];
+    current = valueFromBytes(bytes);
+    renderBytes(bytes, false);
+  });
+
+  autoBtn.addEventListener('click', () => {
+    const bytes = bytesFromValue(current);
+    bytes.sort((a, b) => a - b);
+    current = valueFromBytes(bytes);
+    renderBytes(bytes, true);
+  });
+
+  resetBtn.addEventListener('click', () => {
+    current = original;
+    renderBytes(bytesFromValue(current), false);
+  });
+
+  input.addEventListener('input', update);
+  update();
+}
+
+/* --- Tag Widget --- */
+function initTagWidget() {
+  const visual = document.getElementById('ptrVisual');
+  const taggedAddrEl = document.getElementById('taggedAddr');
+  const subEl = document.getElementById('tagSub');
+  if (!visual) return;
+
+  // A fixed fake address ending in ...0b00 (aligned)
+  const BASE_ADDR = 0x7ffed4c0; // ends with 0b00
+  let tag = 0; // 0, 1, 2, 3
+
+  function render() {
+    const addr = BASE_ADDR | tag;
+    // show last 8 bits + some high bits for context
+    const fullBin = addr.toString(2).padStart(32, '0');
+    // We'll show : 6 fixed bits at start, ... then 2 tag bits at end
+    const shownBits = fullBin.slice(-12); // 12 derniers bits
+    const fixedBits = shownBits.slice(0, 10); // 10 premiers affichés = fixes
+    const tagBits = shownBits.slice(-2); // 2 derniers = tag
+
+    let html = '';
+    // Show a truncated prefix
+    html += `<div class="bit fixed" title="bits hauts (fixes)">…</div>`;
+    fixedBits.split('').forEach(b => {
+      html += `<div class="bit fixed">${b}</div>`;
+    });
+    tagBits.split('').forEach((b, i) => {
+      html += `<div class="bit tag ${b === '1' ? 'on' : ''}" data-tagbit="${i}" title="Bit ${i} du tag — clique pour basculer">${b}</div>`;
+    });
+    visual.innerHTML = html;
+
+    taggedAddrEl.textContent = '0x' + addr.toString(16).toUpperCase();
+    subEl.textContent = `addr = 0x${BASE_ADDR.toString(16).toUpperCase()}  ·  tag = 0b${tag.toString(2).padStart(2, '0')}`;
+  }
+
+  visual.addEventListener('click', (e) => {
+    const bitEl = e.target.closest('[data-tagbit]');
+    if (!bitEl) return;
+    const i = parseInt(bitEl.dataset.tagbit, 10);
+    // i = 0 → bit de poids faible (0b01), i = 1 → 0b10
+    tag ^= (1 << i);
+    render();
+  });
+
+  render();
+}
+
+/* =============================================================
+   INIT
+   ============================================================= */
+render();
+</script>
+</body>
+</html>
