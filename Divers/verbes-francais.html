@@ -1,0 +1,2348 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4d6bfe">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>215 Verbes Français — Aventure</title>
+<style>
+:root{
+  --bg:#f6f7fb; --card:#fff; --text:#0d0d12; --muted:#6b7280;
+  --line:#e6e8ee; --accent:#4d6bfe; --accent-soft:#eef1ff;
+  --good:#16a34a; --good-soft:#e8f7ee;
+  --bad:#e11d48; --bad-soft:#fdeaee;
+  --warn:#f59e0b; --warn-soft:#fff5e5;
+  --purple:#8b5cf6; --pink:#ec4899; --gold:#fbbf24;
+  --radius:18px;
+  --shadow:0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.06);
+  --shadow-lg:0 2px 4px rgba(16,24,40,.04), 0 18px 40px rgba(16,24,40,.10);
+  --safe-b:env(safe-area-inset-bottom, 0px);
+}
+[data-theme="dark"]{
+  --bg:#0e0f14; --card:#171922; --text:#f2f3f7; --muted:#9aa1b1;
+  --line:#262a36; --accent:#7b91ff; --accent-soft:#1c2140;
+  --good:#34d399; --good-soft:#10261d;
+  --bad:#fb7185; --bad-soft:#2a1219;
+  --warn:#fbbf24; --warn-soft:#2a2110;
+  --purple:#a78bfa; --pink:#f472b6; --gold:#fcd34d;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;overscroll-behavior:none}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100dvh;
+  padding-bottom:calc(96px + var(--safe-b));
+  transition:background .25s ease,color .25s ease;
+  -webkit-font-smoothing:antialiased;
+  touch-action:manipulation;
+  overflow-x:hidden;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;touch-action:manipulation}
+input,textarea{font-family:inherit;user-select:text;-webkit-user-select:text}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+
+/* HEADER */
+header{
+  position:sticky;top:0;z-index:50;
+  background:color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter:saturate(180%) blur(14px);
+  -webkit-backdrop-filter:saturate(180%) blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.hbar{max-width:760px;margin:0 auto;padding:8px 14px;display:flex;align-items:center;gap:8px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:900;font-size:14px;letter-spacing:-.3px}
+.brand .dot{
+  width:30px;height:30px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),var(--purple));
+  display:grid;place-items:center;color:#fff;font-size:13px;font-weight:900;
+  box-shadow:0 4px 12px rgba(77,107,254,.35);
+}
+.spacer{flex:1}
+.chip{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--card);border:1px solid var(--line);
+  padding:5px 10px;border-radius:999px;font-size:12px;font-weight:800;
+  box-shadow:var(--shadow);transition:transform .2s;
+}
+.chip.bump{animation:chipBump .4s cubic-bezier(.2,.8,.2,1)}
+@keyframes chipBump{50%{transform:scale(1.18)}}
+.chip.xp{color:var(--accent)}
+.chip.fire{color:#f97316}
+.iconbtn{
+  width:38px;height:38px;border-radius:11px;display:grid;place-items:center;
+  border:1px solid var(--line);background:var(--card);font-size:16px;
+  transition:transform .12s ease;
+}
+.iconbtn:active{transform:scale(.9)}
+
+main{max-width:760px;margin:0 auto;padding:16px 16px 0}
+.view{animation:fade .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.card{
+  background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:16px;margin-bottom:14px;
+}
+h1{font-size:22px;margin:0 0 4px;letter-spacing:-.5px}
+h2{font-size:15px;margin:0 0 10px;letter-spacing:-.2px}
+.sub{color:var(--muted);font-size:13.5px;margin:0;line-height:1.5}
+.muted{color:var(--muted)}
+.center{text-align:center}
+
+/* HERO */
+.hero{
+  display:flex;align-items:center;gap:16px;
+  background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:16px;margin-bottom:14px;position:relative;overflow:hidden;
+}
+.hero::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(circle at top right, color-mix(in srgb,var(--accent) 12%, transparent), transparent 60%);
+  pointer-events:none;
+}
+.ring{position:relative;width:100px;height:100px;flex:0 0 auto;z-index:1}
+.ring svg{transform:rotate(-90deg)}
+.ring .val{
+  position:absolute;inset:0;display:grid;place-items:center;
+  font-size:20px;font-weight:900;letter-spacing:-.8px;
+}
+.ring .val small{display:block;font-size:9px;font-weight:700;color:var(--muted);letter-spacing:0}
+.hero-txt{flex:1;min-width:0;z-index:1}
+.hero-txt h1{margin-bottom:4px;font-size:20px}
+.statrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.stat{
+  background:var(--accent-soft);color:var(--accent);
+  border-radius:9px;padding:5px 9px;font-size:11.5px;font-weight:800;
+}
+.stat.g{background:var(--good-soft);color:var(--good)}
+.stat.w{background:var(--warn-soft);color:var(--warn)}
+.stat.b{background:var(--bad-soft);color:var(--bad)}
+
+/* BUTTONS */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  width:100%;padding:16px;border-radius:15px;min-height:54px;
+  background:var(--accent);color:#fff;font-weight:800;font-size:15.5px;
+  box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 32%, transparent);
+  transition:transform .12s ease,filter .12s;
+}
+.btn:active{transform:scale(.97);filter:brightness(.95)}
+.btn.ghost{background:var(--card);color:var(--text);border:1px solid var(--line);box-shadow:var(--shadow)}
+.btn.soft{background:var(--accent-soft);color:var(--accent);box-shadow:none}
+.btn.good{background:var(--good);box-shadow:0 8px 20px color-mix(in srgb,var(--good) 30%, transparent)}
+.btn.bad{background:var(--bad);box-shadow:0 8px 20px color-mix(in srgb,var(--bad) 30%, transparent)}
+.btn.sm{padding:12px 16px;font-size:13.5px;border-radius:12px;min-height:auto}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.modecard{
+  display:flex;align-items:center;gap:12px;text-align:left;
+  padding:14px;border-radius:15px;background:var(--card);
+  border:1px solid var(--line);box-shadow:var(--shadow);
+  transition:transform .12s ease,border-color .15s;min-height:72px;
+}
+.modecard:active{transform:scale(.97);border-color:var(--accent)}
+.modecard .em{
+  width:42px;height:42px;border-radius:13px;flex:0 0 auto;
+  display:grid;place-items:center;font-size:20px;background:var(--accent-soft);
+}
+.modecard .t{font-weight:800;font-size:14.5px;display:block}
+.modecard .d{font-size:11.5px;color:var(--muted);margin-top:2px;display:block}
+
+/* MASTERY BARS */
+.mastery{display:flex;flex-direction:column;gap:9px}
+.mrow{display:flex;align-items:center;gap:10px;font-size:12.5px}
+.mrow .lbl{width:100px;flex:0 0 auto;color:var(--muted);font-weight:700}
+.mbar{flex:1;height:9px;border-radius:999px;background:var(--line);overflow:hidden}
+.mbar i{display:block;height:100%;border-radius:999px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.mrow .n{width:36px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+
+/* SESSION */
+.sess-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pbar{flex:1;height:9px;border-radius:999px;background:var(--line);overflow:hidden;position:relative}
+.pbar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));border-radius:999px;transition:width .4s cubic-bezier(.2,.8,.2,1)}
+
+.combo-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 12px;border-radius:999px;font-weight:900;font-size:13px;
+  background:linear-gradient(135deg,var(--warn),var(--pink));color:#fff;
+  box-shadow:0 6px 18px rgba(245,158,11,.35);
+  animation:comboPulse 1.2s ease-in-out infinite;
+}
+@keyframes comboPulse{50%{transform:scale(1.06)}}
+
+.flashcard{perspective:1400px;height:290px;margin-bottom:14px;cursor:pointer;touch-action:pan-y;user-select:none}
+.fc-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.2,.8,.2,1)}
+.flashcard.flipped .fc-inner{transform:rotateY(180deg)}
+.fc-face{
+  position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:24px;background:var(--card);border:1px solid var(--line);
+  box-shadow:var(--shadow-lg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;text-align:center;
+}
+.fc-back{transform:rotateY(180deg);background:linear-gradient(135deg,var(--accent-soft),color-mix(in srgb,var(--purple) 15%, var(--accent-soft)));border-color:color-mix(in srgb,var(--accent) 30%, transparent)}
+.fc-label{font-size:11px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.fc-word{font-size:38px;font-weight:900;letter-spacing:-1.4px;line-height:1.1;word-break:break-word}
+.fc-back .fc-word{font-size:28px;color:var(--accent);font-weight:800}
+.fc-example{
+  margin-top:16px;font-size:13px;font-style:italic;line-height:1.5;
+  color:var(--text);opacity:.85;max-width:94%;
+}
+.fc-example .en{display:block;font-size:11.5px;color:var(--muted);font-style:normal;margin-top:4px}
+.fc-hint{margin-top:14px;font-size:11.5px;color:var(--muted)}
+.speaker{
+  position:absolute;top:14px;right:14px;
+  width:40px;height:40px;border-radius:12px;
+  background:var(--bg);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:17px;
+  transition:transform .12s;
+}
+.speaker:active{transform:scale(.85)}
+.confbtn{
+  position:absolute;top:14px;left:14px;
+  width:40px;height:40px;border-radius:12px;
+  background:var(--bg);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:16px;
+  transition:transform .12s;
+}
+.confbtn:active{transform:scale(.85)}
+
+.opts{display:flex;flex-direction:column;gap:9px;margin-bottom:14px}
+.opt{
+  padding:16px;border-radius:15px;text-align:left;font-size:15px;font-weight:700;
+  background:var(--card);border:1.5px solid var(--line);box-shadow:var(--shadow);
+  transition:transform .1s ease,border-color .15s,background .15s;
+  display:flex;align-items:center;gap:10px;min-height:56px;
+}
+.opt:active{transform:scale(.98)}
+.opt .key{
+  width:26px;height:26px;border-radius:8px;flex:0 0 auto;
+  background:var(--bg);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--muted);
+}
+.opt.correct{background:var(--good-soft);border-color:var(--good);color:var(--good);animation:pop .35s}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad);animation:shake .4s}
+@keyframes pop{40%{transform:scale(1.03)}}
+@keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+.opt[disabled]{pointer-events:none;opacity:.7}
+.opt.correct[disabled],.opt.wrong[disabled]{opacity:1}
+
+.typebox{display:flex;gap:9px;margin-bottom:14px}
+.typebox input{
+  flex:1;padding:16px;border-radius:15px;font-size:16px;font-weight:600;
+  border:1.5px solid var(--line);background:var(--card);color:var(--text);
+  outline:none;transition:border-color .15s;min-height:56px;
+}
+.typebox input:focus{border-color:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 15%, transparent)}
+.typebox input.ok{border-color:var(--good);background:var(--good-soft)}
+.typebox input.ko{border-color:var(--bad);background:var(--bad-soft)}
+
+.feedback{
+  border-radius:14px;padding:13px 15px;margin-bottom:12px;font-size:14px;font-weight:700;
+  display:flex;align-items:center;gap:10px;animation:fade .2s ease;
+}
+.feedback.ok{background:var(--good-soft);color:var(--good)}
+.feedback.ko{background:var(--bad-soft);color:var(--bad)}
+
+.rating{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rate{
+  padding:14px 6px;border-radius:14px;font-size:11px;font-weight:800;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  border:1.5px solid var(--line);background:var(--card);
+  transition:transform .1s ease;min-height:74px;justify-content:center;
+}
+.rate:active{transform:scale(.94)}
+.rate .ic{font-size:18px}
+.rate.r0{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 35%, transparent)}
+.rate.r1{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 40%, transparent)}
+.rate.r2{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%, transparent)}
+.rate.r3{color:var(--good);border-color:color-mix(in srgb,var(--good) 35%, transparent)}
+
+/* BROWSE */
+.searchbar{
+  display:flex;align-items:center;gap:9px;background:var(--card);
+  border:1px solid var(--line);border-radius:15px;padding:12px 14px;
+  box-shadow:var(--shadow);margin-bottom:12px;
+}
+.searchbar input{flex:1;border:none;background:none;outline:none;font-size:15px;color:var(--text);min-height:24px}
+.filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.fbtn{
+  padding:8px 13px;border-radius:999px;font-size:12px;font-weight:800;
+  background:var(--card);border:1px solid var(--line);color:var(--muted);
+  transition:all .15s;min-height:34px;
+}
+.fbtn.on{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 4px 12px color-mix(in srgb,var(--accent) 30%, transparent)}
+
+.vlist{display:flex;flex-direction:column;gap:8px}
+.vitem{
+  display:flex;align-items:center;gap:11px;padding:12px 13px;
+  background:var(--card);border:1px solid var(--line);border-radius:15px;
+  box-shadow:var(--shadow);transition:transform .1s;cursor:pointer;
+}
+.vitem:active{transform:scale(.99);border-color:var(--accent)}
+.vitem .num{
+  width:32px;height:32px;flex:0 0 auto;border-radius:10px;
+  display:grid;place-items:center;font-size:11px;font-weight:800;
+  background:var(--bg);color:var(--muted);font-variant-numeric:tabular-nums;
+}
+.vitem .fr{font-weight:800;font-size:15px;letter-spacing:-.2px;display:block}
+.vitem .en{font-size:12.5px;color:var(--muted);margin-top:1px;display:block}
+.vitem .body{flex:1;min-width:0}
+.lvldot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+
+/* STATS */
+.bigstat{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:16px;text-align:center;box-shadow:var(--shadow);
+}
+.bigstat .n{font-size:26px;font-weight:900;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.bigstat .l{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-top:3px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:80px;margin-top:6px}
+.bars .b{flex:1;background:var(--accent-soft);border-radius:6px 6px 3px 3px;position:relative;min-height:4px;transition:height .5s}
+.bars .b.has{background:linear-gradient(180deg,var(--accent),var(--purple))}
+
+/* ACHIEVEMENTS */
+.ach-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ach{
+  aspect-ratio:1;border-radius:14px;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:6px;text-align:center;position:relative;
+  border:2px solid var(--line);filter:grayscale(1);opacity:.45;
+  transition:all .3s;
+}
+.ach.unlocked{filter:none;opacity:1;background:var(--card);border-color:var(--gold);box-shadow:0 4px 16px rgba(251,191,36,.25)}
+.ach .em{font-size:24px;margin-bottom:2px}
+.ach .nm{font-size:9px;font-weight:800;line-height:1.15;letter-spacing:-.2px}
+
+/* MODAL */
+.modal-back{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+}
+.modal-back.on{opacity:1;pointer-events:auto}
+.modal{
+  background:var(--card);width:100%;max-width:600px;
+  border-radius:24px 24px 0 0;
+  max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:20px 20px calc(24px + var(--safe-b));
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.2,.8,.2,1);
+  box-shadow:0 -8px 40px rgba(0,0,0,.25);
+  position:relative;
+}
+.modal-back.on .modal{transform:none}
+.modal-handle{width:36px;height:4px;background:var(--line);border-radius:99px;margin:0 auto 14px}
+.modal h2{margin:0 0 4px;font-size:24px;letter-spacing:-.5px;padding-right:44px}
+.modal .en{color:var(--muted);font-size:14px;margin-bottom:16px}
+.modal-close{position:absolute;top:14px;right:14px}
+
+/* CONJUGATION TABLE */
+.conj-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.ctab{
+  flex:1;padding:10px 8px;border-radius:11px;font-size:12px;font-weight:800;
+  background:var(--bg);border:1px solid var(--line);color:var(--muted);
+  transition:all .15s;min-height:42px;min-width:80px;
+}
+.ctab.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.conj-table{width:100%;border-collapse:separate;border-spacing:0 4px;font-size:14.5px}
+.conj-table tr{background:var(--bg);border-radius:10px}
+.conj-table td{padding:10px 12px}
+.conj-table td:first-child{font-weight:800;color:var(--muted);width:34%;border-top-left-radius:10px;border-bottom-left-radius:10px;font-size:13px}
+.conj-table td:last-child{font-weight:700;border-top-right-radius:10px;border-bottom-right-radius:10px}
+
+/* BOTTOM NAV */
+nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:60;
+  background:color-mix(in srgb, var(--card) 90%, transparent);
+  backdrop-filter:saturate(180%) blur(16px);
+  -webkit-backdrop-filter:saturate(180%) blur(16px);
+  border-top:1px solid var(--line);
+  padding:8px 8px calc(8px + var(--safe-b));
+}
+.navin{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:2px}
+.nbtn{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 4px;border-radius:12px;font-size:10px;font-weight:800;
+  color:var(--muted);transition:color .15s,background .15s;
+}
+.nbtn .ic{font-size:19px;line-height:1}
+.nbtn.on{color:var(--accent);background:var(--accent-soft)}
+
+/* FLOATING XP */
+.xp-float{
+  position:fixed;font-weight:900;font-size:20px;color:var(--good);
+  pointer-events:none;z-index:9999;
+  text-shadow:0 2px 8px rgba(22,163,74,.4);
+  animation:xpFloat 1.1s cubic-bezier(.2,.8,.2,1) forwards;
+}
+@keyframes xpFloat{
+  0%{transform:translateY(0) scale(.6);opacity:0}
+  20%{transform:translateY(-10px) scale(1.15);opacity:1}
+  100%{transform:translateY(-80px) scale(1);opacity:0}
+}
+
+.confetti-layer{position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden}
+.confetti-layer i{position:absolute;top:-24px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{from{top:-24px;transform:rotate(0)}to{top:106vh;transform:rotate(720deg)}}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(104px + var(--safe-b));
+  transform:translateX(-50%) translateY(20px);
+  background:var(--text);color:var(--bg);padding:12px 20px;border-radius:999px;
+  font-size:13px;font-weight:800;z-index:9997;opacity:0;
+  transition:opacity .3s, transform .3s;
+  box-shadow:var(--shadow-lg);white-space:nowrap;max-width:90vw;
+  text-align:center;overflow:hidden;text-overflow:ellipsis;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.big{
+  padding:16px 24px;font-size:14.5px;
+  top:50%;bottom:auto;white-space:normal;max-width:80vw;
+  transform:translate(-50%, -50%) scale(.8);
+  transition:opacity .3s, transform .3s;
+}
+.toast.big.show{transform:translate(-50%, -50%) scale(1)}
+
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty .em{font-size:44px;display:block;margin-bottom:12px}
+.divider{height:1px;background:var(--line);margin:14px 0}
+kbd{
+  background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;
+  border-radius:6px;padding:1px 6px;font-size:11px;font-weight:800;font-family:inherit;
+}
+
+.import-drop{
+  border:2px dashed var(--line);border-radius:14px;padding:20px;
+  text-align:center;color:var(--muted);font-size:13px;font-weight:700;
+  transition:all .2s;cursor:pointer;
+}
+.import-drop:hover,.import-drop.over{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+
+@media(max-width:420px){
+  .fc-word{font-size:32px}
+  .fc-back .fc-word{font-size:24px}
+  .flashcard{height:260px}
+  .hero{flex-direction:column;align-items:stretch;text-align:center}
+  .ring{margin:0 auto}
+  .hero-txt h1{text-align:center}
+  .statrow{justify-content:center}
+  .ach-grid{grid-template-columns:repeat(3,1fr)}
+}
+
+.level-flash{
+  position:fixed;inset:0;z-index:9996;pointer-events:none;
+  display:grid;place-items:center;background:rgba(0,0,0,.35);
+  opacity:0;transition:opacity .3s;
+}
+.level-flash.on{opacity:1}
+.level-flash .inner{
+  background:var(--card);padding:32px 40px;border-radius:24px;
+  text-align:center;transform:scale(.7);transition:transform .5s cubic-bezier(.2,.8,.2,1);
+  box-shadow:0 24px 80px rgba(0,0,0,.4);
+}
+.level-flash.on .inner{transform:scale(1)}
+.level-flash .em{font-size:64px;display:block;margin-bottom:8px;animation:pop 1s}
+.level-flash h2{font-size:26px;margin:0 0 6px;letter-spacing:-.5px}
+.level-flash p{margin:0;color:var(--muted);font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hbar">
+    <div class="brand"><span class="dot">é</span><span>215 Verbes</span></div>
+    <div class="spacer"></div>
+    <span class="chip xp" id="xpChip">⚡ 0</span>
+    <span class="chip fire" id="fireChip">🔥 0</span>
+    <button class="iconbtn" id="themeBtn" title="Thème">🌙</button>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<nav>
+  <div class="navin">
+    <button class="nbtn on" data-nav="home"><span class="ic">🏠</span>Accueil</button>
+    <button class="nbtn" data-nav="session"><span class="ic">⚔️</span>Jouer</button>
+    <button class="nbtn" data-nav="quests"><span class="ic">🎯</span>Défis</button>
+    <button class="nbtn" data-nav="browse"><span class="ic">📚</span>Verbes</button>
+    <button class="nbtn" data-nav="stats"><span class="ic">📊</span>Stats</button>
+  </div>
+</nav>
+
+<div class="modal-back" id="modalBack">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+/* ============================================================
+   215 VERBES FRANÇAIS — Jeu d'apprentissage (v3)
+   Combo · Défis · Conjugaison · Phrases · Export/Import
+   ============================================================ */
+
+/* ---------- VERB DATA [fr, en, exempleFr, exempleEn] ---------- */
+const RAW = [
+["Être","To be","Je suis content aujourd'hui.","I am happy today."],
+["Avoir","To have","Elle a une belle voiture.","She has a nice car."],
+["Faire","To do – to make","Qu'est-ce que tu fais ce soir ?","What are you doing tonight?"],
+["Aller","To go","Nous allons au marché.","We are going to the market."],
+["Pouvoir","To be able to","Je peux t'aider.","I can help you."],
+["Vouloir","To want","Tu veux un café ?","Do you want a coffee?"],
+["Devoir","To have to","Je dois partir maintenant.","I have to leave now."],
+["Savoir","To know","Elle sait parler français.","She knows how to speak French."],
+["Dire","To say – to tell","Qu'est-ce que tu dis ?","What are you saying?"],
+["Venir","To come","Il vient de Paris.","He comes from Paris."],
+["Voir","To see","Je vois un oiseau.","I see a bird."],
+["Falloir","To be necessary","Il faut partir tôt.","We must leave early."],
+["Prendre","To take","Je prends le train.","I take the train."],
+["Parler","To speak","Nous parlons anglais.","We speak English."],
+["Aimer","To like – to love","J'aime le chocolat.","I love chocolate."],
+["Passer","To pass by","Il passe devant chez moi.","He passes by my place."],
+["Mettre","To put","Je mets mon manteau.","I put on my coat."],
+["Devenir","To become","Elle devient médecin.","She is becoming a doctor."],
+["Croire","To believe","Je crois que tu as raison.","I believe you are right."],
+["Trouver","To find","Je trouve ce livre intéressant.","I find this book interesting."],
+["Donner","To give","Il donne un cadeau.","He gives a gift."],
+["Comprendre","To understand","Tu comprends la question ?","Do you understand the question?"],
+["Laisser","To leave – to let","Laisse-moi tranquille !","Leave me alone!"],
+["Rester","To stay","Je reste à la maison.","I stay at home."],
+["Penser","To think","Je pense à toi.","I think about you."],
+["Arriver","To arrive","Le train arrive à midi.","The train arrives at noon."],
+["Entrer","To enter","Elle entre dans la maison.","She enters the house."],
+["Sortir","To go out","Nous sortons ce soir.","We go out tonight."],
+["Partir","To leave","Ils partent demain.","They leave tomorrow."],
+["Rentrer","To come back","Je rentre à six heures.","I come home at six."],
+["Retourner","To return","Il retourne à Paris.","He returns to Paris."],
+["Revenir","To come back","Elle revient bientôt.","She comes back soon."],
+["Quitter","To leave","Je quitte mon travail.","I leave my job."],
+["Demander","To ask","Il demande de l'aide.","He asks for help."],
+["Répondre","To respond","Elle répond à la question.","She answers the question."],
+["Appeler","To call","Je t'appelle ce soir.","I'll call you tonight."],
+["Téléphoner","To call – to phone","Elle téléphone à sa mère.","She calls her mother."],
+["Écouter","To listen","J'écoute de la musique.","I listen to music."],
+["Entendre","To hear","Tu entends ce bruit ?","Do you hear that noise?"],
+["Regarder","To watch – to look at","Nous regardons un film.","We watch a movie."],
+["Montrer","To show","Il me montre les photos.","He shows me the photos."],
+["Chercher","To search – to look for","Je cherche mes clés.","I'm looking for my keys."],
+["Aider","To help","Peux-tu m'aider ?","Can you help me?"],
+["Apporter","To bring","Il apporte du pain.","He brings bread."],
+["Amener","To bring","Elle amène son chien.","She brings her dog."],
+["Apprendre","To learn","J'apprends le français.","I'm learning French."],
+["Étudier","To study","Il étudie la médecine.","He studies medicine."],
+["Réfléchir","To think","Réfléchis avant de décider.","Think before deciding."],
+["Choisir","To choose","Je choisis le rouge.","I choose the red one."],
+["Accepter","To accept – to agree","Elle accepte l'invitation.","She accepts the invitation."],
+["Essayer","To try","J'essaie de comprendre.","I try to understand."],
+["Hésiter","To hesitate","Il hésite à répondre.","He hesitates to answer."],
+["Tenter","To try","Je tente ma chance.","I try my luck."],
+["Réussir","To succeed","Elle réussit son examen.","She passes her exam."],
+["Arrêter","To stop","Arrête de crier !","Stop shouting!"],
+["S'arrêter","To stop","Le bus s'arrête ici.","The bus stops here."],
+["Commencer","To start – to begin","Le film commence à huit heures.","The movie starts at eight."],
+["Finir","To finish","Je finis mes devoirs.","I finish my homework."],
+["Achever","To complete","Il achève son travail.","He completes his work."],
+["Préparer","To prepare","Je prépare le dîner.","I'm preparing dinner."],
+["Réserver","To book","Nous réservons une table.","We book a table."],
+["Vérifier","To verify","Vérifie tes informations.","Check your information."],
+["Noter","To take note","Je note tout dans mon carnet.","I write everything in my notebook."],
+["Écrire","To write","Elle écrit une lettre.","She writes a letter."],
+["Lire","To read","Je lis un bon livre.","I'm reading a good book."],
+["Signer","To sign","Signez ici s'il vous plaît.","Sign here please."],
+["Recevoir","To receive","Je reçois beaucoup de messages.","I receive many messages."],
+["Acheter","To buy","Elle achète du pain.","She buys bread."],
+["Vendre","To sell","Il vend sa voiture.","He sells his car."],
+["Louer","To rent","Nous louons un appartement.","We rent an apartment."],
+["Manger","To eat","Je mange une pomme.","I eat an apple."],
+["Boire","To drink","Tu bois du café ?","Do you drink coffee?"],
+["Fournir","To provide","Ils fournissent le matériel.","They provide the equipment."],
+["Ajouter","To add","Ajoute du sel.","Add some salt."],
+["Mélanger","To mix","Mélange bien les ingrédients.","Mix the ingredients well."],
+["Couper","To cut","Il coupe le pain.","He cuts the bread."],
+["Nettoyer","To clean","Je nettoie la cuisine.","I clean the kitchen."],
+["Laver","To wash","Elle lave la vaisselle.","She washes the dishes."],
+["Fermer","To close","Ferme la porte !","Close the door!"],
+["Ouvrir","To open","Ouvre la fenêtre.","Open the window."],
+["Charger","To charge – to load","Il charge son téléphone.","He charges his phone."],
+["Utiliser","To use","J'utilise mon ordinateur.","I use my computer."],
+["Améliorer","To improve","Elle améliore son français.","She improves her French."],
+["Changer","To change","Je change de chemise.","I change my shirt."],
+["Décorer","To decorate","Nous décorons le sapin.","We decorate the tree."],
+["Porter","To carry – to wear","Elle porte une robe rouge.","She wears a red dress."],
+["Poser","To put – to ask","Il pose une question.","He asks a question."],
+["Se déplacer","To travel","Je me déplace en vélo.","I get around by bike."],
+["Voyager","To travel","J'aime voyager.","I love to travel."],
+["Conduire","To drive","Elle conduit prudemment.","She drives carefully."],
+["Marcher","To walk","Nous marchons dans le parc.","We walk in the park."],
+["Courir","To run","Il court vite.","He runs fast."],
+["Monter","To go up","Je monte les escaliers.","I go up the stairs."],
+["Descendre","To go down","Il descend la rue.","He goes down the street."],
+["Traverser","To cross","Traverse la rue !","Cross the street!"],
+["Suivre","To follow","Suis-moi !","Follow me!"],
+["Rejoindre","To join","Je rejoins mes amis.","I join my friends."],
+["Travailler","To work","Elle travaille à la banque.","She works at the bank."],
+["Inviter","To invite","Je t'invite à dîner.","I invite you to dinner."],
+["Rendre visite","To visit (a person)","Je rends visite à ma grand-mère.","I visit my grandmother."],
+["Visiter","To visit","Nous visitons le musée.","We visit the museum."],
+["Connaître","To know","Je connais bien Paris.","I know Paris well."],
+["Se souvenir","To remember","Je me souviens de toi.","I remember you."],
+["Retenir","To retain – to remember","Je retiens ton numéro.","I remember your number."],
+["Oublier","To forget","J'oublie souvent mes clés.","I often forget my keys."],
+["Deviner","To guess","Devine qui vient ce soir !","Guess who's coming tonight!"],
+["Prévoir","To plan","Il prévoit de partir tôt.","He plans to leave early."],
+["Espérer","To hope","J'espère que tout va bien.","I hope everything is okay."],
+["S'inquiéter","To worry","Ne t'inquiète pas !","Don't worry!"],
+["Sembler","To seem","Il semble fatigué.","He seems tired."],
+["Se trouver","To be (located)","La gare se trouve à droite.","The station is on the right."],
+["Appartenir","To belong","Ce livre m'appartient.","This book belongs to me."],
+["Contenir","To contain","Ce sac contient des livres.","This bag contains books."],
+["Correspondre","To match","Ces deux pièces correspondent.","These two pieces match."],
+["Convenir","To agree – to suit","Cette date me convient.","This date suits me."],
+["S'agir de","To be about – To concern","Il s'agit d'un problème sérieux.","It's about a serious problem."],
+["Indiquer","To indicate","Le panneau indique la direction.","The sign indicates the direction."],
+["Justifier","To justify","Il justifie son retard.","He justifies his lateness."],
+["Qualifier","To qualify","Elle qualifie ce film d'excellent.","She calls this film excellent."],
+["Confondre","To confuse","Je confonds les jumeaux.","I confuse the twins."],
+["Nier","To deny","Il nie tout.","He denies everything."],
+["Prédire","To predict","Personne ne peut prédire l'avenir.","Nobody can predict the future."],
+["Redire","To say","Peux-tu redire cela ?","Can you say that again?"],
+["Réagir","To react","Il réagit vite.","He reacts quickly."],
+["S'excuser","To apologize","Je m'excuse pour le retard.","I apologize for the delay."],
+["Célébrer","To celebrate","Nous célébrons son anniversaire.","We celebrate his birthday."],
+["S'amuser","To have fun","On s'amuse bien !","We're having fun!"],
+["Rire","To laugh","Elle rit souvent.","She laughs often."],
+["Pleurer","To cry","Le bébé pleure.","The baby cries."],
+["Crier","To scream","Ne crie pas !","Don't scream!"],
+["Chanter","To sing","Il chante bien.","He sings well."],
+["Danser","To dance","Nous dansons toute la nuit.","We dance all night."],
+["Jouer","To play","Les enfants jouent dehors.","The children play outside."],
+["Gagner","To win – to earn","Elle gagne beaucoup d'argent.","She earns a lot of money."],
+["Perdre","To lose","Il perd ses clés.","He loses his keys."],
+["Partager","To share","Partage le gâteau.","Share the cake."],
+["Offrir","To offer – to give","Je t'offre un cadeau.","I give you a gift."],
+["Décevoir","To disappoint","Tu me déçois.","You disappoint me."],
+["Adorer","To love – to adore","J'adore ce restaurant.","I love this restaurant."],
+["Ignorer","To ignore","Il ignore mes messages.","He ignores my messages."],
+["Interdire","To forbid","Il est interdit de fumer.","Smoking is forbidden."],
+["Défendre","To defend","Elle défend ses idées.","She defends her ideas."],
+["Garder","To keep","Je garde le secret.","I keep the secret."],
+["Détenir","To detain – to hold","Il détient la vérité.","He holds the truth."],
+["Gaspiller","To waste","Ne gaspille pas l'eau.","Don't waste water."],
+["Se lever","To get up","Je me lève à sept heures.","I get up at seven."],
+["Se coucher","To go to bed – to lie down","Elle se couche tôt.","She goes to bed early."],
+["S'habiller","To get dressed","Je m'habille rapidement.","I get dressed quickly."],
+["Habiller","To dress","Elle habille son bébé.","She dresses her baby."],
+["Se changer","To get changed","Je me change après le sport.","I get changed after sports."],
+["Se reposer","To rest","Repose-toi bien.","Rest well."],
+["Dormir","To sleep","Je dors huit heures.","I sleep eight hours."],
+["Se conduire","To behave","Il se conduit mal.","He behaves badly."],
+["Agir","To act","Il faut agir vite.","We must act quickly."],
+["Grandir","To grow up","Les enfants grandissent vite.","Children grow up fast."],
+["Vieillir","To get old","On vieillit tous.","We all get old."],
+["Maigrir","To lose weight","Elle veut maigrir.","She wants to lose weight."],
+["Naître","To be born","Il est né en 1990.","He was born in 1990."],
+["Mourir","To die","Mon chien est mort.","My dog died."],
+["Vivre","To live","Ils vivent à Lyon.","They live in Lyon."],
+["Habiter","To live","J'habite à Paris.","I live in Paris."],
+["S'appeler","To be called","Je m'appelle Marie.","My name is Marie."],
+["Peser","To weigh","Combien pèses-tu ?","How much do you weigh?"],
+["Mesurer","To measure","Il mesure 1m80.","He is 1m80 tall."],
+["Baisser","To lower","Baisse le son !","Lower the sound!"],
+["Ralentir","To slow down","Ralentis s'il te plaît !","Slow down please!"],
+["Tomber","To fall","Il tombe souvent.","He falls often."],
+["Sauter","To jump","Le chat saute sur la table.","The cat jumps on the table."],
+["Voler","To fly – to steal","L'oiseau vole dans le ciel.","The bird flies in the sky."],
+["Saisir","To seize","Il saisit l'occasion.","He seizes the opportunity."],
+["Tenir","To hold","Tiens ma main.","Hold my hand."],
+["Briser","To break","Il brise le verre.","He breaks the glass."],
+["Fondre","To melt","Le chocolat fond.","The chocolate melts."],
+["Tondre","To mow","Il tond la pelouse.","He mows the lawn."],
+["Salir","To soil","Ne salis pas tes chaussures.","Don't dirty your shoes."],
+["Jaunir","To turn yellow","Les feuilles jaunissent.","The leaves turn yellow."],
+["Rougir","To blush","Elle rougit facilement.","She blushes easily."],
+["Essuyer","To wipe","Essuie la table.","Wipe the table."],
+["Se plaindre","To complain","Il se plaint toujours.","He always complains."],
+["Contredire","To contradict","Elle contredit tout le monde.","She contradicts everyone."],
+["Raconter","To tell","Raconte-moi ton voyage.","Tell me about your trip."],
+["Médire","To speak ill","Il médit de ses collègues.","He speaks ill of his colleagues."],
+["Prononcer","To pronounce","Comment prononces-tu ce mot ?","How do you pronounce this word?"],
+["Répéter","To repeat","Répète s'il te plaît.","Repeat please."],
+["Effacer","To delete – to erase","Efface le tableau.","Erase the board."],
+["Remplir","To fill up","Remplis le formulaire.","Fill out the form."],
+["Sentir","To feel – to smell","Je sens le parfum.","I smell the perfume."],
+["Attaquer","To attack","Le chien attaque.","The dog attacks."],
+["Causer","To cause","Cela cause des problèmes.","This causes problems."],
+["Dépendre","To depend","Ça dépend de toi.","It depends on you."],
+["Subir","To undergo","Il subit les conséquences.","He undergoes the consequences."],
+["Réunir","To gather","Nous réunissons la famille.","We gather the family."],
+["Se rendre","To go","Je me rends au travail.","I go to work."],
+["Rendre","To give back – to return","Rends-moi mon livre !","Give me back my book!"],
+["Revoir","To review","Je veux revoir ce film.","I want to see this movie again."],
+["Posséder","To own","Il possède une grande maison.","He owns a big house."],
+["Jeter","To throw","Ne jette pas les ordures par terre.","Don't throw trash on the ground."],
+["Attendre","To wait","J'attends le bus.","I'm waiting for the bus."],
+["Éteindre","To turn off","Éteins la lumière.","Turn off the light."],
+["Étendre","To extend","Étends le linge.","Hang the laundry."],
+["Tendre","To stretch out","Il tend la main.","He stretches out his hand."],
+["Pendre","To hang","Le tableau pend au mur.","The painting hangs on the wall."],
+["Tordre","To twist","Il tord la serviette.","He twists the towel."],
+["Unir","To unify","Unissons nos forces.","Let's unite our forces."],
+["User","To wear out","Ces chaussures sont usées.","These shoes are worn out."],
+["Bâtir","To build","Ils bâtissent une maison.","They build a house."],
+["Démolir","To demolish","Ils démolissent le vieux mur.","They demolish the old wall."],
+["Fumer","To smoke","Il est interdit de fumer ici.","Smoking is forbidden here."],
+["Jurer","To swear","Je te jure, c'est vrai !","I swear, it's true!"],
+["Klaxonner","To honk","Il klaxonne dans les embouteillages.","He honks in traffic jams."],
+["Faillir","To almost","J'ai failli tomber.","I almost fell."],
+["Désobéir","To disobey","Il désobéit à ses parents.","He disobeys his parents."],
+["Obéir","To obey","Le chien obéit bien.","The dog obeys well."],
+["Nourrir","To nourish","Elle nourrit les oiseaux.","She feeds the birds."],
+["Explorer","To explore","Nous explorons la forêt.","We explore the forest."]
+];
+
+const VERBS = RAW.map((v,i)=>({ id:i+1, fr:v[0], en:v[1], ex:v[2], exEn:v[3] }));
+
+/* ============================================================
+   CONJUGATION ENGINE
+   ============================================================ */
+const IRR_PRES = {
+  "être": ["suis","es","est","sommes","êtes","sont"],
+  "avoir": ["ai","as","a","avons","avez","ont"],
+  "aller": ["vais","vas","va","allons","allez","vont"],
+  "faire": ["fais","fais","fait","faisons","faites","font"],
+  "dire": ["dis","dis","dit","disons","dites","disent"],
+  "redire": ["redis","redis","redit","redisons","redites","redisent"],
+  "contredire": ["contredis","contredis","contredit","contredisons","contredisez","contredisent"],
+  "médire": ["médis","médis","médit","médi-sons","médisez","médisent"],
+  "prédire": ["prédis","prédis","prédit","prédisons","prédisez","prédisent"],
+  "prendre": ["prends","prends","prend","prenons","prenez","prennent"],
+  "venir": ["viens","viens","vient","venons","venez","viennent"],
+  "devenir": ["deviens","deviens","devient","devenons","devenez","deviennent"],
+  "revenir": ["reviens","reviens","revient","revenons","revenez","reviennent"],
+  "voir": ["vois","vois","voit","voyons","voyez","voient"],
+  "prévoir": ["prévois","prévois","prévoit","prévoyons","prévoyez","prévoient"],
+  "pouvoir": ["peux","peux","peut","pouvons","pouvez","peuvent"],
+  "vouloir": ["veux","veux","veut","voulons","voulez","veulent"],
+  "devoir": ["dois","dois","doit","devons","devez","doivent"],
+  "savoir": ["sais","sais","sait","savons","savez","savent"],
+  "mettre": ["mets","mets","met","mettons","mettez","mettent"],
+  "partir": ["pars","pars","part","partons","partez","partent"],
+  "sortir": ["sors","sors","sort","sortons","sortez","sortent"],
+  "dormir": ["dors","dors","dort","dormons","dormez","dorment"],
+  "sentir": ["sens","sens","sent","sentons","sentez","sentent"],
+  "écrire": ["écris","écris","écrit","écrivons","écrivez","écrivent"],
+  "lire": ["lis","lis","lit","lisons","lisez","lisent"],
+  "boire": ["bois","bois","boit","buvons","buvez","boivent"],
+  "croire": ["crois","crois","croit","croyons","croyez","croient"],
+  "recevoir": ["reçois","reçois","reçoit","recevons","recevez","reçoivent"],
+  "connaître": ["connais","connais","connaît","connaissons","connaissez","connaissent"],
+  "naître": ["nais","nais","naît","naissons","naissez","naissent"],
+  "mourir": ["meurs","meurs","meurt","mourons","mourez","meurent"],
+  "vivre": ["vis","vis","vit","vivons","vivez","vivent"],
+  "suivre": ["suis","suis","suit","suivons","suivez","suivent"],
+  "rire": ["ris","ris","rit","rions","riez","rient"],
+  "conduire": ["conduis","conduis","conduit","conduisons","conduisez","conduisent"],
+  "ouvrir": ["ouvre","ouvres","ouvre","ouvrons","ouvrez","ouvrent"],
+  "offrir": ["offre","offres","offre","offrons","offrez","offrent"],
+  "courir": ["cours","cours","court","courons","courez","courent"],
+  "tenir": ["tiens","tiens","tient","tenons","tenez","tiennent"],
+  "retenir": ["retiens","retiens","retient","retenons","retenez","retiennent"],
+  "contenir": ["contiens","contiens","contient","contenons","contenez","contiennent"],
+  "appartenir": ["appartiens","appartiens","appartient","appartenons","appartenez","appartiennent"],
+  "falloir": ["—","—","il faut","—","—","—"],
+  "s'agir de": ["—","—","il s'agit de","—","—","—"],
+  "acheter": ["achète","achètes","achète","achetons","achetez","achètent"],
+  "amener": ["amène","amènes","amène","amenons","amenez","amènent"],
+  "appeler": ["appelle","appelles","appelle","appelons","appelez","appellent"],
+  "jeter": ["jette","jettes","jette","jetons","jetez","jettent"],
+  "espérer": ["espère","espères","espère","espérons","espérez","espèrent"],
+  "répéter": ["répète","répètes","répète","répétons","répétez","répètent"],
+  "posséder": ["possède","possèdes","possède","possédons","possédez","possèdent"],
+  "célébrer": ["célèbre","célèbres","célèbre","célébrons","célébrez","célèbrent"],
+  "essayer": ["essaie","essaies","essaie","essayons","essayez","essaient"],
+  "nettoyer": ["nettoie","nettoies","nettoie","nettoyons","nettoyez","nettoient"],
+  "peser": ["pèse","pèses","pèse","pesons","pesez","pèsent"],
+  "se lever": ["me lève","te lèves","se lève","nous levons","vous levez","se lèvent"],
+  "se coucher": ["me couche","te couches","se couche","nous couchons","vous couchez","se couchent"],
+  "s'habiller": ["m'habille","t'habilles","s'habille","nous habillons","vous habillez","s'habillent"],
+  "se changer": ["me change","te changes","se change","nous changeons","vous changez","se changent"],
+  "se reposer": ["me repose","te reposes","se repose","nous reposons","vous reposez","se reposent"],
+  "s'amuser": ["m'amuse","t'amuses","s'amuse","nous amusons","vous amusez","s'amusent"],
+  "s'appeler": ["m'appelle","t'appelles","s'appelle","nous appelons","vous appelez","s'appellent"],
+  "s'inquiéter": ["m'inquiète","t'inquiètes","s'inquiète","nous inquiétons","vous inquiétez","s'inquiètent"],
+  "s'excuser": ["m'excuse","t'excuses","s'excuse","nous excusons","vous excusez","s'excusent"],
+  "se souvenir": ["me souviens","te souviens","se souvient","nous souvenons","vous souvenez","se souviennent"],
+  "se plaindre": ["me plains","te plains","se plaint","nous plaignons","vous plaignez","se plaignent"],
+  "se rendre": ["me rends","te rends","se rend","nous rendons","vous rendez","se rendent"],
+  "se déplacer": ["me déplace","te déplaces","se déplace","nous déplaçons","vous déplacez","se déplacent"],
+  "se trouver": ["me trouve","te trouves","se trouve","nous trouvons","vous trouvez","se trouvent"],
+  "se conduire": ["me conduis","te conduis","se conduit","nous conduisons","vous conduisez","se conduisent"],
+  "s'arrêter": ["m'arrête","t'arrêtes","s'arrête","nous arrêtons","vous arrêtez","s'arrêtent"],
+};
+
+const IRREG_PP = {
+  "être":"été","avoir":"eu","faire":"fait","dire":"dit","redire":"redit",
+  "contredire":"contredit","médire":"médit","prédire":"prédit",
+  "prendre":"pris","mettre":"mis","venir":"venu","devenir":"devenu","revenir":"revenu",
+  "voir":"vu","prévoir":"prévu","pouvoir":"pu","vouloir":"voulu","devoir":"dû",
+  "savoir":"su","écrire":"écrit","lire":"lu","boire":"bu","croire":"cru",
+  "recevoir":"reçu","connaître":"connu","naître":"né","mourir":"mort",
+  "vivre":"vécu","suivre":"suivi","rire":"ri","conduire":"conduit",
+  "ouvrir":"ouvert","offrir":"offert","courir":"couru","tenir":"tenu",
+  "retenir":"retenu","contenir":"contenu","appartenir":"appartenu","falloir":"fallu",
+  "s'agir de":"agi"
+};
+
+const IRREG_FUT = {
+  "être":"ser","avoir":"aur","aller":"ir","faire":"fer",
+  "venir":"viendr","devenir":"deviendr","revenir":"reviendr",
+  "voir":"verr","prévoir":"prévoir","pouvoir":"pourr","vouloir":"voudr",
+  "devoir":"devr","savoir":"saur","recevoir":"recevr",
+  "tenir":"tiendr","retenir":"retiendr","contenir":"contiendr","appartenir":"appartiendr",
+  "falloir":"faudr","courir":"courr","mourir":"mourr",
+  "acheter":"achèter","appeler":"appeller","essayer":"essaier",
+  "nettoyer":"nettoier","peser":"pèser",
+  "amener":"amèner","jeter":"jetter","se lever":"se lèver"
+};
+
+const ETRE_VERBS = new Set([
+  "aller","venir","arriver","partir","entrer","sortir","monter","descendre",
+  "rester","tomber","naître","mourir","devenir","revenir","rentrer","retourner",
+  "se lever","se coucher","s'habiller","se changer","se reposer","s'amuser",
+  "s'appeler","s'inquiéter","s'excuser","se souvenir","se plaindre","se rendre",
+  "se déplacer","se trouver","se conduire","s'arrêter"
+]);
+
+const REFLEX_PRON = ["me","te","se","nous","vous","se"];
+const PRONOUNS = ["je / j'","tu","il / elle","nous","vous","ils / elles"];
+
+function makeReflex(pron, form){
+  if(form === "—") return "—";
+  const needsElision = /^[aeiouéèêàâîôû]/.test(form);
+  if(needsElision){
+    if(pron === "me") return "m'" + form;
+    if(pron === "te") return "t'" + form;
+    return pron + " " + form;
+  }
+  return pron + " " + form;
+}
+
+function isReflexive(inf){
+  return /^se /.test(inf) || /^s'/.test(inf);
+}
+function stripReflex(inf){
+  return inf.replace(/^se /,"").replace(/^s'/,"");
+}
+
+function conjPresent(inf){
+  if(IRR_PRES[inf]) return IRR_PRES[inf].slice();
+  if(isReflexive(inf)){
+    const base = stripReflex(inf);
+    const baseForms = conjPresent(base);
+    return baseForms.map((f,i)=> makeReflex(REFLEX_PRON[i], f));
+  }
+  if(inf.endsWith("er")){
+    const stem = inf.slice(0,-2);
+    return [stem+"e", stem+"es", stem+"e", stem+"ons", stem+"ez", stem+"ent"];
+  }
+  if(inf.endsWith("ir")){
+    const PARTIR_TYPE = new Set(["partir","sortir","dormir","sentir"]);
+    const stem = inf.slice(0,-2);
+    if(PARTIR_TYPE.has(inf)){
+      return [stem+"s", stem+"s", stem+"t", stem+"ons", stem+"ez", stem+"ent"];
+    }
+    return [stem+"is", stem+"is", stem+"it", stem+"issons", stem+"issez", stem+"issent"];
+  }
+  if(inf.endsWith("re")){
+    const stem = inf.slice(0,-2);
+    return [stem+"s", stem+"s", stem, stem+"ons", stem+"ez", stem+"ent"];
+  }
+  return ["?","?","?","?","?","?"];
+}
+
+function pastParticiple(inf){
+  if(IRREG_PP[inf]) return IRREG_PP[inf];
+  if(isReflexive(inf)) return pastParticiple(stripReflex(inf));
+  if(inf.endsWith("er")) return inf.slice(0,-2)+"é";
+  if(inf.endsWith("ir")) return inf.slice(0,-2)+"i";
+  if(inf.endsWith("re")) return inf.slice(0,-2)+"u";
+  return "?";
+}
+
+function futureStem(inf){
+  if(IRREG_FUT[inf]) return IRREG_FUT[inf];
+  if(isReflexive(inf)) return futureStem(stripReflex(inf));
+  if(inf.endsWith("re")) return inf.slice(0,-1);
+  return inf;
+}
+
+function conjFuture(inf){
+  if(isReflexive(inf)){
+    const base = stripReflex(inf);
+    const stem = futureStem(base);
+    const forms = [stem+"ai", stem+"as", stem+"a", stem+"ons", stem+"ez", stem+"ont"];
+    return forms.map((f,i)=> makeReflex(REFLEX_PRON[i], f));
+  }
+  const stem = futureStem(inf);
+  return [stem+"ai", stem+"as", stem+"a", stem+"ons", stem+"ez", stem+"ont"];
+}
+
+function conjPasseCompose(inf){
+  const refl = isReflexive(inf);
+  const pp = pastParticiple(inf);
+  const aux = (refl || ETRE_VERBS.has(inf)) ? "être" : "avoir";
+  const auxPres = conjPresent(aux);
+  const forms = [];
+  for(let i=0;i<6;i++){
+    const a = auxPres[i];
+    if(a === "—"){ forms.push("—"); continue; }
+    const baseForm = a + " " + pp;
+    if(refl) forms.push(makeReflex(REFLEX_PRON[i], baseForm));
+    else forms.push(baseForm);
+  }
+  return forms;
+}
+
+/* ============================================================
+   STATE / PERSISTENCE
+   ============================================================ */
+const KEY = "fr215_v3";
+const MIN=60e3, HOUR=60*MIN, DAY=24*HOUR;
+const INTERVALS = [0, 5*MIN, 30*MIN, 4*HOUR, DAY, 3*DAY, 7*DAY, 21*DAY];
+const LEVELS = [
+  { n:"Nouveau",  c:"#9ca3af" },
+  { n:"Découvert",c:"#4d6bfe" },
+  { n:"En cours", c:"#f59e0b" },
+  { n:"Solide",   c:"#0ea5e9" },
+  { n:"Fort",     c:"#16a34a" },
+  { n:"Maîtrisé", c:"#0f766e" },
+  { n:"Légende",  c:"#8b5cf6" }
+];
+
+const ACHIEVEMENTS = [
+  { id:"first",   em:"🎯", nm:"Premier pas",   cond:s=>s.stats.sessions>=1 },
+  { id:"ten",     em:"🔥", nm:"Dix de suite",  cond:s=>s.stats.bestCombo>=10 },
+  { id:"fifty",   em:"⚡", nm:"Combo 50",      cond:s=>s.stats.bestCombo>=50 },
+  { id:"s10",     em:"💪", nm:"10 sessions",   cond:s=>s.stats.sessions>=10 },
+  { id:"s50",     em:"🏋️", nm:"50 sessions",   cond:s=>s.stats.sessions>=50 },
+  { id:"m25",     em:"🥉", nm:"25 maîtrisés",  cond:s=>masteredCountFromState(s)>=25 },
+  { id:"m50",     em:"🥈", nm:"50 maîtrisés",  cond:s=>masteredCountFromState(s)>=50 },
+  { id:"m100",    em:"🥇", nm:"100 maîtrisés", cond:s=>masteredCountFromState(s)>=100 },
+  { id:"all",     em:"👑", nm:"Les 215 !",     cond:s=>masteredCountFromState(s)>=215 },
+  { id:"streak7", em:"📅", nm:"Semaine 🔥",    cond:s=>s.stats.streak>=7 },
+  { id:"streak30",em:"🗓️", nm:"30 jours",      cond:s=>s.stats.streak>=30 },
+  { id:"lvl5",    em:"⭐", nm:"Niveau 5",      cond:s=>xpLevel(s.stats.xp)>=5 },
+  { id:"lvl10",   em:"🌟", nm:"Niveau 10",     cond:s=>xpLevel(s.stats.xp)>=10 },
+  { id:"xp1000",  em:"💎", nm:"1000 XP",       cond:s=>s.stats.xp>=1000 },
+  { id:"xp5000",  em:"💠", nm:"5000 XP",       cond:s=>s.stats.xp>=5000 },
+  { id:"perfect", em:"✨", nm:"Sans faute",     cond:s=>s.stats.perfectSessions>=1 }
+];
+
+function masteredCountFromState(st){
+  let n=0;
+  Object.values(st.cards || {}).forEach(c=>{ if(c.lvl>=5) n++; });
+  return n;
+}
+function masteredCount(){ return masteredCountFromState(S); }
+
+function defaultState(){
+  return {
+    v:3,
+    cards:{},
+    stats:{
+      xp:0, streak:0, lastDay:null, sessions:0, combo:0, bestCombo:0,
+      days:{}, totalCorrect:0, totalWrong:0,
+      todayCount:0, todayDate:null, perfectSessions:0
+    },
+    settings:{ theme:"light", size:10, sound:true, haptic:true },
+    unlocked:[],
+    ui:{ seenIntro:false }
+  };
+}
+function load(){
+  try{
+    // Try v3 then fall back to v2 then v1
+    let raw = localStorage.getItem(KEY);
+    if(!raw) raw = localStorage.getItem("fr215_v2");
+    if(!raw) raw = localStorage.getItem("fr215_v1");
+    if(!raw) return defaultState();
+    const p = JSON.parse(raw);
+    const d = defaultState();
+    return {
+      v:3,
+      cards: p.cards || {},
+      stats: Object.assign(d.stats, p.stats || {}),
+      settings: Object.assign(d.settings, p.settings || {}),
+      unlocked: p.unlocked || [],
+      ui: Object.assign(d.ui, p.ui || {})
+    };
+  }catch(e){ return defaultState(); }
+}
+let S = load();
+let saveTimer;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{
+    try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+  }, 120);
+}
+function saveNow(){
+  clearTimeout(saveTimer);
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+}
+function todayStr(d){
+  d = d || new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+
+/* ============================================================
+   AUDIO + HAPTIC
+   ============================================================ */
+let audioCtx = null;
+function initAudio(){
+  if(audioCtx) return;
+  try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){}
+}
+function beep(freq, dur, type, vol){
+  if(!S.settings.sound || !audioCtx) return;
+  try{
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type || "sine";
+    o.frequency.value = freq;
+    o.connect(g); g.connect(audioCtx.destination);
+    const t = audioCtx.currentTime;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol || 0.08, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, t + (dur || 0.15));
+    o.start(t); o.stop(t + (dur || 0.15));
+  }catch(e){}
+}
+function sfxCorrect(){ beep(660,0.08,"sine",0.06); setTimeout(()=>beep(880,0.12,"sine",0.06),70); }
+function sfxWrong(){ beep(220,0.15,"sawtooth",0.05); }
+function sfxCombo(n){ const base = 500 + Math.min(n,10)*40; beep(base,0.1,"triangle",0.07); }
+function sfxTap(){ beep(500,0.03,"sine",0.03); }
+function sfxLevel(){ [523,659,784,1047].forEach((f,i)=> setTimeout(()=>beep(f,0.15,"triangle",0.08), i*100)); }
+function haptic(ms){
+  if(!S.settings.haptic) return;
+  try{
+    if(navigator.vibrate) navigator.vibrate(ms || 10);
+  }catch(e){}
+}
+
+/* ============================================================
+   UTILS
+   ============================================================ */
+const $ = (s,r)=> (r||document).querySelector(s);
+const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
+function esc(s){
+  return String(s).replace(/[&<>"']/g,c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+function norm(s){
+  return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9\s]/g," ").replace(/\s+/g," ").trim();
+}
+function shuffle(a){
+  const r = a.slice();
+  for(let i=r.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [r[i],r[j]]=[r[j],r[i]]; }
+  return r;
+}
+function acceptedAnswers(en){
+  const parts = en.split(/[–—\-\/\(\)]/).map(norm).filter(Boolean);
+  const out = new Set();
+  parts.forEach(p=>{
+    out.add(p);
+    out.add(p.replace(/^to\s+/,""));
+    if(p.startsWith("to ")) out.add(p.slice(3));
+  });
+  return Array.from(out);
+}
+function speak(text){
+  if(!S.settings.sound) return;
+  if(!("speechSynthesis" in window)) return;
+  try{
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "fr-FR"; u.rate = 0.9;
+    const v = window.speechSynthesis.getVoices().find(x=>/^fr/i.test(x.lang));
+    if(v) u.voice = v;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function toast(msg, big){
+  let t = $("#_toast");
+  if(!t){ t = document.createElement("div"); t.id = "_toast"; document.body.appendChild(t); }
+  t.className = "toast" + (big ? " big" : "");
+  t.textContent = msg;
+  requestAnimationFrame(()=> t.classList.add("show"));
+  clearTimeout(t._t);
+  t._t = setTimeout(()=> t.classList.remove("show"), big ? 2400 : 1900);
+}
+function confetti(n, x){
+  n = n || 44;
+  const layer = document.createElement("div");
+  layer.className = "confetti-layer";
+  const colors = ["#4d6bfe","#16a34a","#f59e0b","#e11d48","#8b5cf6","#0ea5e9","#fbbf24"];
+  for(let i=0;i<n;i++){
+    const p = document.createElement("i");
+    p.style.left = (x != null ? x : Math.random()*100)+"%";
+    p.style.background = colors[i%colors.length];
+    p.style.width = (5+Math.random()*7)+"px";
+    p.style.height = (7+Math.random()*9)+"px";
+    p.style.animationDelay = (Math.random()*0.35)+"s";
+    p.style.animationDuration = (1.5+Math.random()*1.3)+"s";
+    layer.appendChild(p);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=> layer.remove(), 3600);
+}
+function xpFloat(n, x, y){
+  const el = document.createElement("div");
+  el.className = "xp-float";
+  el.textContent = "+"+n;
+  el.style.left = x+"px";
+  el.style.top = y+"px";
+  document.body.appendChild(el);
+  setTimeout(()=> el.remove(), 1200);
+}
+function getCard(id){
+  if(!S.cards[id]) S.cards[id] = { lvl:0, due:0, ok:0, ko:0, seen:0 };
+  return S.cards[id];
+}
+function bumpDaily(){
+  const t = todayStr();
+  if(S.stats.todayDate !== t){
+    S.stats.todayDate = t;
+    S.stats.todayCount = 0;
+  }
+}
+
+/* ============================================================
+   ACHIEVEMENTS
+   ============================================================ */
+function checkAchievements(){
+  const newly = [];
+  ACHIEVEMENTS.forEach(a=>{
+    if(!S.unlocked.includes(a.id)){
+      try{
+        if(a.cond(S)){
+          S.unlocked.push(a.id);
+          newly.push(a);
+        }
+      }catch(e){}
+    }
+  });
+  if(newly.length){
+    saveNow();
+    newly.forEach((a,i)=>{
+      setTimeout(()=>{
+        confetti(60);
+        toast(a.em + "  " + a.nm + " débloqué !", true);
+        sfxLevel();
+      }, i*700);
+    });
+  }
+}
+
+/* ============================================================
+   LEVEL / XP
+   ============================================================ */
+function xpLevel(xp){ return Math.floor(xp/200)+1; }
+function xpProgress(xp){ return (xp % 200) / 200; }
+
+function awardXP(n, x, y){
+  const before = xpLevel(S.stats.xp);
+  S.stats.xp += n;
+  const after = xpLevel(S.stats.xp);
+  if(x != null && y != null) xpFloat(n, x, y);
+  if(after > before) setTimeout(()=> showLevelUp(after), 400);
+  save();
+  updateHeader();
+}
+function showLevelUp(lvl){
+  const el = document.createElement("div");
+  el.className = "level-flash";
+  el.innerHTML = '<div class="inner"><span class="em">🎉</span><h2>Niveau ' + lvl + ' !</h2><p>Continue comme ça</p></div>';
+  document.body.appendChild(el);
+  requestAnimationFrame(()=> el.classList.add("on"));
+  confetti(120);
+  sfxLevel();
+  haptic([20,50,20,50,100]);
+  setTimeout(()=>{
+    el.classList.remove("on");
+    setTimeout(()=> el.remove(), 400);
+  }, 2200);
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+function updateHeader(){
+  const xpChip = $("#xpChip"), fireChip = $("#fireChip");
+  if(xpChip) xpChip.textContent = "⚡ " + S.stats.xp;
+  if(fireChip) fireChip.textContent = "🔥 " + S.stats.streak;
+}
+
+/* ============================================================
+   COUNTS
+   ============================================================ */
+function dueCount(){
+  const now = Date.now();
+  return VERBS.filter(v=>{
+    const c = S.cards[v.id];
+    return c && c.seen > 0 && c.due <= now;
+  }).length;
+}
+function newCount(){
+  return VERBS.filter(v=>!S.cards[v.id] || S.cards[v.id].seen === 0).length;
+}
+function accuracy(){
+  let ok=0, tot=0;
+  Object.values(S.cards).forEach(c=>{ ok += c.ok; tot += c.ok + c.ko; });
+  return tot ? Math.round(ok/tot*100) : 0;
+}
+function counts(){
+  const c = [0,0,0,0,0,0,0];
+  VERBS.forEach(v=>{
+    const card = S.cards[v.id];
+    const lvl = card ? Math.min(card.lvl, 6) : 0;
+    c[lvl]++;
+  });
+  return c;
+}
+
+/* ============================================================
+   SESSION
+   ============================================================ */
+let sess = null;
+
+function pickVerbs(size){
+  const now = Date.now();
+  const due = [], fresh = [];
+  VERBS.forEach(v=>{
+    const c = S.cards[v.id];
+    if(!c || c.seen === 0) fresh.push({ v, due:0, lvl:0 });
+    else if(c.due <= now) due.push({ v, due:c.due, lvl:c.lvl });
+  });
+  due.sort((a,b)=> (a.lvl - b.lvl) || (a.due - b.due));
+  const pool = [...due, ...shuffle(fresh)];
+  return pool.slice(0, size).map(x=>x.v);
+}
+
+function startSession(size, mode){
+  const picked = pickVerbs(size);
+  if(!picked.length){ toast("Tout est à jour ! 🎉"); return; }
+  sess = {
+    mode,
+    queue: picked.map(v=>v.id),
+    total: picked.length,
+    done: 0,
+    xp: 0,
+    ok: 0,
+    ko: 0,
+    combo: 0,
+    bestCombo: 0,
+    current: null,
+    revealed: false,
+    answered: false,
+    picked: null,
+    options: null,
+    startTime: Date.now()
+  };
+  bumpDaily();
+  nextCard();
+  view = "session";
+  render();
+}
+
+function nextCard(){
+  if(!sess) return;
+  if(!sess.queue.length){ endSession(); return; }
+  const id = sess.queue.shift();
+  sess.current = VERBS.find(v=>v.id === id);
+  sess.revealed = false;
+  sess.answered = false;
+  sess.picked = null;
+  if(sess.mode === "mcq"){
+    const others = shuffle(VERBS.filter(v=>v.id !== id)).slice(0,3);
+    sess.options = shuffle([sess.current, ...others]);
+  } else {
+    sess.options = null;
+  }
+}
+
+function comboMult(c){
+  if(c >= 20) return 3;
+  if(c >= 10) return 2;
+  if(c >= 5) return 1.5;
+  return 1;
+}
+
+function trackCombo(){
+  if(sess.combo > sess.bestCombo) sess.bestCombo = sess.combo;
+  if(sess.combo > S.stats.bestCombo) S.stats.bestCombo = sess.combo;
+}
+
+function gradeFlash(quality){
+  if(!sess || !sess.current) return;
+  const v = sess.current;
+  const c = getCard(v.id);
+  const before = c.lvl;
+  const rect = $(".flashcard");
+  const x = rect ? rect.getBoundingClientRect().left + rect.getBoundingClientRect().width/2 : window.innerWidth/2;
+  const y = rect ? rect.getBoundingClientRect().top + 40 : 200;
+
+  if(quality === 0){
+    c.lvl = Math.max(0, c.lvl - 2); c.ko++; sess.ko++; sess.combo = 0;
+    sfxWrong(); haptic(40);
+  } else if(quality === 1){
+    c.lvl = Math.max(1, c.lvl); c.ko++; sess.ko++; sess.combo = 0;
+    sfxWrong(); haptic(20);
+  } else if(quality === 2){
+    c.lvl = Math.min(6, c.lvl + 1); c.ok++; sess.ok++; sess.combo++;
+    sfxCorrect(); haptic(15);
+  } else {
+    c.lvl = Math.min(6, c.lvl + 2); c.ok++; sess.ok++; sess.combo++;
+    sfxCorrect(); haptic([10,30,10]);
+  }
+  c.due = Date.now() + INTERVALS[Math.min(c.lvl, INTERVALS.length-1)];
+  c.seen++;
+  if(quality >= 2) S.stats.totalCorrect++; else S.stats.totalWrong++;
+  trackCombo();
+
+  const mult = comboMult(sess.combo);
+  const base = quality === 0 ? 2 : quality === 1 ? 5 : quality === 2 ? 10 : 13;
+  const gain = Math.round(base * mult);
+  awardXP(gain, x, y);
+  if(sess.combo >= 3) sfxCombo(sess.combo);
+  if(sess.combo > 0 && sess.combo % 5 === 0) confetti(30);
+
+  sess.done++;
+  S.stats.todayCount++;
+  if(quality <= 1 && sess.total <= 12){
+    sess.queue.push(v.id);
+    sess.total++;
+  }
+  if(quality === 3 && before < 6 && c.lvl >= 6){
+    confetti(40);
+    toast("👑 " + v.fr + " maîtrisé !");
+  }
+  save();
+  nextCard();
+  render();
+  checkAchievements();
+}
+
+function answerMCQ(v){
+  if(!sess || sess.answered) return;
+  sess.answered = true;
+  const correct = v.id === sess.current.id;
+  sess.picked = v.id;
+  const c = getCard(sess.current.id);
+  c.seen++;
+  const rect = $(".opts");
+  const x = rect ? rect.getBoundingClientRect().left + 60 : window.innerWidth/2;
+  const y = rect ? rect.getBoundingClientRect().top : 300;
+
+  if(correct){
+    c.lvl = Math.min(6, c.lvl + 1); c.ok++; sess.ok++; sess.combo++;
+    c.due = Date.now() + INTERVALS[Math.min(c.lvl, INTERVALS.length-1)];
+    S.stats.totalCorrect++;
+    trackCombo();
+    awardXP(Math.round(12 * comboMult(sess.combo)), x, y);
+    sfxCorrect(); haptic(15);
+  } else {
+    c.lvl = Math.max(0, c.lvl - 1); c.ko++; sess.ko++; sess.combo = 0;
+    c.due = Date.now() + INTERVALS[Math.max(0,c.lvl-1)];
+    S.stats.totalWrong++;
+    awardXP(2, x, y);
+    sfxWrong(); haptic(50);
+  }
+  sess.done++;
+  S.stats.todayCount++;
+  save();
+  render();
+  checkAchievements();
+}
+
+function answerType(){
+  if(!sess || sess.answered) return;
+  const input = $("#typeInput");
+  if(!input) return;
+  const val = input.value.trim();
+  if(!val) return;
+  sess.answered = true;
+  const acc = acceptedAnswers(sess.current.en);
+  const good = acc.includes(norm(val));
+  const c = getCard(sess.current.id);
+  c.seen++;
+  const rect = input.getBoundingClientRect();
+  const x = rect.left + rect.width/2;
+  const y = rect.top;
+
+  if(good){
+    c.lvl = Math.min(6, c.lvl + 1); c.ok++; sess.ok++; sess.combo++;
+    c.due = Date.now() + INTERVALS[Math.min(c.lvl, INTERVALS.length-1)];
+    S.stats.totalCorrect++;
+    trackCombo();
+    awardXP(Math.round(15 * comboMult(sess.combo)), x, y);
+    sfxCorrect(); haptic(15);
+  } else {
+    c.lvl = Math.max(0, c.lvl - 1); c.ko++; sess.ko++; sess.combo = 0;
+    c.due = Date.now() + INTERVALS[Math.max(0,c.lvl-1)];
+    S.stats.totalWrong++;
+    awardXP(3, x, y);
+    sfxWrong(); haptic(50);
+  }
+  sess.done++;
+  S.stats.todayCount++;
+  save();
+  render();
+  checkAchievements();
+}
+
+function endSession(){
+  if(!sess) return;
+  const t = todayStr();
+  if(S.stats.lastDay !== t){
+    const y = todayStr(new Date(Date.now() - DAY));
+    S.stats.streak = (S.stats.lastDay === y) ? (S.stats.streak + 1) : 1;
+    S.stats.lastDay = t;
+  }
+  S.stats.sessions++;
+  S.stats.days[t] = (S.stats.days[t] || 0) + sess.total;
+
+  const acc = (sess.ok + sess.ko) ? Math.round(sess.ok/(sess.ok+sess.ko)*100) : 0;
+  if(acc === 100 && sess.total >= 5) S.stats.perfectSessions++;
+
+  saveNow();
+  checkAchievements();
+
+  const mins = Math.max(1, Math.round((Date.now() - sess.startTime)/60000));
+  const sessionBestCombo = sess.bestCombo;
+  const sessionXP = sess.xp;
+  const sessionMode = sess.mode;
+  const sessionTotal = sess.total;
+
+  if(acc >= 70) confetti(80);
+
+  app.innerHTML = `
+  <div class="view">
+    <div class="card center" style="padding:32px 20px">
+      <div style="font-size:60px;margin-bottom:8px;animation:pop 1s">${acc>=90?"🏆":acc>=70?"🎉":"💪"}</div>
+      <h1 style="margin-bottom:6px">Session terminée !</h1>
+      <p class="sub">${sessionTotal} carte${sessionTotal>1?"s":""} en ${mins} min</p>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:22px 0">
+        <div class="bigstat"><div class="n" style="color:var(--accent)">+${sessionXP}</div><div class="l">XP</div></div>
+        <div class="bigstat"><div class="n" style="color:var(--good)">${acc}%</div><div class="l">Justesse</div></div>
+        <div class="bigstat"><div class="n" style="color:#f97316">${S.stats.streak}🔥</div><div class="l">Jours</div></div>
+        <div class="bigstat"><div class="n" style="color:var(--purple)">${sessionBestCombo}x</div><div class="l">Meilleur combo</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn" id="againBtn">↻ Rejouer</button>
+        <button class="btn ghost" id="homeBtn">🏠 Accueil</button>
+      </div>
+    </div>
+  </div>`;
+
+  const againBtn = $("#againBtn");
+  if(againBtn) againBtn.addEventListener("click", ()=>{
+    const size = Math.min(sessionTotal, 20);
+    startSession(size, sessionMode);
+  });
+  const homeBtn = $("#homeBtn");
+  if(homeBtn) homeBtn.addEventListener("click", ()=>{ sess = null; view = "home"; render(); });
+
+  updateHeader();
+  syncNav();
+}
+
+/* ============================================================
+   VIEWS
+   ============================================================ */
+let view = "home";
+
+function render(){
+  if(view === "home") renderHome();
+  else if(view === "session") renderSession();
+  else if(view === "browse") renderBrowse();
+  else if(view === "stats") renderStats();
+  else if(view === "quests") renderQuests();
+  syncNav();
+  updateHeader();
+}
+function syncNav(){
+  $$(".nbtn").forEach(b=> b.classList.toggle("on", b.dataset.nav === view));
+}
+
+/* -------- HOME -------- */
+function renderHome(){
+  const c = counts();
+  const total = VERBS.length;
+  const mastered = masteredCount();
+  const pct = Math.round(mastered/total*100);
+  const due = dueCount();
+  const fresh = newCount();
+  const lvl = xpLevel(S.stats.xp);
+  const R = 44, CIRC = 2*Math.PI*R;
+  const dash = CIRC * (1 - pct/100);
+  const hour = new Date().getHours();
+  const greet = hour < 6 ? "Bonne nuit" : hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
+
+  app.innerHTML = `
+  <div class="view">
+    <div class="hero">
+      <div class="ring">
+        <svg width="100" height="100">
+          <circle cx="50" cy="50" r="${R}" fill="none" stroke="var(--line)" stroke-width="9"/>
+          <circle cx="50" cy="50" r="${R}" fill="none" stroke="url(#rg)" stroke-width="9"
+            stroke-linecap="round" stroke-dasharray="${CIRC}" stroke-dashoffset="${dash}"
+            style="transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1)"/>
+          <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#4d6bfe"/>
+            <stop offset="100%" stop-color="#8b5cf6"/>
+          </linearGradient></defs>
+        </svg>
+        <div class="val">${pct}%<small>maîtrisé</small></div>
+      </div>
+      <div class="hero-txt">
+        <h1>${greet} 👋</h1>
+        <p class="sub">Niveau <b>${lvl}</b> · ${mastered} / ${total} maîtrisés</p>
+        <div class="statrow">
+          <span class="stat w">📅 ${due} à revoir</span>
+          <span class="stat">✨ ${fresh} nouveaux</span>
+          <span class="stat g">🎯 ${accuracy()}%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:14px">
+      <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:800;margin-bottom:8px">
+        <span>Niveau ${lvl}</span>
+        <span style="flex:1"></span>
+        <span class="muted">${S.stats.xp % 200} / 200 XP</span>
+      </div>
+      <div class="mbar"><i style="width:${Math.round(xpProgress(S.stats.xp)*100)}%;background:linear-gradient(90deg,var(--accent),var(--purple))"></i></div>
+    </div>
+
+    <h2 style="margin:16px 0 10px">⚔️ Commence à jouer</h2>
+    <button class="btn" data-start="5|flash" style="margin-bottom:10px">
+      <span style="font-size:18px">⚡</span> Sprint éclair · 5 cartes
+    </button>
+    <div class="grid2" style="margin-bottom:16px">
+      <button class="modecard" data-start="10|flash">
+        <span class="em">🃏</span>
+        <span><span class="t">Flashcards</span><span class="d">10 cartes</span></span>
+      </button>
+      <button class="modecard" data-start="10|mcq">
+        <span class="em">🎯</span>
+        <span><span class="t">Quiz QCM</span><span class="d">10 questions</span></span>
+      </button>
+      <button class="modecard" data-start="10|type">
+        <span class="em">⌨️</span>
+        <span><span class="t">Écrire</span><span class="d">10 réponses</span></span>
+      </button>
+      <button class="modecard" data-start="20|flash">
+        <span class="em">🔥</span>
+        <span><span class="t">Marathon</span><span class="d">20 cartes</span></span>
+      </button>
+    </div>
+
+    <div class="card">
+      <h2>📈 Ta progression</h2>
+      <div class="mastery">
+        ${LEVELS.map((L,i)=>`
+          <div class="mrow">
+            <span class="lbl">${L.n}</span>
+            <span class="mbar"><i style="width:${Math.round(c[i]/total*100)}%;background:${L.c}"></i></span>
+            <span class="n">${c[i]}</span>
+          </div>`).join("")}
+      </div>
+    </div>
+    <div style="height:6px"></div>
+  </div>`;
+
+  $$("[data-start]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      initAudio();
+      haptic(8);
+      const [n, m] = b.dataset.start.split("|");
+      startSession(parseInt(n,10), m);
+    });
+  });
+}
+
+/* -------- SESSION -------- */
+function renderSession(){
+  if(!sess){ view = "home"; render(); return; }
+  if(!sess.current){ endSession(); return; }
+  const v = sess.current;
+  const prog = sess.total ? Math.round(sess.done/sess.total*100) : 0;
+  const mult = comboMult(sess.combo);
+
+  let html = '<div class="view">';
+  html += `
+  <div class="sess-top">
+    <button class="iconbtn" id="quitBtn">✕</button>
+    <div class="pbar"><i style="width:${prog}%"></i></div>
+    <span style="font-size:12px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;min-width:44px;text-align:right">
+      ${sess.done}/${sess.total}
+    </span>
+  </div>`;
+
+  if(sess.combo >= 2){
+    html += `
+    <div style="text-align:center;margin-bottom:10px">
+      <span class="combo-badge">
+        <span>🔥</span> Combo ${sess.combo}${mult>1?' · ×'+mult:''}
+      </span>
+    </div>`;
+  }
+
+  if(sess.mode === "flash"){
+    html += `
+    <div class="flashcard ${sess.revealed?"flipped":""}" id="fc">
+      <div class="fc-inner">
+        <div class="fc-face fc-front">
+          <button class="confbtn" data-conj title="Conjugaison">📖</button>
+          <button class="speaker" data-speak="${esc(v.fr)}">🔊</button>
+          <div class="fc-label">Français</div>
+          <div class="fc-word">${esc(v.fr)}</div>
+          <div class="fc-example">${esc(v.ex)}</div>
+          <div class="fc-hint">Appuie pour révéler</div>
+        </div>
+        <div class="fc-face fc-back">
+          <button class="confbtn" data-conj title="Conjugaison">📖</button>
+          <div class="fc-label">English</div>
+          <div class="fc-word">${esc(v.en)}</div>
+          <div class="fc-example">${esc(v.exEn)}</div>
+        </div>
+      </div>
+    </div>`;
+    if(sess.revealed){
+      html += `
+      <div class="rating">
+        <button class="rate r0" data-rate="0"><span class="ic">🔁</span>Encore</button>
+        <button class="rate r1" data-rate="1"><span class="ic">😰</span>Dur</button>
+        <button class="rate r2" data-rate="2"><span class="ic">👍</span>Bien</button>
+        <button class="rate r3" data-rate="3"><span class="ic">⚡</span>Facile</button>
+      </div>`;
+    } else {
+      html += `<button class="btn" id="revealBtn">Révéler la réponse</button>`;
+    }
+  }
+  else if(sess.mode === "mcq"){
+    html += `
+    <div class="flashcard" style="height:200px;cursor:default">
+      <div class="fc-inner" style="transform:none">
+        <div class="fc-face" style="transform:none">
+          <button class="confbtn" data-conj title="Conjugaison">📖</button>
+          <button class="speaker" data-speak="${esc(v.fr)}">🔊</button>
+          <div class="fc-label">Que signifie…</div>
+          <div class="fc-word" style="font-size:30px">${esc(v.fr)}</div>
+        </div>
+      </div>
+    </div>
+    <div class="opts">
+      ${sess.options.map((o,i)=>{
+        let cls = "opt";
+        if(sess.answered){
+          if(o.id === v.id) cls += " correct";
+          else if(o.id === sess.picked) cls += " wrong";
+        }
+        return `<button class="${cls}" data-opt="${o.id}" ${sess.answered?"disabled":""}>
+          <span class="key">${i+1}</span><span>${esc(o.en)}</span>
+        </button>`;
+      }).join("")}
+    </div>`;
+    if(sess.answered){
+      const good = sess.picked === v.id;
+      html += `
+      <div class="feedback ${good?"ok":"ko"}">
+        <span style="font-size:18px">${good?"✅":"❌"}</span>
+        <span>${good ? "Bravo !" : "→ <b>" + esc(v.en) + "</b>"}</span>
+      </div>
+      <button class="btn" id="nextBtn">Suivant →</button>`;
+    }
+  }
+  else if(sess.mode === "type"){
+    html += `
+    <div class="flashcard" style="height:200px;cursor:default">
+      <div class="fc-inner" style="transform:none">
+        <div class="fc-face" style="transform:none">
+          <button class="confbtn" data-conj title="Conjugaison">📖</button>
+          <button class="speaker" data-speak="${esc(v.fr)}">🔊</button>
+          <div class="fc-label">Traduis</div>
+          <div class="fc-word" style="font-size:30px">${esc(v.fr)}</div>
+        </div>
+      </div>
+    </div>`;
+    if(!sess.answered){
+      html += `
+      <div class="typebox">
+        <input id="typeInput" type="text" placeholder="Tape en anglais…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <button class="btn sm" style="width:auto;padding:0 20px" id="checkBtn">OK</button>
+      </div>`;
+    } else {
+      const acc = acceptedAnswers(v.en);
+      const input = $("#typeInput");
+      const typed = input ? input.value : "";
+      const good = acc.includes(norm(typed));
+      html += `
+      <div class="feedback ${good?"ok":"ko"}">
+        <span style="font-size:18px">${good?"✅":"❌"}</span>
+        <span>${good ? "Exact !" : "→ <b>" + esc(v.en) + "</b>"}</span>
+      </div>
+      <button class="btn" id="nextBtn">Suivant →</button>`;
+    }
+  }
+  html += `<div style="height:10px"></div></div>`;
+  app.innerHTML = html;
+  bindSessionEvents();
+}
+
+function bindSessionEvents(){
+  if(!sess) return;
+  const v = sess.current;
+
+  const quit = $("#quitBtn");
+  if(quit) quit.addEventListener("click", ()=>{
+    if(confirm("Quitter la session ? Progression sauvegardée.")){
+      sess = null; view = "home"; render();
+    }
+  });
+
+  $$("[data-speak]").forEach(b=>{
+    b.addEventListener("click", e=>{
+      e.stopPropagation();
+      speak(b.dataset.speak);
+      haptic(5);
+    });
+  });
+
+  const fc = $("#fc");
+  if(fc && sess.mode === "flash" && !sess.revealed){
+    fc.addEventListener("click", ()=>{
+      sess.revealed = true;
+      speak(v.fr);
+      haptic(8);
+      render();
+    });
+  }
+
+  const rb = $("#revealBtn");
+  if(rb) rb.addEventListener("click", ()=>{
+    sess.revealed = true;
+    speak(v.fr);
+    haptic(8);
+    render();
+  });
+
+  $$("[data-rate]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      initAudio();
+      gradeFlash(parseInt(b.dataset.rate,10));
+    });
+  });
+
+  $$("[data-opt]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      initAudio();
+      const id = parseInt(b.dataset.opt,10);
+      const target = VERBS.find(x=>x.id === id);
+      if(target) answerMCQ(target);
+    });
+  });
+
+  const cb = $("#checkBtn");
+  if(cb) cb.addEventListener("click", ()=>{ initAudio(); answerType(); });
+
+  const ti = $("#typeInput");
+  if(ti && !sess.answered){
+    ti.focus();
+    ti.addEventListener("keydown", e=>{
+      if(e.key === "Enter"){ initAudio(); answerType(); }
+    });
+  }
+
+  const nb = $("#nextBtn");
+  if(nb) nb.addEventListener("click", ()=>{ nextCard(); render(); });
+
+  $$("[data-conj]").forEach(b=>{
+    b.addEventListener("click", e=>{
+      e.stopPropagation();
+      openConjugation(v);
+    });
+  });
+}
+
+/* -------- BROWSE -------- */
+let browseFilter = "all";
+let browseQuery = "";
+
+function renderBrowse(){
+  app.innerHTML = `
+  <div class="view">
+    <div class="searchbar">
+      <span style="color:var(--muted)">🔍</span>
+      <input id="searchInput" type="text" placeholder="Chercher un verbe…"
+        value="${esc(browseQuery)}" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="filters">
+      ${["all","new","weak","strong","mastered"].map(f=>{
+        const labels = {all:"Tous",new:"Nouveaux",weak:"À revoir",strong:"Solides",mastered:"Maîtrisés"};
+        return `<button class="fbtn ${browseFilter===f?"on":""}" data-f="${f}">${labels[f]}</button>`;
+      }).join("")}
+    </div>
+    <div class="vlist" id="vlist"></div>
+    <div style="height:10px"></div>
+  </div>`;
+
+  $("#searchInput").addEventListener("input", e=>{
+    browseQuery = e.target.value;
+    paintList();
+  });
+  $$("[data-f]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      browseFilter = b.dataset.f;
+      $$("[data-f]").forEach(x=> x.classList.toggle("on", x === b));
+      paintList();
+    });
+  });
+  paintList();
+}
+
+function paintList(){
+  const q = norm(browseQuery);
+  const list = VERBS.filter(v=>{
+    const c = S.cards[v.id];
+    const lvl = c ? c.lvl : 0;
+    const seen = c ? c.seen : 0;
+    if(browseFilter === "new" && seen > 0) return false;
+    if(browseFilter === "weak" && !(seen > 0 && lvl <= 2)) return false;
+    if(browseFilter === "strong" && !(lvl >= 3 && lvl <= 4)) return false;
+    if(browseFilter === "mastered" && lvl < 5) return false;
+    if(q){
+      const hay = norm(v.fr + " " + v.en);
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const el = $("#vlist");
+  if(!el) return;
+  if(!list.length){
+    el.innerHTML = '<div class="empty"><span class="em">🔍</span>Aucun verbe trouvé</div>';
+    return;
+  }
+  el.innerHTML = list.map(v=>{
+    const c = S.cards[v.id];
+    const lvl = c ? Math.min(c.lvl,6) : 0;
+    const L = LEVELS[lvl];
+    return `
+    <div class="vitem" data-id="${v.id}">
+      <span class="num">${v.id}</span>
+      <span class="body">
+        <span class="fr">${esc(v.fr)}</span>
+        <span class="en">${esc(v.en)}</span>
+      </span>
+      <span class="lvldot" style="background:${L.c}"></span>
+    </div>`;
+  }).join("");
+
+  $$("[data-id]", el).forEach(item=>{
+    item.addEventListener("click", ()=>{
+      const v = VERBS.find(x=>x.id === parseInt(item.dataset.id,10));
+      if(v) openVerbDetail(v);
+    });
+  });
+}
+
+/* -------- STATS -------- */
+function renderStats(){
+  const c = counts();
+  const total = VERBS.length;
+  const acc = accuracy();
+  const days = [];
+  for(let i=13;i>=0;i--){
+    const d = new Date(Date.now() - i*DAY);
+    const k = todayStr(d);
+    days.push({ k, n: S.stats.days[k] || 0, label: ["D","L","M","M","J","V","S"][d.getDay()] });
+  }
+  const maxN = Math.max(1, ...days.map(d=>d.n));
+
+  app.innerHTML = `
+  <div class="view">
+    <h1 style="margin-bottom:14px">📊 Statistiques</h1>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px">
+      <div class="bigstat"><div class="n" style="color:var(--accent)">${S.stats.xp}</div><div class="l">XP total</div></div>
+      <div class="bigstat"><div class="n" style="color:#f97316">${S.stats.streak}</div><div class="l">Jours 🔥</div></div>
+      <div class="bigstat"><div class="n" style="color:var(--good)">${acc}%</div><div class="l">Justesse</div></div>
+      <div class="bigstat"><div class="n" style="color:var(--purple)">${S.stats.sessions}</div><div class="l">Sessions</div></div>
+      <div class="bigstat"><div class="n" style="color:var(--pink)">${S.stats.bestCombo}x</div><div class="l">Meilleur combo</div></div>
+      <div class="bigstat"><div class="n" style="color:var(--warn)">${xpLevel(S.stats.xp)}</div><div class="l">Niveau</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Activité — 14 derniers jours</h2>
+      <div class="bars">
+        ${days.map(d=>`<div class="b ${d.n?"has":""}" style="height:${Math.max(4, Math.round(d.n/maxN*100))}%" title="${d.n} cartes le ${d.k}"></div>`).join("")}
+      </div>
+      <div style="display:flex;gap:4px;margin-top:6px">
+        ${days.map(d=>`<div style="flex:1;text-align:center;font-size:9px;color:var(--muted);font-weight:700">${d.label}</div>`).join("")}
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Répartition des 215 verbes</h2>
+      <div class="mastery">
+        ${LEVELS.map((L,i)=>`
+          <div class="mrow">
+            <span class="lbl">${L.n}</span>
+            <span class="mbar"><i style="width:${Math.round(c[i]/total*100)}%;background:${L.c}"></i></span>
+            <span class="n">${c[i]}</span>
+          </div>`).join("")}
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="stat g">✓ ${S.stats.totalCorrect}</span>
+        <span class="stat b">✗ ${S.stats.totalWrong}</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💾 Sauvegarde</h2>
+      <p class="sub" style="margin-bottom:12px">Exporte ton avancement dans un fichier pour le garder ou le transférer sur un autre appareil.</p>
+      <div class="grid2" style="margin-bottom:10px">
+        <button class="btn soft sm" id="exportBtn">📤 Exporter</button>
+        <button class="btn soft sm" id="importBtn">📥 Importer</button>
+      </div>
+      <div class="import-drop" id="importDrop">
+        … ou glisse ton fichier .json ici
+        <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>⚙️ Réglages</h2>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0">
+        <span style="font-weight:700;font-size:14px">Son</span>
+        <button class="fbtn ${S.settings.sound?"on":""}" id="toggleSound">${S.settings.sound?"Activé":"Désactivé"}</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0">
+        <span style="font-weight:700;font-size:14px">Vibrations</span>
+        <button class="fbtn ${S.settings.haptic?"on":""}" id="toggleHaptic">${S.settings.haptic?"Activé":"Désactivé"}</button>
+      </div>
+      <div class="divider"></div>
+      <p class="sub" style="margin-bottom:8px">Taille de session par défaut</p>
+      <div class="filters" style="margin-bottom:16px">
+        ${[5,10,20,50].map(n=>`<button class="fbtn ${S.settings.size===n?"on":""}" data-size="${n}">${n}</button>`).join("")}
+      </div>
+      <button class="btn bad sm" id="resetBtn">🗑 Réinitialiser</button>
+    </div>
+    <div style="height:10px"></div>
+  </div>`;
+
+  $$("[data-size]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      S.settings.size = parseInt(b.dataset.size,10);
+      saveNow();
+      renderStats();
+    });
+  });
+
+  const ts = $("#toggleSound");
+  if(ts) ts.addEventListener("click", ()=>{
+    S.settings.sound = !S.settings.sound;
+    saveNow();
+    initAudio();
+    if(S.settings.sound) sfxTap();
+    renderStats();
+  });
+
+  const th = $("#toggleHaptic");
+  if(th) th.addEventListener("click", ()=>{
+    S.settings.haptic = !S.settings.haptic;
+    saveNow();
+    if(S.settings.haptic) haptic(20);
+    renderStats();
+  });
+
+  const rb = $("#resetBtn");
+  if(rb) rb.addEventListener("click", ()=>{
+    if(confirm("Effacer toute ta progression ? Action définitive.")){
+      S = defaultState();
+      saveNow();
+      view = "home";
+      render();
+      toast("Réinitialisé");
+    }
+  });
+
+  // EXPORT
+  const exb = $("#exportBtn");
+  if(exb) exb.addEventListener("click", exportState);
+  // IMPORT
+  const imb = $("#importBtn");
+  if(imb) imb.addEventListener("click", ()=> $("#importFile").click());
+  const fileInput = $("#importFile");
+  if(fileInput) fileInput.addEventListener("change", e=>{
+    const file = e.target.files[0];
+    if(file) readImportFile(file);
+    e.target.value = "";
+  });
+  // DRAG & DROP
+  const drop = $("#importDrop");
+  if(drop){
+    drop.addEventListener("click", ()=> $("#importFile").click());
+    ["dragenter","dragover"].forEach(ev=>{
+      drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.add("over"); });
+    });
+    ["dragleave","drop"].forEach(ev=>{
+      drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.remove("over"); });
+    });
+    drop.addEventListener("drop", e=>{
+      const file = e.dataTransfer.files[0];
+      if(file) readImportFile(file);
+    });
+  }
+}
+
+/* ============================================================
+   EXPORT / IMPORT
+   ============================================================ */
+function exportState(){
+  try{
+    const payload = {
+      _meta:{
+        app:"fr215",
+        version: S.v || 3,
+        exportedAt: new Date().toISOString(),
+        verbCount: VERBS.length,
+        totalXP: S.stats.xp,
+        mastered: masteredCount()
+      },
+      cards: S.cards,
+      stats: S.stats,
+      settings: S.settings,
+      unlocked: S.unlocked,
+      ui: S.ui
+    };
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], { type:"application/json" });
+    const url = URL.createObjectURL(blob);
+    const d = new Date();
+    const stamp = d.getFullYear() + "-" +
+      String(d.getMonth()+1).padStart(2,"0") + "-" +
+      String(d.getDate()).padStart(2,"0");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "verbes-fr-215-" + stamp + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=> URL.revokeObjectURL(url), 800);
+    confetti(40);
+    toast("📤 Sauvegarde exportée !", true);
+  }catch(err){
+    console.error(err);
+    toast("❌ Export impossible");
+  }
+}
+
+function readImportFile(file){
+  if(file.size > 5 * 1024 * 1024){
+    toast("❌ Fichier trop volumineux");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!data || typeof data !== "object") throw new Error("JSON invalide");
+      if(!data.cards && !data.stats) throw new Error("Pas une sauvegarde FR215");
+
+      const meta = data._meta || {};
+      const cardCount = Object.keys(data.cards || {}).length;
+      const xp = (data.stats && data.stats.xp) || 0;
+      const mastered = masteredCountFromState(data);
+
+      const msg =
+        "Remplacer ta progression actuelle ?\n\n" +
+        "📦 Sauvegarde importée :\n" +
+        "• XP : " + xp + "\n" +
+        "• Verbes vus : " + cardCount + "\n" +
+        "• Maîtrisés : " + mastered +
+        (meta.exportedAt ? "\n• Exportée le : " + new Date(meta.exportedAt).toLocaleDateString() : "");
+
+      if(!confirm(msg)) return;
+
+      const d = defaultState();
+      S = {
+        v:3,
+        cards: data.cards || {},
+        stats: Object.assign(d.stats, data.stats || {}),
+        settings: Object.assign(d.settings, data.settings || {}),
+        unlocked: data.unlocked || [],
+        ui: Object.assign(d.ui, data.ui || {})
+      };
+      saveNow();
+      applyTheme();
+      view = "home";
+      render();
+      confetti(80);
+      toast("📥 Sauvegarde importée !", true);
+      sfxLevel();
+    }catch(err){
+      console.error(err);
+      toast("❌ Fichier invalide ou corrompu", true);
+    }
+  };
+  reader.onerror = ()=> toast("❌ Lecture impossible");
+  reader.readAsText(file);
+}
+
+/* -------- QUESTS -------- */
+function renderQuests(){
+  const unlockedCount = S.unlocked.length;
+  const totalAch = ACHIEVEMENTS.length;
+  const t = todayStr();
+  const todayCount = (S.stats.todayDate === t) ? S.stats.todayCount : 0;
+  const dailyGoal = 20;
+  const dailyPct = Math.min(100, Math.round(todayCount/dailyGoal*100));
+
+  app.innerHTML = `
+  <div class="view">
+    <h1 style="margin-bottom:6px">🎯 Défis & Trophées</h1>
+    <p class="sub" style="margin-bottom:16px">${unlockedCount} / ${totalAch} débloqués</p>
+
+    <div class="card" style="background:linear-gradient(135deg,var(--accent-soft),color-mix(in srgb,var(--purple) 15%,var(--accent-soft)));border-color:color-mix(in srgb,var(--accent) 30%, transparent)">
+      <h2>🌟 Défi du jour</h2>
+      <p class="sub" style="margin-bottom:12px">Réviser ${dailyGoal} cartes aujourd'hui</p>
+      <div class="mbar" style="height:12px"><i style="width:${dailyPct}%;background:linear-gradient(90deg,var(--accent),var(--purple))"></i></div>
+      <p style="margin:10px 0 0;font-weight:800;font-size:14px;text-align:center">${todayCount} / ${dailyGoal}</p>
+    </div>
+
+    <h2 style="margin:18px 0 12px">🏆 Trophées</h2>
+    <div class="ach-grid">
+      ${ACHIEVEMENTS.map(a=>{
+        const un = S.unlocked.includes(a.id);
+        return `
+        <div class="ach ${un?"unlocked":""}" title="${esc(a.nm)}">
+          <span class="em">${a.em}</span>
+          <span class="nm">${esc(a.nm)}</span>
+        </div>`;
+      }).join("")}
+    </div>
+    <div style="height:10px"></div>
+  </div>`;
+}
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+const modalBack = $("#modalBack");
+const modal = $("#modal");
+
+function openModal(html){
+  modal.innerHTML = '<div class="modal-handle"></div>' + html;
+  modalBack.classList.add("on");
+  document.body.style.overflow = "hidden";
+}
+function closeModal(){
+  modalBack.classList.remove("on");
+  document.body.style.overflow = "";
+  setTimeout(()=>{ modal.innerHTML = ""; }, 350);
+}
+modalBack.addEventListener("click", e=>{
+  if(e.target === modalBack) closeModal();
+});
+
+function openVerbDetail(v){
+  const lvl = getCard(v.id).lvl;
+  const L = LEVELS[Math.min(lvl,6)];
+  openModal(`
+    <button class="iconbtn modal-close" id="mClose">✕</button>
+    <h2>${esc(v.fr)}</h2>
+    <p class="en">${esc(v.en)}</p>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <span class="pill" style="background:${L.c}22;color:${L.c};padding:3px 9px;border-radius:999px;font-size:11px;font-weight:800">${L.n}</span>
+      <span class="pill" style="background:var(--bg);color:var(--muted);padding:3px 9px;border-radius:999px;font-size:11px;font-weight:800">#${v.id}</span>
+    </div>
+    <div class="divider"></div>
+    <p style="font-size:15px;line-height:1.5;margin:0 0 4px">${esc(v.ex)}</p>
+    <p class="sub" style="font-style:italic;margin-bottom:16px">${esc(v.exEn)}</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="btn soft sm" id="mSpeak">🔊 Écouter</button>
+      <button class="btn sm" id="mConj">📖 Conjugaison</button>
+    </div>
+  `);
+  const mc = $("#mClose"); if(mc) mc.addEventListener("click", closeModal);
+  const ms = $("#mSpeak"); if(ms) ms.addEventListener("click", ()=> speak(v.fr));
+  const mj = $("#mConj"); if(mj) mj.addEventListener("click", ()=>{
+    closeModal();
+    setTimeout(()=> openConjugation(v), 300);
+  });
+}
+
+let conjTab = "present";
+
+function openConjugation(v){
+  const pres = conjPresent(v.fr);
+  const pc = conjPasseCompose(v.fr);
+  const fut = conjFuture(v.fr);
+  const pp = pastParticiple(v.fr);
+  const isEtre = ETRE_VERBS.has(v.fr) || isReflexive(v.fr);
+
+  const tableHTML = (forms) => `
+    <table class="conj-table">
+      ${forms.map((f,i)=>`<tr><td>${PRONOUNS[i]}</td><td>${esc(f)}</td></tr>`).join("")}
+    </table>`;
+
+  const tabs = `
+    <div class="conj-tabs">
+      <button class="ctab ${conjTab==="present"?"on":""}" data-tab="present">Présent</button>
+      <button class="ctab ${conjTab==="passe"?"on":""}" data-tab="passe">Passé composé</button>
+      <button class="ctab ${conjTab==="futur"?"on":""}" data-tab="futur">Futur</button>
+    </div>`;
+
+  let body = "";
+  if(conjTab === "present") body = tableHTML(pres);
+  else if(conjTab === "passe") body = tableHTML(pc) + `
+    <p class="sub" style="margin-top:14px;font-size:12.5px">
+      Auxiliaire : <b>${isEtre?"être":"avoir"}</b> · Participe passé : <b>${esc(pp)}</b>
+    </p>`;
+  else body = tableHTML(fut);
+
+  openModal(`
+    <button class="iconbtn modal-close" id="mClose">✕</button>
+    <h2>${esc(v.fr)}</h2>
+    <p class="en">${esc(v.en)}</p>
+    <div class="divider"></div>
+    ${tabs}
+    ${body}
+    <div style="margin-top:16px;display:flex;gap:10px">
+      <button class="btn soft sm" id="mSpeak">🔊 ${esc(v.fr)}</button>
+    </div>
+  `);
+  const mc = $("#mClose"); if(mc) mc.addEventListener("click", closeModal);
+  const ms = $("#mSpeak"); if(ms) ms.addEventListener("click", ()=> speak(pres[0] || v.fr));
+  $$(".ctab").forEach(tab=>{
+    tab.addEventListener("click", ()=>{
+      conjTab = tab.dataset.tab;
+      openConjugation(v);
+    });
+  });
+}
+
+/* ============================================================
+   NAV & EVENTS
+   ============================================================ */
+document.addEventListener("click", e=>{
+  const nav = e.target.closest("[data-nav]");
+  if(!nav) return;
+  const target = nav.dataset.nav;
+  if(target === "session"){
+    if(view === "session" && sess) return;
+    initAudio();
+    startSession(S.settings.size || 10, "flash");
+    return;
+  }
+  if(view === "session" && sess){
+    if(!confirm("Quitter la session en cours ?")) return;
+    sess = null;
+  }
+  view = target;
+  render();
+  window.scrollTo({ top:0, behavior:"smooth" });
+});
+
+$("#themeBtn").addEventListener("click", ()=>{
+  S.settings.theme = S.settings.theme === "dark" ? "light" : "dark";
+  applyTheme();
+  saveNow();
+  haptic(5);
+});
+function applyTheme(){
+  document.documentElement.setAttribute("data-theme", S.settings.theme);
+  const btn = $("#themeBtn");
+  if(btn) btn.textContent = S.settings.theme === "dark" ? "☀️" : "🌙";
+}
+
+/* Keyboard shortcuts */
+document.addEventListener("keydown", e=>{
+  if(view !== "session" || !sess) return;
+  const ae = document.activeElement;
+  const isTyping = ae && ae.tagName === "INPUT";
+  if(isTyping && e.key !== "Enter") return;
+
+  if(sess.mode === "flash"){
+    if(e.code === "Space" && !sess.revealed && !isTyping){
+      e.preventDefault();
+      sess.revealed = true;
+      speak(sess.current.fr);
+      render();
+      return;
+    }
+    if(sess.revealed && ["1","2","3","4"].includes(e.key)){
+      e.preventDefault();
+      initAudio();
+      gradeFlash(parseInt(e.key,10)-1);
+      return;
+    }
+  }
+  if(sess.mode === "mcq"){
+    if(sess.answered && (e.key === "Enter" || e.code === "Space")){
+      e.preventDefault();
+      nextCard(); render();
+      return;
+    }
+    if(!sess.answered && ["1","2","3","4"].includes(e.key)){
+      e.preventDefault();
+      const i = parseInt(e.key,10)-1;
+      if(sess.options && sess.options[i]){
+        initAudio();
+        answerMCQ(sess.options[i]);
+      }
+      return;
+    }
+  }
+  if(sess.mode === "type" && sess.answered && e.key === "Enter"){
+    e.preventDefault();
+    nextCard(); render();
+  }
+});
+
+/* Escape closes modal */
+document.addEventListener("keydown", e=>{
+  if(e.key === "Escape" && modalBack.classList.contains("on")) closeModal();
+});
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+applyTheme();
+
+if("speechSynthesis" in window){
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = ()=>{ window.speechSynthesis.getVoices(); };
+}
+
+document.addEventListener("touchstart", ()=>{ initAudio(); }, { once:true, passive:true });
+document.addEventListener("click", ()=>{ initAudio(); }, { once:true });
+
+render();
+
+if(!S.ui.seenIntro){
+  S.ui.seenIntro = true;
+  saveNow();
+  setTimeout(()=> toast("👋 Appuie sur ⚡ Sprint éclair pour commencer !", true), 900);
+}
+</script>
+</body>
+</html>
