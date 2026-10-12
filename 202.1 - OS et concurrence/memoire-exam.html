@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mémoire — Fiche Examen Interactive</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f8fb;
+    --surface: #ffffff;
+    --border: #e5e5e5;
+    --border-strong: #d1d5db;
+    --text: #0d0d0d;
+    --muted: #6b7280;
+    --accent: #4d6bfe;
+    --accent-soft: #eef2ff;
+    --green: #10b981;
+    --red: #ef4444;
+    --orange: #f59e0b;
+    --purple: #8b5cf6;
+    --pink: #ec4899;
+    --teal: #14b8a6;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    font-size: 14.5px;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  nav.sidebar {
+    width: 240px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0; left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 18px 12px;
+    z-index: 10;
+  }
+  nav.sidebar h1 { font-size: 15px; font-weight: 800; margin-bottom: 3px; }
+  nav.sidebar .sub { font-size: 10.5px; color: var(--muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.06em; }
+  nav.sidebar a {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px; border-radius: 7px;
+    color: var(--muted); text-decoration: none;
+    font-size: 12.5px; font-weight: 600; margin-bottom: 2px;
+    transition: all 0.15s;
+  }
+  nav.sidebar a:hover { background: var(--accent-soft); color: var(--accent); }
+  nav.sidebar a.active { background: var(--accent); color: white; }
+  nav.sidebar .group {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--muted);
+    margin: 14px 10px 5px;
+  }
+
+  main {
+    margin-left: 240px; flex: 1;
+    padding: 28px 36px 100px; max-width: 980px;
+  }
+
+  section { margin-bottom: 44px; scroll-margin-top: 20px; }
+
+  section > h2 {
+    font-size: 22px; font-weight: 800;
+    margin-bottom: 4px; display: flex; align-items: center; gap: 10px;
+  }
+  section > h2 .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; background: var(--accent);
+    color: white; border-radius: 7px; font-size: 13px; font-weight: 800; flex-shrink: 0;
+  }
+  section > .lead {
+    color: var(--muted); margin-bottom: 18px; font-size: 13.5px;
+    padding-left: 38px;
+  }
+
+  h3 {
+    font-size: 15.5px; font-weight: 800;
+    margin: 22px 0 10px; display: flex; align-items: center; gap: 8px;
+  }
+  h3::before { content: ""; width: 3px; height: 14px; background: var(--accent); border-radius: 2px; }
+
+  p { margin-bottom: 10px; }
+  ul, ol { margin: 8px 0 12px 20px; }
+  li { margin-bottom: 5px; }
+
+  code {
+    background: var(--accent-soft); color: #3730a3;
+    padding: 1px 6px; border-radius: 4px;
+    font-family: 'SF Mono', Menlo, monospace; font-size: 12px;
+  }
+
+  pre {
+    background: #0d1117; color: #e6edf3;
+    padding: 14px; border-radius: 10px;
+    overflow-x: auto; font-family: 'SF Mono', Menlo, monospace;
+    font-size: 12px; line-height: 1.55;
+    margin: 10px 0 14px; border: 1px solid #30363d;
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+  .kw { color: #ff7b72; }
+  .str { color: #a5d6ff; }
+  .com { color: #8b949e; font-style: italic; }
+  .num2 { color: #79c0ff; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 11px; padding: 14px 16px; margin-bottom: 12px;
+  }
+  .card.accent { border-left: 3px solid var(--accent); }
+  .card.warn { border-left: 3px solid var(--orange); background: #fffbeb; }
+  .card.danger { border-left: 3px solid var(--red); background: #fef2f2; }
+  .card.ok { border-left: 3px solid var(--green); background: #f0fdf4; }
+
+  .callout {
+    font-weight: 800; font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.04em; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .card.accent .callout { color: var(--accent); }
+  .card.warn .callout { color: #b45309; }
+  .card.danger .callout { color: #b91c1c; }
+  .card.ok .callout { color: #047857; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  table {
+    width: 100%; border-collapse: collapse;
+    margin: 10px 0 14px; font-size: 13px;
+    background: var(--surface); border-radius: 9px;
+    overflow: hidden; border: 1px solid var(--border);
+  }
+  th {
+    background: #f3f4f6; text-align: left;
+    padding: 8px 11px; font-weight: 800; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+  }
+  td { padding: 8px 11px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  .widget {
+    background: var(--surface); border: 1px solid var(--border-strong);
+    border-radius: 13px; padding: 18px; margin: 14px 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  }
+  .widget-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px; padding-bottom: 9px; border-bottom: 1px solid var(--border);
+    gap: 10px; flex-wrap: wrap;
+  }
+  .widget-title {
+    font-weight: 800; font-size: 13px; color: var(--accent);
+    display: flex; align-items: center; gap: 7px;
+  }
+  .widget-title::before { content: "⚡"; font-size: 13px; }
+
+  input[type="range"] {
+    width: 100%; height: 6px; -webkit-appearance: none;
+    background: #e5e7eb; border-radius: 3px; outline: none; margin: 6px 0;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 20px; height: 20px;
+    background: var(--accent); border-radius: 50%;
+    cursor: pointer; border: 3px solid white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+
+  input[type="number"], input[type="text"], select {
+    padding: 7px 10px; border: 1px solid var(--border-strong);
+    border-radius: 7px; font-family: inherit; font-size: 13px;
+    outline: none; background: white; transition: border 0.15s;
+  }
+  input:focus, select:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  button {
+    background: var(--accent); color: white; border: none;
+    padding: 8px 14px; border-radius: 7px; font-family: inherit;
+    font-size: 12.5px; font-weight: 700; cursor: pointer;
+    transition: all 0.15s;
+  }
+  button:hover { background: #3d5bef; transform: translateY(-1px); }
+  button.secondary {
+    background: white; color: var(--accent); border: 1px solid var(--border-strong);
+  }
+  button.secondary:hover { background: var(--accent-soft); border-color: var(--accent); }
+
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+  .row label { font-size: 11.5px; font-weight: 700; color: var(--muted); }
+
+  .badge {
+    display: inline-block; padding: 2px 7px; border-radius: 5px;
+    font-size: 10.5px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .badge.green { background: #d1fae5; color: #047857; }
+  .badge.red { background: #fee2e2; color: #b91c1c; }
+  .badge.blue { background: #dbeafe; color: #1d4ed8; }
+  .badge.orange { background: #fed7aa; color: #c2410c; }
+  .badge.purple { background: #e9d5ff; color: #6d28d9; }
+  .badge.gray { background: #e5e7eb; color: #374151; }
+  .badge.pink { background: #fce7f3; color: #be185d; }
+
+  .mem-track {
+    display: flex; height: 42px; border-radius: 7px;
+    overflow: hidden; border: 1px solid var(--border-strong);
+    background: #f9fafb; margin: 8px 0;
+  }
+  .mem-block {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800; color: white;
+    transition: all 0.3s; min-width: 0; overflow: hidden; white-space: nowrap;
+  }
+  .mem-block.free { background: #d1d5db; color: #4b5563; }
+  .mem-block.used { background: var(--accent); }
+  .mem-block.kernel { background: #1f2937; }
+  .mem-block.p0 { background: #4d6bfe; }
+  .mem-block.p1 { background: #8b5cf6; }
+  .mem-block.p2 { background: #ec4899; }
+  .mem-block.p3 { background: #f59e0b; }
+  .mem-block.p4 { background: #14b8a6; }
+
+  .quiz {
+    background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+    border: 1px solid #c7d2fe; border-radius: 13px;
+    padding: 16px; margin: 16px 0;
+  }
+  .quiz-q { font-weight: 800; margin-bottom: 10px; font-size: 14px; }
+  .quiz-opt {
+    display: block; width: 100%; text-align: left;
+    background: white; border: 2px solid var(--border);
+    border-radius: 9px; padding: 9px 12px; margin-bottom: 7px;
+    font-family: inherit; font-size: 13px; color: var(--text);
+    font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .quiz-opt:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .quiz-opt.correct { border-color: var(--green); background: #d1fae5; color: #065f46; }
+  .quiz-opt.wrong { border-color: var(--red); background: #fee2e2; color: #7f1d1d; }
+  .quiz-fb {
+    margin-top: 8px; font-size: 12.5px; padding: 9px 12px;
+    border-radius: 7px; display: none;
+  }
+  .quiz-fb.show { display: block; }
+  .quiz-fb.ok { background: #d1fae5; color: #065f46; }
+  .quiz-fb.ko { background: #fee2e2; color: #7f1d1d; }
+
+  .info-row {
+    display: flex; justify-content: space-between;
+    padding: 6px 0; border-bottom: 1px dashed var(--border);
+    font-size: 13px;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .label { color: var(--muted); font-weight: 600; }
+  .info-row .value { font-weight: 800; font-family: 'SF Mono', monospace; }
+
+  .tabs {
+    display: flex; gap: 3px; border-bottom: 2px solid var(--border);
+    margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .tab {
+    padding: 7px 12px; background: none; border: none;
+    border-bottom: 2px solid transparent; color: var(--muted);
+    font-family: inherit; font-size: 12.5px; font-weight: 700;
+    cursor: pointer; margin-bottom: -2px;
+    border-radius: 5px 5px 0 0;
+  }
+  .tab:hover { color: var(--accent); background: var(--accent-soft); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: none; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; animation: fadeIn 0.2s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+
+  .ptable {
+    font-family: 'SF Mono', monospace; font-size: 12px;
+    background: #0d1117; color: #e6edf3; padding: 12px;
+    border-radius: 9px; line-height: 1.65; overflow-x: auto;
+  }
+  .ptable .row-pt { display: flex; gap: 2px; margin-bottom: 2px; }
+  .ptable .cell { padding: 4px 8px; border-radius: 4px; background: #21262d; }
+  .ptable .cell.hl { background: var(--accent); color: white; }
+  .ptable .cell.dead { background: #7f1d1d; color: #fecaca; }
+  .ptable .cell.valid { background: #065f46; color: #d1fae5; }
+
+  .stat {
+    text-align: center; padding: 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 9px;
+  }
+  .stat .val {
+    font-size: 20px; font-weight: 800; color: var(--accent);
+    font-family: 'SF Mono', monospace;
+  }
+  .stat .lbl {
+    font-size: 10.5px; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--muted);
+    margin-top: 3px; font-weight: 700;
+  }
+
+  .flashcard {
+    perspective: 1000px; height: 160px; margin: 14px 0;
+  }
+  .flashcard-inner {
+    position: relative; width: 100%; height: 100%;
+    transition: transform 0.55s; transform-style: preserve-3d; cursor: pointer;
+  }
+  .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+  .flashcard-face {
+    position: absolute; width: 100%; height: 100%;
+    backface-visibility: hidden; border-radius: 12px;
+    padding: 20px; display: flex; align-items: center;
+    justify-content: center; text-align: center;
+    font-size: 14.5px; font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .flashcard-front { background: var(--surface); border: 2px solid var(--accent); color: var(--accent); }
+  .flashcard-back {
+    background: var(--accent); color: white; transform: rotateY(180deg);
+    font-weight: 600; font-size: 13px; line-height: 1.5;
+  }
+
+  .progress {
+    position: fixed; top: 0; left: 240px; right: 0;
+    height: 3px; background: var(--border); z-index: 20;
+  }
+  .progress-fill {
+    height: 100%; background: var(--accent); width: 0%;
+    transition: width 0.1s;
+  }
+
+  .formula {
+    background: #f9fafb; border-left: 3px solid var(--accent);
+    padding: 10px 14px; border-radius: 7px;
+    font-family: 'SF Mono', monospace; font-size: 13.5px;
+    margin: 10px 0;
+  }
+
+  @media (max-width: 800px) {
+    nav.sidebar { display: none; }
+    main { margin-left: 0; padding: 20px 16px 80px; }
+    .progress { left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+
+<nav class="sidebar">
+  <h1>💾 Mémoire — Examen</h1>
+  <div class="sub">Fiche interactive · 202.1</div>
+
+  <div class="group">Bases</div>
+  <a href="#hierarchie">🏔️ Hiérarchie</a>
+  <a href="#virtual">🎯 Virtuel vs Physique</a>
+  <a href="#baselimit">📐 Base & Limit</a>
+  <a href="#partitions">📦 Partitions</a>
+
+  <div class="group">Fragmentation</div>
+  <a href="#frag">🧩 Interne vs Externe</a>
+  <a href="#placement">📍 Stratégies placement</a>
+  <a href="#compaction">🧹 Compaction</a>
+
+  <div class="group">Virtualisation</div>
+  <a href="#segmentation">🗂️ Segmentation</a>
+  <a href="#paging">📄 Pagination</a>
+  <a href="#translation">🌲 Page walk</a>
+  <a href="#tlb">⚡ TLB & Fault</a>
+
+  <div class="group">Dynamique</div>
+  <a href="#layout">🏗️ Layout processus</a>
+  <a href="#stack">📚 Stack</a>
+  <a href="#brkmmap">🎒 brk vs mmap</a>
+  <a href="#malloc">🧠 malloc</a>
+
+  <div class="group">Révision</div>
+  <a href="#flash">🃏 Flashcards</a>
+  <a href="#quizfinal">🎯 Quiz final</a>
+</nav>
+
+<main>
+
+<!-- ============ HIERARCHIE ============ -->
+<section id="hierarchie">
+  <h2><span class="num">1</span> Hiérarchie mémoire</h2>
+  <p class="lead">Plus tu descends, plus c'est lent, plus c'est gros, moins c'est cher par octet.</p>
+
+  <div class="widget">
+    <div class="widget-header">
+      <div class="widget-title">⏱️ Si un accès registre prenait 1 seconde…</div>
+    </div>
+    <input type="range" id="latScale" min="1" max="60" value="1">
+    <div id="latOut" style="margin-top:12px;"></div>
+  </div>
+
+  <table>
+    <tr><th>Niveau</th><th>Latence</th><th>Note</th></tr>
+    <tr><td>Registres</td><td>~0,3 ns</td><td>Dans le CPU</td></tr>
+    <tr><td>Cache L1</td><td>~1 ns</td><td>≤128 KB, par cœur</td></tr>
+    <tr><td>Cache L2</td><td>~3 ns</td><td>~4× plus grand que L1</td></tr>
+    <tr><td>Cache L3</td><td>~10 ns</td><td>Partagé entre cœurs</td></tr>
+    <tr><td>DRAM</td><td>~100 ns</td><td>Barrettes RAM</td></tr>
+    <tr><td>SSD</td><td>~10–100 µs</td><td>Flash</td></tr>
+    <tr><td>Disque dur</td><td>~ms</td><td>Mécanique</td></tr>
+  </table>
+
+  <div class="card accent">
+    <div class="callout">🎓 À retenir</div>
+    <p>DRAM ≈ <strong>100× plus lente</strong> que L1. Un accès SSD ≈ <strong>1000× plus lent</strong> que DRAM. C'est pour ça que <strong>la localité mémoire</strong> et le <strong>TLB</strong> sont essentiels.</p>
+  </div>
+</section>
+
+<!-- ============ VIRTUEL ============ -->
+<section id="virtual">
+  <h2><span class="num">2</span> Adresses virtuelles vs physiques</h2>
+  <p class="lead">Le processus ne voit JAMAIS les adresses physiques. La MMU fait la traduction.</p>
+
+  <div class="grid-2">
+    <div class="card accent">
+      <div class="callout">Adresse virtuelle</div>
+      <p>Ce que le processus manipule. Espace de 0 à une taille maximale (comme s'il était seul).</p>
+    </div>
+    <div class="card accent">
+      <div class="callout">Adresse physique</div>
+      <p>Adresse réelle dans la RAM. Visible seulement par le kernel et la MMU.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="callout" style="color:var(--text)">🔄 Flux</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;padding:10px 0;font-weight:700;font-size:13px;">
+      <span style="padding:8px 14px;background:#eef2ff;border-radius:7px;color:var(--accent);">Processus</span>
+      <span>→</span>
+      <span style="padding:8px 14px;background:#fef3c7;border-radius:7px;color:#92400e;">Adresse virtuelle</span>
+      <span>→</span>
+      <span style="padding:8px 14px;background:#dbeafe;border-radius:7px;color:#1d4ed8;">MMU</span>
+      <span>→</span>
+      <span style="padding:8px 14px;background:#d1fae5;border-radius:7px;color:#047857;">Adresse physique</span>
+    </div>
+  </div>
+
+  <div class="card ok">
+    <div class="callout">✅ Pourquoi ?</div>
+    <ul style="margin-left:16px;">
+      <li><strong>Sécurité</strong> — un processus ne peut pas lire/modifier un autre</li>
+      <li><strong>Simplicité</strong> — l'app voit un tableau contigu de 0 à ∞</li>
+      <li><strong>Isolation</strong> — le kernel et les autres sont protégés</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ BASE & LIMIT ============ -->
+<section id="baselimit">
+  <h2><span class="num">3</span> MMU : Base & Limit</h2>
+  <p class="lead">Premier mécanisme de protection. Simple et efficace.</p>
+
+  <div class="formula">
+    si <strong>adresse_virtuelle ≤ limite</strong> :
+    <br>&nbsp;&nbsp;&nbsp;&nbsp;adresse_physique = <strong>base + adresse_virtuelle</strong>
+    <br>sinon → <strong>exception</strong> (segfault)
+  </div>
+
+  <div class="widget">
+    <div class="widget-header">
+      <div class="widget-title">🎯 Simulateur MMU</div>
+    </div>
+    <div class="row">
+      <div>
+        <label>LIMIT</label>
+        <input type="text" id="limIn" value="0x800" style="width:90px;display:block;margin-top:3px;">
+      </div>
+      <div>
+        <label>BASE</label>
+        <input type="text" id="baseIn" value="0x4000" style="width:90px;display:block;margin-top:3px;">
+      </div>
+      <div>
+        <label>ADRESSE VIRTUELLE</label>
+        <input type="text" id="vaIn" value="0x80" style="width:90px;display:block;margin-top:3px;">
+      </div>
+      <button onclick="translate()" style="align-self:flex-end;">🔍 Traduire</button>
+    </div>
+
+    <div id="mmuOut" style="margin-top:14px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:12px;background:#f9fafb;border-radius:8px;font-family:monospace;font-size:13px;flex-wrap:wrap;justify-content:center;">
+        <span id="vaLabel" style="font-weight:800;"></span>
+        <span style="color:var(--muted);">→</span>
+        <span style="padding:5px 10px;border-radius:5px;background:var(--accent-soft);color:var(--accent);font-weight:800;">&lt; limit ?</span>
+        <span style="color:var(--muted);">→</span>
+        <span style="padding:5px 10px;border-radius:5px;background:#fef3c7;color:#92400e;font-weight:800;">+ base</span>
+        <span style="color:var(--muted);">→</span>
+        <span id="paLabel" style="font-weight:800;color:var(--green);"></span>
+      </div>
+      <div id="verdict" style="text-align:center;margin-top:10px;font-weight:800;"></div>
+    </div>
+  </div>
+
+  <div class="card warn">
+    <div class="callout">⚠️ Points d'examen</div>
+    <ul style="margin-left:16px;">
+      <li>La MMU ne garde <strong>aucun historique</strong> — elle applique les règles à chaque accès.</li>
+      <li>L'OS décide des valeurs de base et limite pour chaque processus.</li>
+      <li>Le kernel s'autorise limite=max et base=0.</li>
+      <li>User space = adresses basses · Kernel space = adresses hautes.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ PARTITIONS ============ -->
+<section id="partitions">
+  <h2><span class="num">4</span> Partitionnement simple</h2>
+  <p class="lead">Mémoire totale divisée en parts égales. Simple mais rigide.</p>
+
+  <div class="card">
+    <div class="callout" style="color:var(--text)">Exemple : 1024 octets / 4 processus = 256 octets chacun</div>
+    <div class="mem-track" style="margin-top:8px;">
+      <div class="mem-block p0" style="flex:1;">P0<br>0x000</div>
+      <div class="mem-block p1" style="flex:1;">P1<br>0x100</div>
+      <div class="mem-block p2" style="flex:1;">P2<br>0x200</div>
+      <div class="mem-block p3" style="flex:1;">P3<br>0x300</div>
+    </div>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:8px;">Chaque processus croit disposer de 0 à sa limite.</p>
+  </div>
+
+  <div class="grid-2">
+    <div class="card ok">
+      <div class="callout">✅ Avantages</div>
+      <p>Simple, prévisible. Adapté aux systèmes embarqués.</p>
+    </div>
+    <div class="card danger">
+      <div class="callout">❌ Inconvénients</div>
+      <p>Allocation fixe → <strong>fragmentation interne</strong>. Nombre de processus difficile à changer.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FRAGMENTATION ============ -->
+<section id="frag">
+  <h2><span class="num">5</span> Fragmentation</h2>
+  <p class="lead">LE problème central de l'allocation mémoire.</p>
+
+  <div class="grid-2">
+    <div class="card danger">
+      <div class="callout">🔒 Fragmentation interne</div>
+      <p>Un processus reçoit <strong>plus</strong> que nécessaire. Espace gaspillé <em>à l'intérieur</em> de la zone allouée.</p>
+      <div class="mem-track" style="margin-top:8px;height:32px;">
+        <div class="mem-block used" style="flex:3;">utilisé</div>
+        <div class="mem-block free" style="flex:1;">gaspillé</div>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-top:6px;">→ partitions fixes, blocs imposés</p>
+    </div>
+    <div class="card warn">
+      <div class="callout">🕳️ Fragmentation externe</div>
+      <p>Mémoire libre découpée en <strong>trous non contigus</strong>. Somme suffisante mais aucun bloc assez grand.</p>
+      <div class="mem-track" style="margin-top:8px;height:32px;">
+        <div class="mem-block used" style="flex:1;"></div>
+        <div class="mem-block free" style="flex:0.5;">trou</div>
+        <div class="mem-block used" style="flex:1;"></div>
+        <div class="mem-block free" style="flex:0.5;">trou</div>
+        <div class="mem-block used" style="flex:1;"></div>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-top:6px;">→ allocation dynamique</p>
+    </div>
+  </div>
+
+  <div class="card accent">
+    <div class="callout">🎓 Définition à retenir</div>
+    <p><strong>Interne</strong> = gaspillage DANS un bloc alloué.<br>
+    <strong>Externe</strong> = trous ENTRE les blocs alloués.</p>
+  </div>
+</section>
+
+<!-- ============ PLACEMENT ============ -->
+<section id="placement">
+  <h2><span class="num">6</span> Stratégies de placement</h2>
+  <p class="lead">Comment choisir le trou où placer un nouveau processus ?</p>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="tab-first">First Fit</button>
+    <button class="tab" data-tab="tab-next">Next Fit</button>
+    <button class="tab" data-tab="tab-best">Best Fit</button>
+    <button class="tab" data-tab="tab-worst">Worst Fit</button>
+  </div>
+
+  <div class="tab-content active" id="tab-first">
+    <div class="card accent">
+      <div class="callout">🥇 First Fit</div>
+      <p>Premier bloc libre assez grand.</p>
+      <p><span class="badge green">Simple, rapide</span> <span class="badge red">Peut fragmenter</span></p>
+    </div>
+  </div>
+  <div class="tab-content" id="tab-next">
+    <div class="card accent">
+      <div class="callout">⏭️ Next Fit</div>
+      <p>First Fit en repartant de la <strong>dernière allocation</strong>.</p>
+      <p><span class="badge green">Évite de rescanner depuis le début</span> <span class="badge orange">Dépend de l'ordre</span></p>
+    </div>
+  </div>
+  <div class="tab-content" id="tab-best">
+    <div class="card accent">
+      <div class="callout">🎯 Best Fit</div>
+      <p>Plus <strong>petit</strong> bloc assez grand.</p>
+      <p><span class="badge green">Limite l'espace perdu</span> <span class="badge red">Scan complet, crée des micro-fragments</span></p>
+    </div>
+  </div>
+  <div class="tab-content" id="tab-worst">
+    <div class="card accent">
+      <div class="callout">🐘 Worst Fit</div>
+      <p>Plus <strong>grand</strong> bloc libre.</p>
+      <p><span class="badge green">Laisse de grands restes</span> <span class="badge red">Scan complet, contre-intuitif</span></p>
+    </div>
+  </div>
+
+  <div class="widget">
+    <div class="widget-header">
+      <div class="widget-title">🎮 Simulateur : requêtes 5 → 3 → 3 → 4 → 4 KB</div>
+      <button class="secondary" onclick="resetPlacement()">↻ Reset</button>
+    </div>
+    <div id="plViz" style="margin:10px 0;"></div>
+    <div class="row">
+      <button onclick="runPlace('first')">First Fit</button>
+      <button onclick="runPlace('next')">Next Fit</button>
+      <button onclick="runPlace('best')">Best Fit</button>
+      <button onclick="runPlace('worst')">Worst Fit</button>
+    </div>
+    <div id="plLog" style="margin-top:10px;font-family:monospace;font-size:11.5px;background:#f9fafb;padding:10px;border-radius:7px;min-height:50px;white-space:pre-line;"></div>
+  </div>
+
+  <div class="card warn">
+    <div class="callout">📝 À l'examen</div>
+    <p>Scénario typique : 5 → 3 → 3 → 4 → 4 KB avec trous 10, 5, 7.5. <strong>First Fit peut échouer</strong> à cause de la fragmentation externe. <strong>Next Fit réussit souvent</strong> sans scan complet. Best/Worst nécessitent un scan complet.</p>
+  </div>
+</section>
+
+<!-- ============ COMPACTION ============ -->
+<section id="compaction">
+  <h2><span class="num">7</span> Compaction</h2>
+  <p class="lead">Déplacer les blocs pour regrouper les espaces libres.</p>
+
+  <div class="widget">
+    <div class="widget-header">
+      <div class="widget-title">🧹 Compacter la mémoire</div>
+      <button class="secondary" onclick="doCompact()">▶ Compacter</button>
+    </div>
+    <div id="compactViz" class="mem-track" style="height:44px;">
+      <div class="mem-block p0" style="flex:1;">P0</div>
+      <div class="mem-block free" style="flex:0.5;">libre</div>
+      <div class="mem-block p1" style="flex:1;">P1</div>
+      <div class="mem-block free" style="flex:0.5;">libre</div>
+      <div class="mem-block p2" style="flex:1;">P2</div>
+      <div class="mem-block free" style="flex:1;">libre</div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:8px;">
+      ⚠️ Coût élevé : arrêter les processus, copier la mémoire, mettre à jour les registres base/limit.
+    </p>
+  </div>
+</section>
+
+<!-- ============ SEGMENTATION ============ -->
+<section id="segmentation">
+  <h2><span class="num">8</span> Segmentation</h2>
+  <p class="lead">Adresse logique = (numéro de segment, offset). Chaque segment a base, limite, permissions.</p>
+
+  <h3>Data structure : table des segments</h3>
+  <table>
+    <tr><th>Seg</th><th>Base</th><th>Limit</th><th>Perm</th><th>Rôle</th></tr>
+    <tr><td>0</td><td>0x1000</td><td>0x400</td><td><span class="badge red">R-X</span></td><td>Code</td></tr>
+    <tr><td>1</td><td>0x2000</td><td>0x800</td><td><span class="badge blue">RW-</span></td><td>Données</td></tr>
+    <tr><td>2</td><td>0x3000</td><td>0x200</td><td><span class="badge blue">RW-</span></td><td>Stack</td></tr>
+  </table>
+
+  <div class="widget">
+    <div class="widget-header">
+      <div class="widget-title">🧮 Traduire (segment, offset) → adresse physique</div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Segment #</label>
+        <input type="number" id="segNum" value="1" min="0" max="2" style="width:60px;display:block;margin-top:3px;">
+      </div>
+      <div>
+        <label>Offset (hex)</label>
+        <input type="text" id="segOff" value="0x12" style="width:80px;display:block;margin-top:3px;">
+      </div>
+      <button onclick="doSeg()" style="align-self:flex-end;">Traduire</button>
+    </div>
+    <div id="segOut" style="margin-top:12px;font-size:13px;"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card ok">
+      <div class="callout">✅ Avantages</div>
+      <ul style="margin-left:16px;">
+        <li>Permissions fines (R/W/X)</li>
+        <li>Partage de segments entre processus</li>
+        <li>Allocation dynamique</li>
+        <li>Réduit fragmentation externe</li>
+      </ul>
+    </div>
+    <div class="card danger">
+      <div class="callout">❌ Limites</div>
+      <ul style="margin-left:16px;">
+        <li>Gestion complexe</li>
+        <li>Peut encore fragmenter</li>
+        <li>Pas le mécanisme principal moderne</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PAGINATION ============ -->
+<section id="paging">
+  <h2><span class="num">9</span> Pagination</h2>
+  <p class="lead">Pages de taille fixe (4 KB) mappées sur des frames. <strong>Aucune fragmentation externe !</strong></p>
+
+  <div class="widget">
+    <div class="widget-header">
+      <div class="widget-title">📄 Pages → Frames</div>
+    </div>
+    <div style="display:flex;gap:24px;align-items:center;justify-content:center;padding:10px 0;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:11px;font-weight:800;color:var(--muted);text-align:center;margin-bottom:6px;">VIRTUEL (P1)</div>
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <div style="background:#4d6bfe;color:white;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Page 0</div>
+          <div style="background:#4d6bfe;color:white;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Page 1</div>
+          <div style="background:#4d6bfe;color:white;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Page 2</div>
+          <div style="background:#4d6bfe;color:white;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Page 3</div>
+        </div>
+      </div>
+      <div style="font-size:22px;color:var(--accent);">→</div>
+      <div>
+        <div style="font-size:11px;font-weight:800;color:var(--muted);text-align:center;margin-bottom:6px;">PHYSIQUE</div>
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <div style="background:#1f2937;color:white;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Frame 1 ← P0</div>
+          <div style="background:#e5e7eb;color:#6b7280;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Frame 2 (libre)</div>
+          <div style="background:#1f2937;color:white;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Frame 3 ← P1</div>
+          <div style="background:#1f2937;color:white;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Frame 4 ← P2</div>
+          <div style="background:#e5e7eb;color:#6b7280;padding:6px 18px;border-radius:5px;text-align:center;font-size:11px;font-weight:800;">Frame 7 (libre)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Segmentation vs Pagination</h3>
+  <table>
+    <tr><th></th><th>Segmentation</th><th>Pagination</th></tr>
+    <tr><td>Unité</td><td>Logique (code, stack…)</td><td>Fixe (4 KB)</td></tr>
+    <tr><td>Protection</td><td>Fine</td><td>Moins fine</td></tr>
+    <tr><td>Vitesse</td><td>Plus rapide</td><td>Plus lente</td></tr>
+    <tr><td>Fragmentation</td><td>Externe</td><td>Interne (petite)</td></tr>
+  </table>
+</section>
+
+<!-- ============ TRANSLATION ============ -->
+<section id="translation">
+  <h2><span class="num">10</span> Table de traduction (page walk)</h2>
+  <p class="lead">Adresse virtuelle = préfixe (indices) + suffixe (offset dans la frame).</p>
+
+  <div class="formula">
+    Adresse virtuelle 0xb2b4 = <strong>[L0][L1][L2]</strong> + <strong>offset</strong>
+    <br>→ on navigue dans les tables jusqu'à la feuille
+    <br>→ feuille = adresse de la frame physique
+    <br>→ physique = frame + offset
+  </div>
+
+  <div class="widget">
+    <div class="widget-header">
+      <div class="widget-title">🌲 Page walk interactif</div>
+      <button class="secondary" onclick="stepWalk()">▶ Étape suivante</button>
+    </div>
+    <div class="ptable" style="margin-bottom:12px;">
+      <div style="margin-bottom:8px;color:#8b949e;">Adresse 0xb2b4 en binaire :</div>
+      <div class="row-pt">
+        <div class="cell" style="background:#1e40af;">L0</div>
+        <div class="cell">1</div>
+        <div class="cell">0</div>
+        <div class="cell" style="background:#92400e;">L1</div>
+        <div class="cell">1</div>
+        <div class="cell">1</div>
+        <div class="cell">0</div>
+        <div class="cell" style="background:#065f46;">L2</div>
+        <div class="cell">0</div>
+        <div class="cell">1</div>
+        <div class="cell">0</div>
+        <div class="cell" style="background:#374151;">offset</div>
+        <div class="cell">1</div>
+        <div class="cell">0</div>
+        <div class="cell">1</div>
+        <div class="cell">1</div>
+        <div class="cell">0</div>
+        <div class="cell">1</div>
+        <div class="cell">0</div>
+        <div class="cell">0</div>
+      </div>
+    </div>
+
+    <div id="walkOut" style="background:#f9fafb;padding:12px;border-radius:8px;font-family:monospace;font-size:12.5px;line-height:1.8;min-height:80px;">
+      <span style="color:var(--muted);">Clique sur ▶ pour avancer dans le page walk</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="callout" style="color:var(--text)">📋 Data structure : Page Table Entry (PTE) contient…</div>
+    <ul style="margin-left:16px;">
+      <li><strong>Adresse physique</strong> de la frame <em>ou</em> position swap</li>
+      <li><strong>Bit de validité</strong> — page présente en RAM ?</li>
+      <li><strong>Bits de permissions</strong> — R / W / X</li>
+      <li><strong>Bit accessed</strong> — accédée depuis dernière éviction ?</li>
+      <li><strong>Bit dirty</strong> — modifiée depuis dernier swap ?</li>
+    </ul>
+  </div>
+
+  <div class="card warn">
+    <div class="callout">⚠️ Cas particuliers à l'examen</div>
+    <ul style="margin-left:16px;">
+      <li><strong>Shortcuts</strong> — une table peut avoir un raccourci direct vers une frame</li>
+      <li><strong>Dead ends</strong> — entrée = 0xdead → adresse invalide → segfault</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TLB ============ -->
+<section id="tlb">
+  <h2><span class="num">11</span> TLB & Page Fault</h2>
+  <p class="lead">TLB = cache matériel des traductions récentes. Indispensable aux perfs.</p>
+
+  <div class="widget">
+    <div class="widget-header">
+      <div class="widget-title">⚡ Chemin de traduction</div>
+      <button class="secondary" onclick="animTLB()">▶ Animer</button>
+    </div>
+    <div id="tlbFlow" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <div id="tlbMsg" style="margin-top:10px;font-size:13px;"></div>
+  </div>
+
+  <h3>Causes d'un page fault</h3>
+  <table>
+    <tr><th>Cause</th><th>Action</th></tr>
+    <tr><td>Page jamais accédée</td><td><span class="badge green">Lazy alloc → nouvelle frame</span></td></tr>
+    <tr><td>Page en swap</td><td><span class="badge orange">Ramener depuis disque</span></td></tr>
+    <tr><td>Permissions invalides</td><td><span class="badge red">Segfault</span></td></tr>
+    <tr><td>Adresse invalide</td><td><span class="badge red">Segfault</span></td></tr>
+  </table>
+
+  <div class="card accent">
+    <div class="callout">📐 Taille de page typique</div>
+    <p>4 KB = 2¹² octets. Distance approximative stack ↔ heap : ~2⁴⁸ octets.</p>
+  </div>
+</section>
+
+<!-- ============ LAYOUT ============ -->
+<section id="layout">
+  <h2><span class="num">12</span> Layout d'un processus</h2>
+  <p class="lead">Chaque processus voit son propre espace virtuel. Stack descend, heap monte.</p>
+
+  <div class="widget">
+    <div class="widget-header">
+      <div class="widget-title">🏗️ Clique sur un segment</div>
+    </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:250px;">
+        <div id="layoutViz" style="display:flex;flex-direction:column;gap:2px;font-size:11.5px;font-weight:800;text-align:center;">
+          <div class="seg-it" data-s="kernel" style="background:#1f2937;color:white;padding:9px;border-radius:5px;cursor:pointer;">Kernel space (0xffff…)</div>
+          <div class="seg-it" data-s="args" style="background:#374151;color:white;padding:7px;border-radius:5px;cursor:pointer;">Command line args</div>
+          <div class="seg-it" data-s="stack" style="background:#ec4899;color:white;padding:9px;border-radius:5px;cursor:pointer;">Stack ↓</div>
+          <div style="background:#e5e7eb;color:#6b7280;padding:14px;border-radius:5px;font-size:10.5px;">espace libre</div>
+          <div class="seg-it" data-s="mmap" style="background:#8b5cf6;color:white;padding:7px;border-radius:5px;cursor:pointer;">Memory mapping</div>
+          <div style="background:#e5e7eb;color:#6b7280;padding:10px;border-radius:5px;font-size:10.5px;">espace libre</div>
+          <div class="seg-it" data-s="heap" style="background:#f59e0b;color:white;padding:9px;border-radius:5px;cursor:pointer;">Heap ↑</div>
+          <div class="seg-it" data-s="bss" style="background:#10b981;color:white;padding:7px;border-radius:5px;cursor:pointer;">BSS (uninit data)</div>
+          <div class="seg-it" data-s="data" style="background:#14b8a6;color:white;padding:7px;border-radius:5px;cursor:pointer;">Initialized data</div>
+          <div class="seg-it" data-s="code" style="background:#4d6bfe;color:white;padding:7px;border-radius:5px;cursor:pointer;">Program code (0x0000)</div>
+        </div>
+      </div>
+      <div style="flex:1;min-width:250px;">
+        <div id="segInfo" class="card" style="margin:0;">
+          <div class="callout" style="color:var(--text)">ℹ️ Clique sur un segment</div>
+          <p style="font-size:12.5px;color:var(--muted);">Chaque segment a ses propres permissions et fonction.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card accent">
+    <div class="callout">🎲 ASLR</div>
+    <p>Les débuts de stack et heap sont <strong>randomisés</strong> pour rendre les attaques plus difficiles.</p>
+  </div>
+</section>
+
+<!-- ============ STACK ============ -->
+<section id="stack">
+  <h2><span class="num">13</span> Stack</h2>
+  <p class="lead">LIFO, allocation par soustraction du stack pointer, pas de syscall.</p>
+
+  <div class="widget">
+    <div class="widget-header">
+      <div class="widget-title">📚 Call stack : pow(4, 3)</div>
+      <button class="secondary" onclick="stepStack()">▶ Étape</button>
+    </div>
+    <pre><code><span class="com">// Prologue</span>
+<span class="kw">stp</span> x29, x30, [sp, #-32]!   <span class="com">// push fp+lr, SP -= 32</span>
+<span class="kw">mov</span> x29, sp
+<span class="kw">sub</span> x1, x1, #1
+<span class="kw">cbz</span> x1, _end
+<span class="kw">str</span> x0, [sp, #16]            <span class="com">// sauvegarde base</span>
+<span class="kw">bl</span> _pow
+<span class="kw">ldr</span> x1, [sp, #16]
+<span class="kw">mul</span> x0, x0, x1
+<span class="com">// Épilogue</span>
+_end: <span class="kw">ldp</span> x29, x30, [sp], #32
+<span class="kw">ret</span></code></pre>
+    <div id="stackOut" style="font-family:monospace;font-size:12px;background:#f9fafb;padding:10px;border-radius:7px;min-height:80px;line-height:1.7;">
+      <span style="color:var(--muted);">Clique sur ▶ pour dérouler la récursion</span>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="stat"><div class="val" style="font-size:14px;">x29</div><div class="lbl">Frame Pointer</div></div>
+    <div class="stat"><div class="val" style="font-size:14px;">x30</div><div class="lbl">Link Register</div></div>
+    <div class="stat"><div class="val" style="font-size:14px;">SP</div><div class="lbl">Stack Pointer</div></div>
+  </div>
+
+  <div class="grid-2" style="margin-top:12px;">
+    <div class="card ok">
+      <div class="callout">✅ Avantages</div>
+      <p>Très rapide, automatique, localité optimale.</p>
+    </div>
+    <div class="card danger">
+      <div class="callout">❌ Limites</div>
+      <p>Taille limitée (Kio→Mio), durée de vie liée aux fonctions, <strong>stack overflow</strong> possible.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BRK/MMAP ============ -->
+<section id="brkmmap">
+  <h2><span class="num">14</span> Heap : brk vs mmap</h2>
+  <p class="lead">Deux mécanismes pour agrandir le heap. Chacun son usage.</p>
+
+  <div class="grid-2">
+    <div class="card accent">
+      <div class="callout">📍 brk — syscall #214</div>
+      <p>Déplace le <strong>program break</strong>, la fin du segment de données.</p>
+      <pre><code>brk(NULL)        <span class="com">// lit l'adresse actuelle</span>
+brk(x1 + 8192)   <span class="com">// étend de 8 KB</span></code></pre>
+      <p><span class="badge green">Simple, rapide</span> <span class="badge red">Fragment, concurrence, protections limitées</span></p>
+    </div>
+    <div class="card accent">
+      <div class="callout">🗺️ mmap — syscall #222</div>
+      <p>Plus général : peut mapper un <strong>fichier</strong> ou de la mémoire anonyme.</p>
+      <pre><code>mmap(addr, len, prot, flags, fd, off)</code></pre>
+      <p><span class="badge green">Grandes allocs, protections, fichiers</span> <span class="badge red">Plus lourd</span></p>
+    </div>
+  </div>
+
+  <table>
+    <tr><th></th><th>brk</th><th>mmap</th></tr>
+    <tr><td>Complexité</td><td>Simple</td><td>Plus complexe</td></tr>
+    <tr><td>Vitesse</td><td>Rapide</td><td>Plus lent</td></tr>
+    <tr><td>Fragmentation</td><td>Oui</td><td>Non</td></tr>
+    <tr><td>Fichiers</td><td>Non</td><td>Oui</td></tr>
+    <tr><td>Protections</td><td>Limitées</td><td>READ / WRITE / EXEC</td></tr>
+    <tr><td>Usage idéal</td><td>Petites allocs</td><td>Grandes allocs, fichiers</td></tr>
+  </table>
+
+  <div class="card accent">
+    <div class="callout">🔐 mprotect — syscall #226</div>
+    <p>Change les permissions d'une page. Ne marche QUE sur de la mémoire <code>mmap</code>. Utilisé par les <strong>JIT compilers</strong> (Chrome V8, JVM) et le code auto-modifiant.</p>
+  </div>
+</section>
+
+<!-- ============ MALLOC ============ -->
+<section id="malloc">
+  <h2><span class="num">15</span> malloc — la couche utilisateur</h2>
+  <p class="lead">Interface pratique. Utilise brk ou mmap selon la taille.</p>
+
+  <div class="card accent">
+    <div class="callout">🧠 Décision</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:8px 0;font-weight:800;font-size:12px;">
+      <span style="background:#10b981;color:white;padding:7px 14px;border-radius:7px;">new byte[n]</span>
+      <span>→</span>
+      <span style="background:#fef3c7;color:#92400e;padding:7px 12px;border-radius:7px;">n &lt; 1024 ?</span>
+      <span>→</span>
+      <span style="background:#eef2ff;color:var(--accent);padding:7px 12px;border-radius:7px;">fit dans l'arène ?</span>
+    </div>
+    <div class="grid-2" style="margin-top:10px;">
+      <div class="card ok" style="margin:0;">
+        <div class="callout">✅ Petite alloc</div>
+        <p style="font-size:12.5px;">Utilise l'<strong>arène</strong> préallouée. Pas de syscall.</p>
+      </div>
+      <div class="card warn" style="margin:0;">
+        <div class="callout">🐢 Grande alloc</div>
+        <p style="font-size:12.5px;">Appel à <code>mmap</code> ou agrandissement d'arène.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Data structure : arena, free list, busy list</h3>
+  <div class="widget">
+    <div class="mem-track" style="height:52px;">
+      <div class="mem-block used" style="flex:2;">busy</div>
+      <div class="mem-block free" style="flex:1;">free</div>
+      <div class="mem-block used" style="flex:2;">busy</div>
+      <div class="mem-block free" style="flex:1.5;">free</div>
+      <div class="mem-block used" style="flex:1.5;">busy</div>
+      <div class="mem-block free" style="flex:1;">free</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11.5px;font-weight:800;">
+      <span style="color:var(--accent);">→ busy list</span>
+      <span style="color:var(--orange);">→ free list</span>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:8px;">
+      Alternative : <strong>bitmap</strong> — 1 bit par slot (utilisé/libre). Très compact.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="callout" style="color:var(--text)">📋 3 exigences d'un allocateur (à retenir)</div>
+    <ol style="margin-left:16px;">
+      <li>Suivre les régions <strong>libres</strong> et <strong>occupées</strong></li>
+      <li>Supporter la <strong>libération dans un ordre arbitraire</strong></li>
+      <li>Supporter la <strong>réutilisation</strong> d'une région libérée</li>
+    </ol>
+  </div>
+
+  <div class="card warn">
+    <div class="callout">⚠️ À l'examen</div>
+    <p>malloc utilise aussi First/Best/Worst Fit <strong>en interne</strong> pour trouver un slot dans l'arène.</p>
+  </div>
+</section>
+
+<!-- ============ FLASHCARDS ============ -->
+<section id="flash">
+  <h2><span class="num">16</span> Flashcards express</h2>
+  <p class="lead">Clique pour retourner. Reviens-y plusieurs fois.</p>
+
+  <div class="grid-2">
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-face flashcard-front">Différence entre fragmentation interne et externe ?</div>
+        <div class="flashcard-face flashcard-back"><strong>Interne</strong> : gaspillage DANS un bloc alloué (partition fixe).<br><strong>Externe</strong> : trous ENTRE les blocs (allocation dynamique).</div>
+      </div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-face flashcard-front">Formule Base + Limit ?</div>
+        <div class="flashcard-face flashcard-back">Si VA ≤ limit : <strong>PA = base + VA</strong><br>Sinon : exception (segfault).</div>
+      </div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-face flashcard-front">Que se passe-t-il lors d'un page fault ?</div>
+        <div class="flashcard-face flashcard-back">3 cas :<br>1. Jamais accédée → lazy alloc<br>2. En swap → ramener du disque<br>3. Permissions invalides → segfault</div>
+      </div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-face flashcard-front">Pourquoi le TLB est-il crucial ?</div>
+        <div class="flashcard-face flashcard-back">Sans lui, chaque accès mémoire ferait un page walk complet (plusieurs accès RAM). Avec : quasi-instantané.</div>
+      </div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-face flashcard-front">brk vs mmap ?</div>
+        <div class="flashcard-face flashcard-back"><strong>brk</strong> : simple, contigu, mais fragment. <strong>mmap</strong> : fichiers + protections + grandes allocs, mais plus lourd.</div>
+      </div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-face flashcard-front">Différence segmentation / pagination ?</div>
+        <div class="flashcard-face flashcard-back">Segmentation = unités logiques + permissions fines. Pagination = blocs fixes 4 KB, aucune fragmentation externe.</div>
+      </div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-face flashcard-front">Bit dirty — à quoi ça sert ?</div>
+        <div class="flashcard-face flashcard-back">Indique si la page a été modifiée. Si non, pas besoin de la réécrire sur disque lors du swap → write-back optimization.</div>
+      </div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-face flashcard-front">Pourquoi ASLR ?</div>
+        <div class="flashcard-face flashcard-back">Randomise le début de stack et heap pour rendre les attaques mémoire (buffer overflow, ROP) plus difficiles.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ QUIZ FINAL ============ -->
+<section id="quizfinal">
+  <h2><span class="num">★</span> Quiz final</h2>
+  <p class="lead">8 questions pour vérifier que tu es prêt.</p>
+
+  <div class="quiz" data-q="1">
+    <div class="quiz-q">1. Un processus tente d'accéder à une adresse virtuelle > limite. Que se passe-t-il ?</div>
+    <button class="quiz-opt" data-c="false">Le kernel l'ajoute automatiquement</button>
+    <button class="quiz-opt" data-c="true">Une exception est levée (segfault)</button>
+    <button class="quiz-opt" data-c="false">L'adresse est ignorée silencieusement</button>
+    <div class="quiz-fb"></div>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <div class="quiz-q">2. Quelle stratégie choisit le PLUS PETIT bloc libre assez grand ?</div>
+    <button class="quiz-opt" data-c="false">First Fit</button>
+    <button class="quiz-opt" data-c="false">Next Fit</button>
+    <button class="quiz-opt" data-c="true">Best Fit</button>
+    <button class="quiz-opt" data-c="false">Worst Fit</button>
+    <div class="quiz-fb"></div>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <div class="quiz-q">3. La pagination élimine quel type de fragmentation ?</div>
+    <button class="quiz-opt" data-c="false">Interne</button>
+    <button class="quiz-opt" data-c="true">Externe</button>
+    <button class="quiz-opt" data-c="false">Les deux</button>
+    <div class="quiz-fb"></div>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <div class="quiz-q">4. Que fait brk(NULL) ?</div>
+    <button class="quiz-opt" data-c="false">Alloue 8 KB</button>
+    <button class="quiz-opt" data-c="true">Retourne l'adresse actuelle du program break</button>
+    <button class="quiz-opt" data-c="false">Libère tout le heap</button>
+    <div class="quiz-fb"></div>
+  </div>
+
+  <div class="quiz
