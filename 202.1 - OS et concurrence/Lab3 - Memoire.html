@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><script>
+(function() {
+  function sendError(msg, stack, lineno, colno) {
+    try {
+      window.parent.postMessage({
+        type: "BDS_VISUALIZER_ERROR",
+        message: String(msg || "Script error"),
+        stack: stack ? String(stack) : null,
+        lineno: lineno ?? null,
+        colno: colno ?? null
+      }, "*");
+    } catch(e) {}
+  }
+  window.addEventListener("error", function(e) {
+    sendError(e.message, e.error ? e.error.stack : null, e.lineno, e.colno);
+  });
+  window.addEventListener("unhandledrejection", function(e) {
+    var reason = e.reason;
+    var msg = reason ? (reason.message || String(reason)) : "Unhandled Promise Rejection";
+    var stack = reason && reason.stack ? reason.stack : null;
+    sendError(msg, stack);
+  });
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab 3 — Gestion Mémoire</title>
+<style>
+  :root{
+    --bg:#f7f8fb; --card:#ffffff; --ink:#0d0d0d; --muted:#6b7280;
+    --accent:#4d6bfe; --accent-soft:#eef1ff; --border:#e5e5e5;
+    --green:#10b981; --green-soft:#ecfdf5;
+    --amber:#f59e0b; --amber-soft:#fffbeb;
+    --red:#ef4444; --red-soft:#fef2f2;
+    --purple:#8b5cf6; --purple-soft:#f5f3ff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.55;
+    padding:24px 16px; font-size:15px;
+  }
+  .wrap{max-width:960px;margin:0 auto}
+  h1{font-size:26px;margin:0 0 4px;letter-spacing:-0.02em}
+  h2{font-size:20px;margin:28px 0 10px;letter-spacing:-0.01em}
+  h3{font-size:16px;margin:18px 0 8px;color:#111}
+  h4{font-size:14px;margin:14px 0 6px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em}
+  p{margin:8px 0}
+  code, .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.92em}
+  code{background:#f0f2f8;padding:1px 6px;border-radius:5px;color:#3730a3}
+  pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:10px;overflow-x:auto;font-size:12.5px;line-height:1.6}
+  pre .cm{color:#64748b}
+  pre .kw{color:#c4b5fd}
+  pre .st{color:#86efac}
+  pre .nm{color:#fca5a5}
+  pre .fn{color:#93c5fd}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:20px}
+
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:8px}
+  .tab{background:transparent;border:1px solid transparent;padding:8px 14px;border-radius:9px;cursor:pointer;font-size:13.5px;color:var(--muted);font-weight:500;transition:all .15s}
+  .tab:hover{background:#eef1ff;color:var(--accent)}
+  .tab.active{background:var(--accent);color:#fff}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .card.tight{padding:14px 18px}
+
+  .callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 10px 10px 0;margin:12px 0}
+  .callout.warn{border-color:var(--amber);background:var(--amber-soft)}
+  .callout.ok{border-color:var(--green);background:var(--green-soft)}
+  .callout.bad{border-color:var(--red);background:var(--red-soft)}
+  .callout.purple{border-color:var(--purple);background:var(--purple-soft)}
+  .callout strong{display:block;margin-bottom:2px}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+
+  input[type="text"],input[type="number"]{
+    font-family:ui-monospace,monospace;background:#fff;border:1.5px solid var(--border);
+    border-radius:8px;padding:8px 12px;font-size:14px;color:var(--ink);width:140px;
+  }
+  input:focus{outline:none;border-color:var(--accent)}
+
+  button.act{
+    background:var(--accent);color:#fff;border:none;border-radius:9px;
+    padding:9px 16px;font-size:13.5px;font-weight:600;cursor:pointer;transition:.15s;
+  }
+  button.act:hover{filter:brightness(1.08)}
+  button.act.ghost{background:#fff;color:var(--accent);border:1.5px solid var(--accent)}
+
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600;letter-spacing:.02em}
+  .pill.blue{background:var(--accent-soft);color:var(--accent)}
+  .pill.green{background:var(--green-soft);color:var(--green)}
+  .pill.amber{background:var(--amber-soft);color:#b45309}
+  .pill.red{background:var(--red-soft);color:var(--red)}
+
+  /* Memory frame grid */
+  .frames{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin:12px 0}
+  .frame{
+    aspect-ratio:1;background:#fff;border:1.5px solid var(--border);border-radius:8px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-size:11px;font-family:ui-monospace,monospace;cursor:pointer;transition:.15s;position:relative;
+    color:var(--ink);
+  }
+  .frame:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .frame .num{font-weight:700;font-size:13px}
+  .frame .addr{font-size:9px;color:var(--muted);margin-top:1px}
+  .frame.pinned{background:var(--purple-soft);border-color:var(--purple)}
+  .frame.used{background:var(--accent-soft);border-color:var(--accent)}
+  .frame.free{background:#fafafa}
+  .frame.highlight{background:var(--green-soft);border-color:var(--green);transform:translateY(-3px);box-shadow:0 4px 12px rgba(16,185,129,.15)}
+
+  /* Bit ribbon */
+  .bits{display:flex;gap:3px;margin:10px 0;flex-wrap:wrap}
+  .bitgroup{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .bitbox{
+    display:flex;gap:2px;
+  }
+  .bit{
+    width:26px;height:32px;display:flex;align-items:center;justify-content:center;
+    font-family:ui-monospace,monospace;font-size:12px;font-weight:600;
+    background:#fff;border:1.5px solid var(--border);border-radius:6px;color:var(--muted);
+  }
+  .bit.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .bit.l0{background:#dbeafe;border-color:#60a5fa;color:#1e40af}
+  .bit.l1{background:#fef3c7;border-color:#fbbf24;color:#92400e}
+  .bit.l2{background:#dcfce7;border-color:#4ade80;color:#166534}
+  .bit.off{background:#fef2f2;border-color:#fca5a5;color:#7f1d1d}
+  .bitlabel{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .bitval{font-family:ui-monospace,monospace;font-size:12px;font-weight:700;color:var(--accent)}
+
+  /* Tree */
+  .tree{display:flex;align-items:center;gap:14px;margin:14px 0;flex-wrap:wrap}
+  .node{
+    background:#fff;border:2px solid var(--border);border-radius:10px;padding:10px 14px;
+    font-family:ui-monospace,monospace;font-size:12px;min-width:70px;text-align:center;
+    transition:.2s;position:relative;
+  }
+  .node.active{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 4px 12px rgba(77,107,254,.15);transform:scale(1.03)}
+  .node.dim{opacity:.4}
+  .arrow{color:var(--muted);font-size:20px;font-weight:300}
+
+  /* Step through */
+  .stepnav{display:flex;gap:8px;align-items:center;margin:14px 0}
+  .stepdots{display:flex;gap:5px;margin-left:auto}
+  .dot{width:8px;height:8px;border-radius:50%;background:#d1d5db;transition:.2s}
+  .dot.on{background:var(--accent);transform:scale(1.3)}
+
+  /* Quiz */
+  .q{margin-bottom:14px}
+  .q .opts{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+  .opt{
+    text-align:left;padding:10px 14px;border:1.5px solid var(--border);background:#fff;
+    border-radius:9px;cursor:pointer;font-size:13.5px;transition:.15s;font-family:inherit;
+  }
+  .opt:hover{border-color:var(--accent)}
+  .opt.correct{background:var(--green-soft);border-color:var(--green);color:#065f46;font-weight:600}
+  .opt.wrong{background:var(--red-soft);border-color:var(--red);color:#991b1b}
+  .opt:disabled{cursor:default}
+
+  .kv{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border);font-size:13.5px}
+  .kv:last-child{border-bottom:none}
+  .kv .k{color:var(--muted)}
+  .kv .v{font-family:ui-monospace,monospace;font-weight:600}
+
+  details{border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;margin:8px 0;background:#fff}
+  details summary{cursor:pointer;font-weight:600;font-size:13.5px;color:var(--accent)}
+  details[open]{background:var(--accent-soft)}
+
+  .emojibullet{font-size:18px;margin-right:6px}
+  .show-tab{display:none}
+  .show-tab.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+</style>
+<style>
+:root {
+  --v-bg: #ffffff;
+  --v-panel: #ffffff;
+  --v-border: #e5e5e5;
+  --v-border-strong: #d1d5db;
+  --v-accent: #4d6bfe;
+  --v-accent-glow: rgba(77, 107, 254, 0.1);
+  --v-text: #0d0d0d;
+  --v-text-secondary: #6b6b6b;
+  --v-text-dim: #999999;
+  --v-radius: 12px;
+  --v-radius-sm: 8px;
+  --v-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+}
+body {
+  margin: 0;
+  padding: clamp(12px, 2vw, 28px);
+  background: var(--v-bg);
+  color: var(--v-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--v-border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--v-border-strong);
+}
+.v-card {
+  background: var(--v-panel);
+  border: 1px solid var(--v-border);
+  border-radius: var(--v-radius);
+  padding: clamp(1rem, 2vw, 1.5rem);
+  box-shadow: var(--v-shadow);
+  animation: v-fade-in 0.25s ease-out;
+}
+.v-glass {
+  background: transparent;
+  border: 1px solid var(--v-border);
+  border-radius: var(--v-radius-sm);
+}
+.v-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--v-text);
+  border-bottom: 2px solid var(--v-border);
+  padding-bottom: 6px;
+  display: inline-block;
+}
+.v-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 1.5rem;
+}
+.v-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--v-text-secondary);
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--v-border);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  margin: 8px 0;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--v-accent);
+  border: 2px solid var(--v-panel);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--v-accent);
+  border: 2px solid var(--v-panel);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  cursor: pointer;
+}
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  background: var(--v-bg);
+  color: var(--v-text);
+  border: 1px solid var(--v-border);
+  border-radius: var(--v-radius-sm);
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--v-accent);
+  box-shadow: 0 0 0 2px var(--v-accent-glow);
+}
+select {
+  cursor: pointer;
+}
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+.v-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+.v-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.8125rem;
+  color: var(--v-accent);
+  font-weight: 700;
+  background: var(--v-accent-glow);
+  padding: 3px 10px;
+  border-radius: var(--v-radius-sm);
+}
+button.v-btn {
+  background: var(--v-accent);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--v-radius-sm);
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+}
+button.v-btn:hover {
+  filter: brightness(0.9);
+  transform: translateY(-1px);
+}
+button.v-btn:active {
+  transform: translateY(0);
+}
+button.v-btn-outline {
+  background: transparent;
+  color: var(--v-accent);
+  border: 1px solid var(--v-accent);
+}
+button.v-btn-outline:hover {
+  background: var(--v-accent-glow);
+}
+.v-animate-float {
+  animation: v-float 3s ease-in-out infinite;
+}
+@keyframes v-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+pre, code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.8125rem;
+}
+pre {
+  background: var(--v-bg);
+  border: 1px solid var(--v-border);
+  border-radius: var(--v-radius-sm);
+  padding: 12px 16px;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+code {
+  background: var(--v-accent-glow);
+  color: var(--v-accent);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+}
+input[type="checkbox"] {
+  accent-color: var(--v-accent);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+canvas {
+  width: 100%;
+  border: 1px solid var(--v-border-strong);
+  border-radius: var(--v-radius-sm);
+  background: var(--v-panel);
+}
+@keyframes v-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+  </style></head>
+<body>
+<div class="wrap">
+
+  <h1>🧠 Lab 3 — Gestion Mémoire</h1>
+  <p class="sub">Ton guide interactif pour comprendre <code>mmap</code>, la pagination, et le code de <code>Driver.swift</code>.</p>
+
+  <div class="tabs">
+    <button class="tab active" data-t="intro">🎯 Le but</button>
+    <button class="tab" data-t="mem">🧠 La mémoire</button>
+    <button class="tab" data-t="va">🔍 Adresse virtuelle</button>
+    <button class="tab" data-t="pt">🌳 Page Table</button>
+    <button class="tab" data-t="struct">📦 Structures</button>
+    <button class="tab" data-t="driver">🚀 Driver.swift</button>
+    <button class="tab" data-t="task">✏️ Ton exercice</button>
+    <button class="tab" data-t="quiz">🎓 Quiz</button>
+  </div>
+
+  <!-- ================= INTRO ================= -->
+  <div class="show-tab active" id="intro">
+    <div class="card">
+      <h2>🎯 C'est quoi ce lab ?</h2>
+      <p>Tu as une mini-machine virtuelle avec <strong>4 Ko de mémoire principale</strong> et <strong>256 Ko de mémoire secondaire</strong>. Le CPU ne voit pas la vraie mémoire physique : il voit une <strong>mémoire virtuelle</strong> qu'il faut traduire à chaque accès.</p>
+      <p>Ce lab implémente déjà <em>presque tout</em> : la traduction d'adresse, la pagination à la demande, le swap (échange vers le disque).</p>
+      <div class="callout">
+        <strong>🚧 Ce qu'il te reste à faire</strong>
+        Implémenter <code>mmap</code> — la fonction qui réserve une <em>nouvelle plage</em> d'adresses virtuelles (comme un <code>malloc</code>).
+      </div>
+
+      <h3>📚 Le vocabulaire en 30 secondes</h3>
+      <div class="kv"><span class="k">Page</span><span class="v">256 octets</span></div>
+      <div class="kv"><span class="k">Frame (cadre)</span><span class="v">256 octets en mémoire physique</span></div>
+      <div class="kv"><span class="k">Adresse virtuelle (VA)</span><span class="v">16 bits → espace de 64 Ko</span></div>
+      <div class="kv"><span class="k">Adresse physique (PA)</span><span class="v">12 bits → 4 Ko réels</span></div>
+      <div class="kv"><span class="k">PTE</span><span class="v">Page Table Entry — décrit une page</span></div>
+
+      <div class="callout purple">
+        <strong>💡 Analogie</strong>
+        Imagine un immeuble (mémoire physique) avec 16 chambres (frames). Les gens (programmes) reçoivent des <em>numéros de chambre virtuels</em> (adresses virtuelles) qui doivent être traduits en numéros réels à la réception. C'est ça, la pagination.
+      </div>
+
+      <h3>🗺️ Plan du lab</h3>
+      <p>📖 Lis <code>README.md</code> → comprends la spec.<br>
+      🔧 Ouvre <code>Machine.swift</code> → cherche <code>func mmap</code>.<br>
+      ✏️ Implémente-la avec les outils existants (<code>translate</code>, <code>allocate</code>, etc.).<br>
+      🧪 Lance <code>swift run</code> → les prints dans <code>Driver.swift</code> te disent si ça marche.</p>
+    </div>
+  </div>
+
+  <!-- ================= MEMORY ================= -->
+  <div class="show-tab" id="mem">
+    <div class="card">
+      <h2>🧠 La mémoire physique : 4 Ko = 16 frames</h2>
+      <p>La mémoire principale est un tableau de <strong>512 × UInt64</strong> = 4096 octets. Découpée en <strong>16 frames de 256 octets</strong>.</p>
+      <p>Clique sur une frame pour voir son état 👇</p>
+      <div class="frames" id="frameGrid"></div>
+      <div id="frameInfo" class="card tight" style="margin-top:12px;background:#fafbff"></div>
+
+      <h3>🏗️ Layout de la frame 0 (kernel)</h3>
+      <p>La frame 0 est <strong>pinnée</strong> (jamais swappable) et stocke les structures du noyau :</p>
+      <div class="mono" style="font-size:12px;background:#0f172a;color:#e2e8f0;padding:14px;border-radius:10px;line-height:1.9">
+        <div style="color:#93c5fd">0x000 – 0x040 · Frame table (16 descripteurs × 4 octets)</div>
+        <div style="color:#86efac">0x040 – 0x042 · Free map (16 bits)</div>
+        <div style="color:#fca5a5">0x042 – 0x044 · Kernel break (kbrk)</div>
+        <div style="color:#fde047">0x044 – 0x04c · Page map root (L0)</div>
+        <div style="color:#cbd5e1">0x04c – 0x100 · Pool non-alloué</div>
+      </div>
+
+      <div class="callout warn">
+        <strong>⚠️ Ordre d'allocation important</strong>
+        Le kernel alloue ses structures <em>avant</em> que l'utilisateur puisse toucher à la mémoire. C'est pour ça que dans <code>Driver.swift</code>, les adresses <code>0xf800</code> fonctionnent immédiatement.
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= VIRTUAL ADDRESS ================= -->
+  <div class="show-tab" id="va">
+    <div class="card">
+      <h2>🔍 Anatomie d'une adresse virtuelle</h2>
+      <p>Une VA fait 16 bits, découpée en <strong>4 parties</strong> :</p>
+
+      <div class="bits" id="vaBits">
+        <div class="bitgroup">
+          <div class="bitbox"><div class="bit l0" id="b15">1</div><div class="bit l0" id="b14">1</div></div>
+          <div class="bitlabel">L0</div>
+        </div>
+        <div class="bitgroup">
+          <div class="bitbox"><div class="bit l1" id="b13">1</div><div class="bit l1" id="b12">1</div><div class="bit l1" id="b11">1</div></div>
+          <div class="bitlabel">L1</div>
+        </div>
+        <div class="bitgroup">
+          <div class="bitbox"><div class="bit l2" id="b10">0</div><div class="bit l2" id="b9">0</div><div class="bit l2" id="b8">0</div></div>
+          <div class="bitlabel">L2</div>
+        </div>
+        <div class="bitgroup">
+          <div class="bitbox" id="offsetBits"></div>
+          <div class="bitlabel">offset (8 bits)</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;align-items:center;margin:12px 0;flex-wrap:wrap">
+        <label style="font-size:13.5px;color:var(--muted)">Tape une VA (hex) :</label>
+        <input type="text" id="vaInput" value="0xf800" maxlength="6">
+        <button class="act" id="vaGo">Analyser</button>
+        <span class="pill blue">Astuce : essaie 0xf810, 0x0800, 0xffff</span>
+      </div>
+
+      <div class="grid2" style="margin-top:14px">
+        <div class="card tight" style="background:#fafbff">
+          <h4>Décomposition</h4>
+          <div class="kv"><span class="k">L0 index (bits 15-14)</span><span class="v" id="rL0">-</span></div>
+          <div class="kv"><span class="k">L1 index (bits 13-11)</span><span class="v" id="rL1">-</span></div>
+          <div class="kv"><span class="k">L2 index (bits 10-8)</span><span class="v" id="rL2">-</span></div>
+          <div class="kv"><span class="k">Offset dans la frame</span><span class="v" id="rOff">-</span></div>
+        </div>
+        <div class="card tight" style="background:#fafbff">
+          <h4>Signification</h4>
+          <p style="font-size:13px;margin:0">
+            Une fois traduite, la VA devient une <strong>adresse physique</strong> :
+          </p>
+          <div style="text-align:center;font-family:ui-monospace;font-size:14px;margin-top:12px">
+            <span style="color:var(--accent);font-weight:700" id="vaOut">0xf800</span>
+            <span style="color:var(--muted)"> → </span>
+            <span style="color:var(--green);font-weight:700" id="paOut">?</span>
+          </div>
+          <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px" id="paHint"></p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>🧠 À retenir</strong>
+        Deux VA dans la <em>même page</em> ont le même trio (L0, L1, L2) — seul l'offset change.<br>
+        Ex : <code>0xf800</code>, <code>0xf810</code>, <code>0xf820</code> → même page ! Seul l'offset diffère.
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PAGE TABLE ================= -->
+  <div class="show-tab" id="pt">
+    <div class="card">
+      <h2>🌳 La page table à 3 niveaux</h2>
+      <p>C'est un <strong>arbre</strong> de répertoires. Chaque niveau filtre une partie de la VA :</p>
+
+      <div class="tree" id="treeView">
+        <div class="node" id="n_l0">L0[0]<br><span style="color:var(--muted)">?</span></div>
+        <div class="arrow">→</div>
+        <div class="node" id="n_l1">L1[0]<br><span style="color:var(--muted)">?</span></div>
+        <div class="arrow">→</div>
+        <div class="node" id="n_l2">L2[0]<br><span style="color:var(--muted)">?</span></div>
+        <div class="arrow">→</div>
+        <div class="node" id="n_pte">PTE<br><span style="color:var(--muted)">frame ?</span></div>
+      </div>
+
+      <div style="display:flex;gap:10px;align-items:center;margin:12px 0;flex-wrap:wrap">
+        <label style="font-size:13.5px;color:var(--muted)">VA à tracer :</label>
+        <input type="text" id="ptInput" value="0xf800" maxlength="6">
+        <button class="act" id="ptGo">Tracer</button>
+      </div>
+
+      <div id="ptExplanation" class="card tight" style="background:#fafbff"></div>
+
+      <h3>📐 Tailles des répertoires</h3>
+      <div class="grid2">
+        <div class="card tight">
+          <h4>L0 (racine)</h4>
+          <p style="font-size:13px;margin:4px 0">1 répertoire · <strong>4 entrées</strong> · index sur 2 bits</p>
+          <p style="font-size:12px;color:var(--muted)">Stocké à l'offset <code>0x44</code> de la frame 0.</p>
+        </div>
+        <div class="card tight">
+          <h4>L1</h4>
+          <p style="font-size:13px;margin:4px 0">Jusqu'à 4 répertoires · <strong>8 entrées</strong> · index sur 3 bits</p>
+          <p style="font-size:12px;color:var(--muted)">Alloué dynamiquement via <code>kalloc(16)</code>.</p>
+        </div>
+        <div class="card tight">
+          <h4>L2</h4>
+          <p style="font-size:13px;margin:4px 0">Jusqu'à 32 répertoires · <strong>8 entrées</strong> · index sur 3 bits</p>
+          <p style="font-size:12px;color:var(--muted)">Contient des PTE (feuilles de l'arbre).</p>
+        </div>
+        <div class="card tight">
+          <h4>Offset</h4>
+          <p style="font-size:13px;margin:4px 0"><strong>8 bits</strong> · 0-255</p>
+          <p style="font-size:12px;color:var(--muted)">Position dans la frame de 256 octets.</p>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <strong>💡 Pourquoi 3 niveaux ?</strong>
+        Parce que 2<sup>2</sup> × 2<sup>3</sup> × 2<sup>3</sup> = 2<sup>8</sup> = 256 pages possibles.<br>
+        256 pages × 256 octets = 65536 octets = 64 Ko d'espace virtuel. ✓
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= STRUCTURES ================= -->
+  <div class="show-tab" id="struct">
+    <div class="card">
+      <h2>📦 Les deux structures clés</h2>
+      <p>Il y a deux structures à 16 bits / 32 bits que tu dois absolument connaître. <strong>Clique sur les bits</strong> pour explorer.</p>
+
+      <h3>1️⃣ PageTableEntry (16 bits)</h3>
+      <p>Décrit une page virtuelle : <em>où est-elle ? peut-on y accéder ?</em></p>
+      <div class="bits" id="pteBits">
+        <div class="bitgroup">
+          <div class="bitbox">
+            <div class="bit" data-info="frame">F</div><div class="bit" data-info="frame">F</div>
+            <div class="bit" data-info="frame">F</div><div class="bit" data-info="frame">F</div>
+            <div class="bit" data-info="frame">F</div><div class="bit" data-info="frame">F</div>
+            <div class="bit" data-info="frame">F</div><div class="bit" data-info="frame">F</div>
+            <div class="bit" data-info="frame">F</div><div class="bit" data-info="frame">F</div>
+            <div class="bit" data-info="reserved">-</div>
+            <div class="bit" data-info="x">x</div>
+            <div class="bit" data-info="w">w</div>
+            <div class="bit" data-info="r">r</div>
+            <div class="bit" data-info="p">p</div>
+            <div class="bit" data-info="a">a</div>
+          </div>
+          <div class="bitlabel">15 → 0</div>
+        </div>
+      </div>
+      <div id="pteInfo" class="callout" style="min-height:56px"><strong>👆 Clique sur un bit</strong></div>
+
+      <h3>2️⃣ FrameDescriptor (32 bits = 4 octets)</h3>
+      <p>Décrit une frame physique : <em>est-elle utilisée ? par qui ? peut-on l'évincer ?</em></p>
+      <div class="bits" id="fdBits">
+        <div class="bitgroup">
+          <div class="bitbox">
+            <div class="bit" data-fd="pphi1">P</div><div class="bit" data-fd="pphi2">P</div>
+            <div class="bit" data-fd="reserved">-</div><div class="bit" data-fd="reserved">-</div>
+            <div class="bit" data-fd="brc1">b</div><div class="bit" data-fd="brc2">b</div>
+            <div class="bit" data-fd="pinned">p</div>
+            <div class="bit" data-fd="referenced">r</div>
+          </div>
+          <div class="bitlabel">raw[0] · 7 → 0</div>
+        </div>
+      </div>
+      <div id="fdInfo" class="callout" style="min-height:56px;background:var(--purple-soft);border-color:var(--purple)"><strong>👆 Clique sur un bit</strong></div>
+
+      <h3>🧠 À quoi servent les champs ?</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:8px 4px;width:110px"><strong>PTE.frame</strong></td>
+          <td style="padding:8px 4px">Numéro de frame. Si <code>p</code>=1 → frame en RAM. Sinon → slot en mémoire secondaire.</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:8px 4px"><strong>PTE.p / a</strong></td>
+          <td style="padding:8px 4px"><code>a</code>=présent, <code>p</code>=en RAM. Les deux sont mis à 1 ensemble par <code>isPresent</code>.</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:8px 4px"><strong>FD.r</strong></td>
+          <td style="padding:8px 4px">Référencée ? L'algo de vol met ce bit à 0 à chaque passe, puis regarde qui n'a pas été re-touché.</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:8px 4px"><strong>FD.p</strong></td>
+          <td style="padding:8px 4px">Pinnée ? Si oui, JAMAIS évincée (frame 0 du kernel par ex).</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 4px"><strong>FD.br</strong></td>
+          <td style="padding:8px 4px">Liste des PTE qui pointent vers cette frame. Sert à mettre à jour les PTE quand on swap.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= DRIVER ================= -->
+  <div class="show-tab" id="driver">
+    <div class="card">
+      <h2>🚀 Driver.swift pas à pas</h2>
+      <p>Ce fichier teste tout le système. Suis chaque étape 👇</p>
+
+      <div class="stepnav">
+        <button class="act ghost" id="prevStep">← Précédent</button>
+        <button class="act" id="nextStep">Suivant →</button>
+        <div class="stepdots" id="stepDots"></div>
+      </div>
+
+      <div class="card tight" style="background:#fafbff;min-height:260px">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+          <span class="pill blue" id="stepNum">Étape 1 / 8</span>
+          <span id="stepStatus"></span>
+        </div>
+        <h3 id="stepTitle" style="margin-top:0"></h3>
+        <pre id="stepCode" style="margin:8px 0"></pre>
+        <p id="stepExplain"></p>
+        <div class="callout" id="stepResult" style="font-family:ui-monospace;font-size:13px;white-space:pre-wrap"></div>
+      </div>
+
+      <details>
+        <summary>🎬 Récapitulatif : l'histoire complète</summary>
+        <ol style="font-size:13.5px">
+          <li>Le kernel a déjà réservé <code>0xf800-0xf8ff</code> (frame 0 pinnée).</li>
+          <li><code>0x1000</code> n'est pas mappée → segfault.</li>
+          <li><code>allocate(0x0800)</code> crée une nouvelle page → le frame fault handler s'exécute.</li>
+          <li>Toute la page <code>0x08xx</code> est maintenant accessible (même translation).</li>
+          <li>On écrit "abc" dedans — ça marche, on peut lire en retour.</li>
+          <li>On remplit 14 pages → 4 Ko de RAM pleins.</li>
+          <li>Le 15ème alloc déclenche le <strong>swap</strong> : la frame 1 (page 0x0100) part en secondaire.</li>
+          <li>Lire <code>0x3000</code> donne 0 (nouvelle page zérotée). Lire <code>0x0800</code> force un swap-in.</li>
+        </ol>
+      </details>
+    </div>
+  </div>
+
+  <!-- ================= TASK ================= -->
+  <div class="show-tab" id="task">
+    <div class="card">
+      <h2>✏️ Ton exercice : implémenter <code>mmap</code></h2>
+
+      <div class="callout">
+        <strong>🎯 Objectif</strong>
+        Réserver une <strong>nouvelle plage contiguë</strong> d'adresses virtuelles et mapper chaque page de cette plage.
+      </div>
+
+      <h3>📜 La signature (déjà écrite dans Machine.swift)</h3>
+      <pre><span class="kw">public mutating func</span> <span class="fn">mmap</span>(
+  byteCount: Int,
+  nearby hint: VirtualAddress,
+  <span class="kw">for</span> ps: PagePermissions
+) -> VirtualAddress? {
+  <span class="cm">// TODO</span>
+  <span class="kw">nil</span>
+}</pre>
+
+      <h3>🔑 Ce que dit la spec (en clair)</h3>
+      <ul style="font-size:14px">
+        <li><strong>byteCount</strong> : combien d'octets tu veux. Il faut <em>arrondir en pages</em>.</li>
+        <li><strong>hint</strong> : une adresse <em>suggérée</em>. Si non-nulle, essaie de mapper près d'elle. Si nulle, choisis toi-même.</li>
+        <li><strong>ps</strong> : permissions (<code>.read</code>, <code>.write</code>, <code>.execute</code>).</li>
+        <li><strong>Retour</strong> : l'adresse du début, ou <code>nil</code> si échec (mémoire pleine, etc.).</li>
+      </ul>
+
+      <h3>🧩 Plan suggéré (déplie étape par étape)</h3>
+
+      <details>
+        <summary>Étape 1 — Calculer le nombre de pages</summary>
+        <pre>let pages = (byteCount + 255) / 256
+<span class="cm">// 256 octets par page → arrondi supérieur</span>
+<span class="cm">// ex: 1 octet → 1 page, 256 → 1 page, 257 → 2 pages</span></pre>
+      </details>
+
+      <details>
+        <summary>Étape 2 — Trouver une adresse de départ</summary>
+        <p style="font-size:13.5px">Deux cas :</p>
+        <ul style="font-size:13.5px">
+          <li>Si <code>hint.isNull</code> : parcours l'espace virtuel de <code>0x0000</code> à <code>0xff00</code> pour trouver un trou assez grand.</li>
+          <li>Sinon : aligne <code>hint</code> sur une frontière de page, et cherche un trou à partir de là.</li>
+        </ul>
+        <pre><span class="cm">// Rappel : page() te donne l'adresse alignée</span>
+let start = hint.isNull ? <span class="st">0x0000</span> : hint.<span class="fn">page</span>()</pre>
+      </details>
+
+      <details>
+        <summary>Étape 3 — Vérifier que la plage est libre</summary>
+        <p style="font-size:13.5px">Appelle <code>translate()</code> (sans fault handler) sur chaque page candidate. Si ça renvoie <code>nil</code> → c'est libre.</p>
+        <pre><span class="kw">for</span> i <span class="kw">in</span> <span class="st">0</span> ..&lt; pages {
+  let va = VirtualAddress(rawValue: candidate + UInt16(i &lt;&lt; 8))
+  <span class="kw">if</span> <span class="fn">translate</span>(va, <span class="kw">for</span>: [.read]) != <span class="kw">nil</span> {
+    <span class="cm">// occupé → cherche ailleurs</span>
+  }
+}</pre>
+      </details>
+
+      <details>
+        <summary>Étape 4 — Mapper chaque page</summary>
+        <p style="font-size:13.5px">Appelle <code>allocate()</code> sur chaque adresse de page. Si une seule échoue, retourne <code>nil</code>.</p>
+        <pre><span class="kw">for</span> i <span class="kw">in</span> <span class="st">0</span> ..&lt; pages {
+  let va = VirtualAddress(rawValue: base + UInt16(i &lt;&lt; 8))
+  <span class="kw">guard</span> <span class="fn">allocate</span>(va, <span class="kw">for</span>: ps) != <span class="kw">nil</span> <span class="kw">else</span> { <span class="kw">return nil</span> }
+}
+<span class="kw">return</span> base</pre>
+      </details>
+
+      <details>
+        <summary>🪤 Pièges classiques</summary>
+        <ul style="font-size:13.5px">
+          <li>Ne pas aligner sur 256 ! Une page commence toujours sur un multiple de 256.</li>
+          <li>Oublier <code>isNull</code> : <code>hint=0x0000</code> veut dire « choisis toi-même ».</li>
+          <li>Déborder : <code>base + pages*256</code> doit rester &lt; <code>0x10000</code>.</li>
+          <li>Ne pas gérer l'échec : si une page échoue, il faut <em>rollback</em> (mais le kernel ne fournit pas de munmap… à toi de voir).</li>
+        </ul>
+      </details>
+
+      <div class="callout ok">
+        <strong>✅ Comment vérifier que ça marche ?</strong>
+        Écris un petit test dans <code>Driver.swift</code> : appelle <code>mmap(byteCount: 512, nearby: 0, for: [.read, .write])</code> puis <code>store</code>/<code>load</code> à l'adresse retournée. Si tu lis ce que tu as écrit → gagné !
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= QUIZ ================= -->
+  <div class="show-tab" id="quiz">
+    <div class="card">
+      <h2>🎓 Vérifie ta compréhension</h2>
+      <div id="quizBox"></div>
+      <div style="margin-top:16px;display:flex;gap:10px">
+        <button class="act ghost" id="resetQuiz">🔄 Recommencer</button>
+        <span class="pill blue" id="quizScore">Score : 0 / 5</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============ TABS ============ */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.show-tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.t).classList.add('active');
+  });
+});
+
+/* ============ FRAME GRID ============ */
+const framesData = [
+  {id:0, used:'pinned', label:'KERNEL', desc:'Frame 0 — pinnée, contient les structures du noyau (frame table, page map, free map).'},
+  {id:1, used:'used', label:'page 0x0100', desc:'Utilisée par la page 0x0100. Sera la 1ère victime du swap !'},
+  {id:2, used:'used', label:'page 0x0800', desc:'Contient "abc" — page allouée par allocate(0x0800).'},
+  {id:3, used:'used', label:'page 0x2000', desc:'Allouée par la boucle du Driver.'},
+  {id:4, used:'used', label:'page 0x2100', desc:'Allouée par la boucle du Driver.'},
+  {id:5, used:'used', label:'page 0x2200', desc:'Allouée par la boucle du Driver.'},
+  {id:6, used:'used', label:'page 0x2300', desc:'Allouée par la boucle du Driver.'},
+  {id:7, used:'used', label:'page 0x2400', desc:'Allouée par la boucle du Driver.'},
+  {id:8, used:'used', label:'page 0x2500', desc:'Allouée par la boucle du Driver.'},
+  {id:9, used:'used', label:'page 0x2600', desc:'Allouée par la boucle du Driver.'},
+  {id:10, used:'used', label:'page 0x2700', desc:'Allouée par la boucle du Driver.'},
+  {id:11, used:'used', label:'page 0x2800', desc:'Allouée par la boucle du Driver.'},
+  {id:12, used:'used', label:'page 0x2900', desc:'Allouée par la boucle du Driver.'},
+  {id:13, used:'used', label:'page 0x2a00', desc:'Allouée par la boucle du Driver.'},
+  {id:14, used:'used', label:'page 0x2b00', desc:'Allouée par la boucle du Driver.'},
+  {id:15, used:'used', label:'page 0x2c00', desc:'Allouée par la boucle du Driver.'},
+];
+const frameGrid = document.getElementById('frameGrid');
+framesData.forEach(f=>{
+  const d = document.createElement('div');
+  d.className = 'frame ' + f.used;
+  d.innerHTML = `<span class="num">#${f.id}</span><span class="addr">0x${(f.id*256).toString(16).padStart(3,'0')}</span>`;
+  d.addEventListener('click',()=>{
+    document.querySelectorAll('.frame').forEach(x=>x.classList.remove('highlight'));
+    d.classList.add('highlight');
+    document.getElementById('frameInfo').innerHTML = `
+      <h4 style="margin:0 0 4px;color:var(--muted)">Frame #${f.id}</h4>
+      <p style="margin:4px 0"><strong>Adresse physique :</strong> <code>0x${(f.id*256).toString(16).padStart(4,'0')} – 0x${(f.id*256+255).toString(16).padStart(4,'0')}</code></p>
+      <p style="margin:4px 0"><strong>Occupée par :</strong> ${f.label}</p>
+      <p style="margin:4px 0;color:var(--muted);font-size:13px">${f.desc}</p>
+    `;
+  });
+  frameGrid.appendChild(d);
+});
+document.querySelector('.frame')?.click();
+
+/* ============ VA EXPLORER ============ */
+function updateVA(){
+  let raw = document.getElementById('vaInput').value.replace(/^0x/i,'');
+  let v = parseInt(raw,16);
+  if(isNaN(v) || v<0 || v>0xffff) v = 0xf800;
+  const l0 = (v>>14)&0x3;
+  const l1 = (v>>11)&0x7;
+  const l2 = (v>>8)&0x7;
+  const off = v&0xff;
+
+  // Update bits
+  for(let i=15;i>=8;i--){
+    const el = document.getElementById('b'+i);
+    if(!el) continue;
+    const bit = (v>>i)&1;
+    el.textContent = bit;
+    // Reset classes then apply state
+    el.classList.remove('on','off');
+    if(bit===1) el.classList.add('on');
+    // Keep base class
+  }
+
+  // Offset bits
+  const offBox = document.getElementById('offsetBits');
+  offBox.innerHTML = '';
+  for(let i=7;i>=0;i--){
+    const bit = (v>>i)&1;
+    const d = document.createElement('div');
+    d.className = 'bit' + (bit?' on':'');
+    d.textContent = bit;
+    d.style.width='20px';
+    offBox.appendChild(d);
+  }
+
+  document.getElementById('rL0').textContent = l0;
+  document.getElementById('rL1').textContent = l1;
+  document.getElementById('rL2').textContent = l2;
+  document.getElementById('rOff').textContent = '0x'+off.toString(16).padStart(2,'0');
+
+  // Physical address guess
+  // For kernel addresses (0xf800-0xf8ff) → frame 0, offset = low byte
+  let pa = '?';
+  let hint = 'Entre une adresse mappée pour voir sa traduction.';
+  if(v>=0xf800 && v<=0xf8ff){
+    pa = '0x'+(off).toString(16).padStart(4,'0') + ' (frame 0)';
+    hint = '🏛️ Adresse kernel → frame 0 (pinnée).';
+  } else if(v>=0x0800 && v<=0x08ff){
+    pa = '0x'+(2*256+off).toString(16).padStart(4,'0') + ' (frame 2)';
+    hint = '✅ Page 0x0800 → frame 2 (après allocate).';
+  } else {
+    hint = '⚠️ Pas mappée → segfault ou page fault.';
+  }
+  document.getElementById('paOut').textContent = pa;
+  document.getElementById('paHint').textContent = hint;
+  document.getElementById('vaOut').textContent = '0x'+v.toString(16).padStart(4,'0');
+}
+document.getElementById('vaGo').addEventListener('click',updateVA);
+document.getElementById('vaInput').addEventListener('input',updateVA);
+updateVA();
+
+/* ============ PAGE TABLE TREE ============ */
+document.getElementById('ptGo').addEventListener('click',updateTree);
+document.getElementById('ptInput').addEventListener('input',updateTree);
+function updateTree(){
+  let raw = document.getElementById('ptInput').value.replace(/^0x/i,'');
+  let v = parseInt(raw,16);
+  if(isNaN(v)) v = 0xf800;
+  const l0 = (v>>14)&0x3;
+  const l1 = (v>>11)&0x7;
+  const l2 = (v>>8)&0x7;
+
+  const n_l0 = document.getElementById('n_l0');
+  const n_l1 = document.getElementById('n_l1');
+  const n_l2 = document.getElementById('n_l2');
+  const n_pte = document.getElementById('n_pte');
+
+  n_l0.innerHTML = `L0[${l0}]<br><span style="color:var(--muted)">${l0===3?'= 0x48 (kalloc)':'?'}</span>`;
+  n_l1.innerHTML = `L1[${l1}]<br><span style="color:var(--muted)">${l0===3&&l1===7?'PTE ⚡':'?'}</span>`;
+  n_l2.innerHTML = `L2[${l2}]<br><span style="color:var(--muted)">?</span>`;
+  n_pte.innerHTML = `PTE<br><span style="color:var(--muted)">frame ${v>=0xf800&&v<=0xf8ff?'0':(v>=0x0800&&v<=0x08ff?'2':'?')}</span>`;
+
+  let explain = '';
+  if(v>=0xf800 && v<=0xf8ff){
+    explain = `<strong>🏛️ Adresse kernel</strong> : L0[3] contient l'adresse du répertoire L1. Mais attention — le walk s'arrête à L1[7] car l'entrée contient un PTE (bit 0 = 1). Le kernel utilise <em>seulement 2 niveaux</em> ici pour économiser de la mémoire.`;
+    n_l2.classList.add('dim');
+    n_pte.classList.add('active');
+    n_l0.classList.remove('active'); n_l1.classList.remove('active');
+  } else if(v>=0x0800 && v<=0x08ff){
+    explain = `<strong>📄 Page 0x0800</strong> : 3 niveaux complets. L0[0] → L1, L1[1] → L2, L2[0] → PTE. Chaque niveau a été créé à la demande par <code>allocate()</code>.`;
+    n_l0.classList.add('active'); n_l1.classList.add('active'); n_l2.classList.add('active'); n_pte.classList.add('active');
+  } else {
+    explain = `<strong>❓ Adresse non mappée</strong> : le walk rencontrera une entrée nulle et déclenchera un page fault (ou un segfault si aucun handler n'est là).`;
+    n_l0.classList.remove('active'); n_l1.classList.remove('active'); n_l2.classList.remove('active'); n_pte.classList.remove('active');
+  }
+  document.getElementById('ptExplanation').innerHTML = explain;
+}
+updateTree();
+
+/* ============ STRUCTURE INFO ============ */
+const pteInfoMap = {
+  frame:{t:'🏠 frame (bits 15-6)',d:'Numéro de la frame qui contient cette page. Si <code>p</code>=1, c\'est une frame RAM (0-15). Sinon, c\'est un slot en mémoire secondaire.'},
+  reserved:{t:'🚫 réservé',d:'Bit 5 — non utilisé pour l\'instant.'},
+  x:{t:'⚙️ x = execute',d:'La page peut être exécutée comme du code.'},
+  w:{t:'✏️ w = write',d:'La page peut être modifiée. Sans ce bit → segfault à l\'écriture.'},
+  r:{t:'👁️ r = read',d:'La page peut être lue.'},
+  p:{t:'✅ p = present',d:'La frame est présente en RAM. Sinon → il faut la swap-in depuis le disque.'},
+  a:{t:'📌 a = accessed/allocated',d:'La page est définie. Si a=0, l\'entrée entière vaut 0 (pas de PTE).'}
+};
+document.querySelectorAll('#pteBits .bit').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const info = pteInfoMap[b.dataset.info];
+    document.getElementById('pteInfo').innerHTML = `<strong>${info.t}</strong>${info.d}`;
+  });
+});
+
+const fdInfoMap = {
+  pphi1:{t:'🏷️ pp hi (bit 7)',d:'Bit haut de la position permanente en mémoire secondaire (10 bits au total).'},
+  pphi2:{t:'🏷️ pp hi (bit 6)',d:'Bit haut de la position permanente en mémoire secondaire.'},
+  reserved:{t:'🚫 réservé',d:'Bits 4-5 — non utilisés.'},
+  brc1:{t:'🔗 brcnt (bit 3)',d:'Bit haut du compteur de back-references (0-3).'},
+  brc2:{t:'🔗 brcnt (bit 2)',d:'Bit bas du compteur. Nombre de PTE qui pointent vers cette frame.'},
+  pinned:{t:'📌 p = pinned',d:'Si 1, la frame ne peut JAMAIS être évincée. Utilisé pour la frame du kernel.'},
+  referenced:{t:'👀 r = referenced',d:'Si 1, la frame a été touchée depuis la dernière passe de vol. L\'algo met ce bit à 0 pour trouver des victimes.'}
+};
+document.querySelectorAll('#fdBits .bit').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const info = fdInfoMap[b.dataset.fd];
+    document.getElementById('fdInfo').innerHTML = `<strong>${info.t}</strong>${info.d}`;
+  });
+});
+
+/* ============ DRIVER STEPPER ============ */
+const steps = [
+  {
+    title:'1. Adresses kernel déjà mappées',
+    code:`print(machine.translate(0xf800, for: [.read])!)
+print(machine.translate(0xf810, for: [.read])!)
+print(machine.translate(0xf820, for: [.read])!)`,
+    explain:'Le kernel a déjà tout préparé. Les 3 adresses tombent dans la MÊME page (0xf800-0xf8ff) → frame 0.',
+    result:'0x0000\n0x0010\n0x0020',
+    status:'ok'
+  },
+  {
+    title:'2. Adresse non mappée → segfault',
+    code:`if let pa = machine.translate(0x1000, for: [.read]) {
+  fatalError("unexpected translation")
+}`,
+    explain:'0x1000 n\'est pas mappée. translate() renvoie nil, le if ne passe pas, pas de crash.',
+    result:'(aucune sortie — la condition échoue silencieusement)',
+    status:'warn'
+  },
+  {
+    title:'3. allocate() crée une nouvelle page',
+    code:`print(machine.allocate(0x0800, for: [.read, .write])!)`,
+    explain:'La page fault handler s\'exécute. Il trouve une frame libre (frame 2), met à jour le free map, crée les répertoires L1/L2 manquants, et écrit le PTE.',
+    result:'0x0200   ← adresse physique (frame 2, offset 0)',
+    status:'ok'
+  },
+  {
+    title:'4. Toute la page est maintenant accessible',
+    code:`print(machine.translate(0x0830, for: [.read])!)
+print(machine.translate(0x0840, for: [.read])!)`,
+    explain:'Même trio (L0, L1, L2) que 0x0800 → même page → frame 2. Seul l\'offset change : 0x30 et 0x40.',
+    result:'0x0230\n0x0240',
+    status:'ok'
+  },
+  {
+    title:'5. On écrit dans la page',
+    code:`for (i, c) in "abc".enumerated() {
+  let va = VirtualAddress(rawValue: 0x0800 + UInt16(i))
+  machine.store(c.asciiValue!, to: va)
+  print(UnicodeScalar(machine.load(from: va)))
+}`,
+    explain:'store écrit dans frame 2 aux offsets 0, 1, 2. load les relit. On peut écrire car on a demandé .write à l\'étape 3.',
+    result:'a\nb\nc',
+    status:'ok'
+  },
+  {
+    title:'6. On remplit la mémoire',
+    code:`for i in 0 ..< 14 {
+  let va = VirtualAddress(rawValue: 0x2000 + UInt16(i << 8))
+  print(machine.allocate(va, for: [.read, .write])!)
+}`,
+    explain:'14 nouvelles pages allouées → toutes les frames 2..15 sont prises (frame 0 = kernel, frame 1 = 0x0100 déjà mappée ?). Bref, la RAM est pleine.',
+    result:'0x0300\n0x0400\n... (14 lignes)\n0x0f00',
+    status:'ok'
+  },
+  {
+    title:'7. Le SWAP se déclenche ⚡',
+    code:`print(machine.allocate(0x3000, for: [.read, .write])!)`,
+    explain:'Plus de frame libre ! L\'algo findVictim() cherche une frame avec r=0 et non-pinnée. Il choisit la frame 1 (page 0x0100), la copie en mémoire secondaire, met à jour son PTE, et réutilise la frame.',
+    result:'0x0100  ← la frame 1 a été recyclée',
+    status:'warn'
+  },
+  {
+    title:'8. Le swap-in ramène la page',
+    code:`print(machine.load(from: 0x3000))   // → 0 (page zérotée)
+print(machine.load(from: 0x0800))   // → swap-in !`,
+    explain:'0x3000 est fraîchement zérotée → on lit 0. Puis lire 0x0800 provoque une page fault → le PTE n\'est plus présent en RAM → swap-in depuis le secondaire.',
+    result:'0\n0   ← la page 0x0800 a été rechargée',
+    status:'ok'
+  }
+];
+let stepIdx = 0;
+const dots = document.getElementById('stepDots');
+steps.forEach((_,i)=>{
+  const d = document.createElement('div');
+  d.className = 'dot' + (i===0?' on':'');
+  dots.appendChild(d);
+});
+function renderStep(){
+  const s = steps[stepIdx];
+  document.getElementById('stepNum').textContent = `Étape ${stepIdx+1} / ${steps.length}`;
+  document.getElementById('stepTitle').textContent = s.title;
+  document.getElementById('stepCode').textContent = s.code;
+  document.getElementById('stepExplain').textContent = s.explain;
+  const r = document.getElementById('stepResult');
+  r.textContent = s.result;
+  r.className = 'callout ' + (s.status==='ok'?'ok':s.status==='warn'?'warn':'');
+  document.getElementById('stepStatus').innerHTML =
+    s.status==='ok' ? '<span class="pill green">✓ OK</span>' :
+    s.status==='warn' ? '<span class="pill amber">⚡ Attention</span>' :
+    '<span class="pill red">✗ Erreur</span>';
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===stepIdx));
+}
+document.getElementById('prevStep').addEventListener('click',()=>{
+  stepIdx = (stepIdx - 1 + steps.length) % steps.length;
+  renderStep();
+});
+document.getElementById('nextStep').addEventListener('click',()=>{
+  stepIdx = (stepIdx + 1) % steps.length;
+  renderStep();
+});
+renderStep();
+
+/* ============ QUIZ ============ */
+const quizData = [
+  {
+    q:'Combien d\'octets fait une page virtuelle ?',
+    opts:['64 octets','256 octets','1024 octets','4096 octets'],
+    correct:1
+  },
+  {
+    q:'Que signifie un bit r=0 dans un FrameDescriptor ?',
+    opts:['La frame est pinnée','La page a été référencée récemment','La frame n\'a pas été référencée depuis la dernière passe','La frame est vide'],
+    correct:2
+  },
+  {
+    q:'Si tu appelles translate(0xf810), quel frame reçois-tu ?',
+    opts:['Frame 1','Frame 0','Frame 2','Aucun — segfault'],
+    correct:1
+  },
+  {
+    q:'Que doit renvoyer mmap si hint est 0x0000 ?',
+    opts:['Nil toujours','Un pointeur nul','Une adresse choisie par le kernel','Un segfault'],
+    correct:2
+  },
+  {
+    q:'Quand le swap se déclenche-t-il ?',
+    opts:['À chaque allocate','Quand freeMap == 0 et qu\'on alloue','Toutes les 100 opérations','Au démarrage'],
+    correct:1
+  }
+];
+let score = 0, answered = 0;
+const quizBox = document.getElementById('quizBox');
+function renderQuiz(){
+  quizBox.innerHTML = '';
+  score = 0; answered = 0;
+  document.getElementById('quizScore').textContent = `Score : 0 / ${quizData.length}`;
+  quizData.forEach((q,qi)=>{
+    const div = document.createElement('div');
+    div.className = 'q';
+    div.innerHTML = `<strong>Q${qi+1}. ${q.q}</strong>`;
+    const opts = document.createElement('div');
+    opts.className = 'opts';
+    q.opts.forEach((o,oi)=>{
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.textContent = o;
+      btn.addEventListener('click',()=>{
+        if(btn.disabled) return;
+        opts.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+        if(oi===q.correct){
+          btn.classList.add('correct');
+          score++;
+        } else {
+          btn.classList.add('wrong');
+          opts.querySelectorAll('.opt')[q.correct].classList.add('correct');
+        }
+        answered++;
+        document.getElementById('quizScore').textContent = `Score : ${score} / ${quizData.length}`;
+      });
+      opts.appendChild(btn);
+    });
+    div.appendChild(opts);
+    quizBox.appendChild(div);
+  });
+}
+document.getElementById('resetQuiz').addEventListener('click',renderQuiz);
+renderQuiz();
+</script>
+
+</body>
+</html>
