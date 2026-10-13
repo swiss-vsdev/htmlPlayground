@@ -29,7 +29,6 @@ header{text-align:center;margin-bottom:24px}
 h1{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-bottom:6px}
 header p{font-size:13.5px;color:#6b7280}
 
-/* NAV sommaire */
 nav{
   background:#fff;border:1px solid #e5e7eb;border-radius:12px;
   padding:12px 16px;margin-bottom:20px;font-size:13px;
@@ -47,7 +46,6 @@ nav a:hover{background:#dbe4ff}
   margin:26px 4px 10px;
 }
 
-/* DETAILS / SUMMARY — natif HTML */
 details{
   background:#fff;
   border:1px solid #e5e7eb;
@@ -82,6 +80,8 @@ summary:hover{background:#fafbff}
   background:#eef2ff;padding:4px 10px;border-radius:99px;
   flex-shrink:0;
 }
+.tag.green{color:#15803d;background:#dcfce7}
+.tag.orange{color:#c2410c;background:#ffedd5}
 .info{flex:1; min-width:0}
 .name{
   font-size:15px;font-weight:700;letter-spacing:-.01em;
@@ -130,6 +130,23 @@ details[open] .chev{transform:rotate(90deg); color:#4d6bfe}
 }
 .legend b{color:#111827; font-weight:700}
 
+/* Étapes de méthode */
+.steps{
+  background:#f0fdf4;
+  border-left:4px solid #22c55e;
+  border-radius:8px;
+  padding:12px 14px 12px 14px;
+  font-size:13.5px;
+  color:#14532d;
+  line-height:1.7;
+  margin-bottom:12px;
+}
+.steps .label{color:#15803d}
+.steps ol{margin-left:18px;padding-left:0}
+.steps li{margin-bottom:4px}
+.steps li b{color:#14532d}
+
+/* Exercice */
 .exo{
   background:#eef2ff;
   border-left:4px solid #4d6bfe;
@@ -138,7 +155,9 @@ details[open] .chev{transform:rotate(90deg); color:#4d6bfe}
   font-size:14px;
   color:#1e2b7a;
   line-height:1.6;
+  margin-bottom:8px;
 }
+.exo:last-child{margin-bottom:0}
 .exo strong{color:#4d6bfe; font-weight:800}
 
 .note{
@@ -150,6 +169,8 @@ details[open] .chev{transform:rotate(90deg); color:#4d6bfe}
   color:#7c2d12;
   margin-top:10px;
 }
+.note.green{background:#f0fdf4;border-left-color:#22c55e;color:#14532d}
+.note.red{background:#fef2f2;border-left-color:#ef4444;color:#7f1d1d}
 
 footer{
   text-align:center;
@@ -164,6 +185,7 @@ footer{
   .name{font-size:14.5px}
   .formula{font-size:13px}
   .body{padding:14px}
+  .tag{font-size:9.5px;padding:3px 8px}
 }
 </style>
 </head>
@@ -171,7 +193,7 @@ footer{
 
 <header>
   <h1>Glossaire des formules</h1>
-  <p>Clique sur une carte pour voir la légende et un mini-exercice</p>
+  <p>Clique sur une carte pour la légende, la méthode et les exercices</p>
 </header>
 
 <nav>
@@ -179,6 +201,7 @@ footer{
   <a href="#forces">Forces</a>
   <a href="#energie">Énergie</a>
   <a href="#quantite">Quantité de mouvement</a>
+  <a href="#chocs">Chocs</a>
 </nav>
 
 <!-- ================= CINÉMATIQUE ================= -->
@@ -190,7 +213,7 @@ footer{
     <div class="info">
       <div class="name">Vitesse moyenne</div>
       <div class="formula">\( v = \frac{d}{t} \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
@@ -199,9 +222,32 @@ footer{
     <div class="legend">
       <b>v</b> vitesse (m/s) · <b>d</b> distance (m) · <b>t</b> temps (s)
     </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Identifier les 3 grandeurs : \( d \), \( t \), et celle qu'on cherche.</li>
+        <li><b>Convertir</b> en unités SI : m, s (attention aux km/h → m/s : ÷ 3,6).</li>
+        <li>Appliquer \( v = d/t \).</li>
+        <li>Vérifier l'unité du résultat (m/s).</li>
+      </ol>
+    </div>
+
     <div class="exo">
-      <strong>Exo :</strong> un cycliste parcourt 300 m en 20 s.<br>
-      \( v = \frac{300}{20} = 15\ \text{m/s} \)
+      <strong>Exo 1 :</strong> un cycliste parcourt 300 m en 20 s.<br>
+      \( v = \frac{300}{20} = 15\ \text{m/s} \) (soit 54 km/h)
+    </div>
+    <div class="exo">
+      <strong>Exo 2 :</strong> une voiture roule à 90 km/h. Convertir : \( 90 / 3{,}6 = 25\ \text{m/s} \).<br>
+      Quelle distance en 12 s ? \( d = v \cdot t = 25 \times 12 = 300\ \text{m} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> un train fait Paris–Lyon (430 km) en 2 h 05 min.<br>
+      \( t = 2 + 5/60 = 2{,}083\ \text{h} \Rightarrow v = \frac{430}{2{,}083} \approx 206\ \text{km/h} \)
+    </div>
+
+    <div class="note">
+      ⚠️ Vitesse <b>moyenne</b> ≠ vitesse instantanée. Un trajet avec pause a la même vitesse moyenne que sans pause si \( d \) et \( t \) sont identiques.
     </div>
   </div>
 </details>
@@ -211,19 +257,38 @@ footer{
     <span class="tag">Accélération</span>
     <div class="info">
       <div class="name">Accélération moyenne</div>
-      <div class="formula">\( a = \frac{\Delta v}{\Delta t} \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="formula">\( a = \frac{\Delta v}{\Delta t} = \frac{v_f - v_i}{t_f - t_i} \)</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
   <div class="body">
     <div class="label">Légende</div>
     <div class="legend">
-      <b>a</b> accélération (m/s²) · <b>Δv</b> changement de vitesse · <b>Δt</b> durée
+      <b>a</b> accélération (m/s²) · <b>Δv</b> variation de vitesse (m/s) · <b>Δt</b> durée (s)
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Relever la vitesse <b>initiale</b> \( v_i \) et <b>finale</b> \( v_f \) (m/s).</li>
+        <li>Calculer \( \Delta v = v_f - v_i \) (peut être négatif → décélération).</li>
+        <li>Diviser par la durée \( \Delta t \).</li>
+        <li>Signe : \( a > 0 \) accélère, \( a < 0 \) freine.</li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 :</strong> une voiture passe de 0 à 20 m/s en 5 s.<br>
+      \( a = \frac{20 - 0}{5} = 4\ \text{m/s}^2 \)
     </div>
     <div class="exo">
-      <strong>Exo :</strong> une voiture passe de 0 à 20 m/s en 5 s.<br>
-      \( a = \frac{20}{5} = 4\ \text{m/s}^2 \)
+      <strong>Exo 2 (freinage) :</strong> une voiture passe de 30 m/s à l'arrêt en 6 s.<br>
+      \( a = \frac{0 - 30}{6} = -5\ \text{m/s}^2 \) (décélération)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> un TGV passe de 72 km/h à 216 km/h en 100 s.<br>
+      \( v_i = 20\ \text{m/s},\ v_f = 60\ \text{m/s} \Rightarrow a = \frac{60 - 20}{100} = 0{,}4\ \text{m/s}^2 \)
     </div>
   </div>
 </details>
@@ -232,9 +297,9 @@ footer{
   <summary>
     <span class="tag">MRU</span>
     <div class="info">
-      <div class="name">Position en MRU</div>
+      <div class="name">Position en MRU (vitesse constante)</div>
       <div class="formula">\( x(t) = x_0 + v\,t \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
@@ -243,9 +308,28 @@ footer{
     <div class="legend">
       <b>x₀</b> position de départ · <b>v</b> vitesse constante · <b>t</b> temps
     </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Choisir un <b>référentiel</b> et une origine (où est \( x = 0 \) ?).</li>
+        <li>Noter \( x_0 \) (position initiale) et \( v \) (attention au signe).</li>
+        <li>Remplacer \( t \) par la durée écoulée depuis le départ.</li>
+        <li>Calculer \( x(t) \).</li>
+      </ol>
+    </div>
+
     <div class="exo">
-      <strong>Exo :</strong> départ à x₀ = 10 m, v = 4 m/s.<br>
-      Après 5 s : \( x = 10 + 4 \times 5 = 30\ \text{m} \)
+      <strong>Exo 1 :</strong> départ à \( x_0 = 10\ \text{m} \), \( v = 4\ \text{m/s} \). Après 5 s :<br>
+      \( x = 10 + 4 \times 5 = 30\ \text{m} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 2 :</strong> un piéton marche à 1,5 m/s vers la gauche depuis \( x_0 = 50\ \text{m} \).<br>
+      \( v = -1{,}5\ \text{m/s} \Rightarrow x(t) = 50 - 1{,}5\,t \). À \( t = 20 \) s : \( x = 20\ \text{m} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 (rencontre) :</strong> A part de \( x = 0 \) à 5 m/s, B part de \( x = 100 \) m à 3 m/s vers A.<br>
+      \( 5t = 100 - 3t \Rightarrow t = 12{,}5\ \text{s} \) au point \( x = 62{,}5\ \text{m} \)
     </div>
   </div>
 </details>
@@ -256,18 +340,38 @@ footer{
     <div class="info">
       <div class="name">Position accélérée</div>
       <div class="formula">\( x(t) = x_0 + v_0 t + \tfrac{1}{2} a t^2 \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
   <div class="body">
     <div class="label">Légende</div>
     <div class="legend">
-      <b>v₀</b> vitesse initiale · <b>a</b> accélération constante · <b>t</b> temps
+      <b>x₀</b> position initiale · <b>v₀</b> vitesse initiale · <b>a</b> accélération constante · <b>t</b> temps
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Vérifier que \( a \) est <b>constante</b> (MRUA).</li>
+        <li>Noter \( x_0 \), \( v_0 \), \( a \) avec leurs signes.</li>
+        <li>Remplacer dans la formule (souvent \( x_0 = 0 \), \( v_0 = 0 \) au départ).</li>
+        <li>Si on cherche la <b>vitesse</b> à un instant : \( v(t) = v_0 + a t \).</li>
+        <li>Formule sans temps : \( v_f^2 - v_i^2 = 2 a (x_f - x_i) \).</li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 (chute libre) :</strong> \( v_0 = 0 \), \( a = g = 9{,}81\ \text{m/s}^2 \).<br>
+      Après 3 s : \( h = \tfrac{1}{2} \times 9{,}81 \times 3^2 \approx 44{,}1\ \text{m} \)
     </div>
     <div class="exo">
-      <strong>Exo :</strong> chute libre (v₀ = 0, a = 9,81 m/s²).<br>
-      Après 3 s : \( x = \tfrac{1}{2} \times 9{,}81 \times 3^2 \approx 44\ \text{m} \)
+      <strong>Exo 2 (freinage) :</strong> \( v_0 = 20\ \text{m/s} \), \( a = -4\ \text{m/s}^2 \).<br>
+      Distance d'arrêt : \( v_f = 0 \Rightarrow 0 - 20^2 = 2(-4) d \Rightarrow d = 50\ \text{m} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> une fusée part avec \( v_0 = 0 \), \( a = 15\ \text{m/s}^2 \).<br>
+      Vitesse après 200 m : \( v = \sqrt{2 \times 15 \times 200} = \sqrt{6000} \approx 77{,}5\ \text{m/s} \)
     </div>
   </div>
 </details>
@@ -276,20 +380,38 @@ footer{
   <summary>
     <span class="tag">MCU</span>
     <div class="info">
-      <div class="name">Vitesse en cercle</div>
-      <div class="formula">\( v = R\,\omega \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="name">Vitesse en cercle (mouvement circulaire uniforme)</div>
+      <div class="formula">\( v = R\,\omega \quad;\quad T = \frac{2\pi}{\omega} \)</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
   <div class="body">
     <div class="label">Légende</div>
     <div class="legend">
-      <b>v</b> vitesse linéaire (m/s) · <b>R</b> rayon (m) · <b>ω</b> vitesse angulaire (rad/s)
+      <b>v</b> vitesse linéaire (m/s) · <b>R</b> rayon (m) · <b>ω</b> vitesse angulaire (rad/s) · <b>T</b> période (s)
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Convertir la fréquence ou la période : \( \omega = \frac{2\pi}{T} = 2\pi f \).</li>
+        <li>Appliquer \( v = R\,\omega \).</li>
+        <li>Vitesse linéaire dépend du rayon, \( \omega \) non.</li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 :</strong> roue \( R = 0{,}5\ \text{m} \) tournant à \( \omega = 10\ \text{rad/s} \).<br>
+      \( v = 0{,}5 \times 10 = 5\ \text{m/s} \)
     </div>
     <div class="exo">
-      <strong>Exo :</strong> roue R = 0,5 m tournant à ω = 10 rad/s.<br>
-      \( v = 0{,}5 \times 10 = 5\ \text{m/s} \)
+      <strong>Exo 2 :</strong> manège qui fait un tour en 4 s. \( \omega = \frac{2\pi}{4} \approx 1{,}57\ \text{rad/s} \).<br>
+      À \( R = 3\ \text{m} \) : \( v = 3 \times 1{,}57 \approx 4{,}7\ \text{m/s} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> la Terre tourne sur elle-même en 24 h. \( \omega = 7{,}27 \times 10^{-5}\ \text{rad/s} \).<br>
+      À l'équateur (\( R = 6371\ \text{km} \)) : \( v \approx 463\ \text{m/s} \)
     </div>
   </div>
 </details>
@@ -300,18 +422,37 @@ footer{
     <div class="info">
       <div class="name">Accélération centripète</div>
       <div class="formula">\( a_c = \frac{v^2}{R} = \omega^2 R \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
   <div class="body">
     <div class="label">Légende</div>
     <div class="legend">
-      <b>a<sub>c</sub></b> accélération vers le centre · <b>v</b> vitesse · <b>R</b> rayon
+      <b>a<sub>c</sub></b> accélération dirigée vers le centre (m/s²) · <b>v</b> vitesse · <b>R</b> rayon · <b>ω</b> vitesse angulaire
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Repérer \( v \) et \( R \) (ou \( \omega \) et \( R \)).</li>
+        <li>Choisir la forme adaptée : \( v^2/R \) ou \( \omega^2 R \).</li>
+        <li>Direction : toujours <b>vers le centre</b>, perpendiculaire à la vitesse.</li>
+        <li>Force centripète : \( F_c = m\,a_c \).</li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 :</strong> \( v = 10\ \text{m/s} \), \( R = 20\ \text{m} \).<br>
+      \( a_c = \frac{100}{20} = 5\ \text{m/s}^2 \)
     </div>
     <div class="exo">
-      <strong>Exo :</strong> v = 10 m/s, R = 20 m.<br>
-      \( a_c = \frac{10^2}{20} = 5\ \text{m/s}^2 \)
+      <strong>Exo 2 :</strong> voiture (1000 kg) dans un virage \( R = 50\ \text{m} \) à 15 m/s.<br>
+      \( a_c = \frac{225}{50} = 4{,}5\ \text{m/s}^2 \Rightarrow F_c = 4500\ \text{N} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> satellite \( R = 7000\ \text{km} \), \( v = 7500\ \text{m/s} \).<br>
+      \( a_c = \frac{7500^2}{7 \times 10^6} \approx 8\ \text{m/s}^2 \) (proche de \( g \) !)
     </div>
   </div>
 </details>
@@ -325,18 +466,38 @@ footer{
     <div class="info">
       <div class="name">2ᵉ loi — principe fondamental</div>
       <div class="formula">\( \sum \vec{F} = m\,\vec{a} \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
   <div class="body">
     <div class="label">Légende</div>
     <div class="legend">
-      <b>ΣF⃗</b> somme des forces (N) · <b>m</b> masse (kg) · <b>a⃗</b> accélération (m/s²)
+      <b>ΣF⃗</b> somme vectorielle des forces (N) · <b>m</b> masse (kg) · <b>a⃗</b> accélération (m/s²)
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Choisir un <b>référentiel</b> galiléen et des axes (x, y).</li>
+        <li>Faire le <b>bilan des forces</b> (poids, réaction, tension, frottements…).</li>
+        <li>Projeter chaque force sur les axes.</li>
+        <li>Écrire \( \sum F_x = m a_x \) et \( \sum F_y = m a_y \).</li>
+        <li>Si l'objet est à l'équilibre (\( v \) constant ou immobile) : \( \sum \vec{F} = \vec{0} \).</li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 :</strong> force de 20 N sur un objet de 5 kg (pas de frottement).<br>
+      \( a = \frac{20}{5} = 4\ \text{m/s}^2 \)
     </div>
     <div class="exo">
-      <strong>Exo :</strong> force de 20 N sur un objet de 5 kg.<br>
-      \( a = \frac{20}{5} = 4\ \text{m/s}^2 \)
+      <strong>Exo 2 (avec frottement) :</strong> poussée 50 N, frottement 20 N, masse 10 kg.<br>
+      \( a = \frac{50 - 20}{10} = 3\ \text{m/s}^2 \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 (ascenseur) :</strong> masse 70 kg, tension câble = 800 N. Prendre \( g = 9{,}81 \).<br>
+      Poids = 686,7 N. \( a = \frac{800 - 686{,}7}{70} \approx 1{,}62\ \text{m/s}^2 \) vers le haut.
     </div>
   </div>
 </details>
@@ -347,18 +508,35 @@ footer{
     <div class="info">
       <div class="name">Force de pesanteur</div>
       <div class="formula">\( \vec{P} = m\,\vec{g} \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
   <div class="body">
     <div class="label">Légende</div>
     <div class="legend">
-      <b>P⃗</b> poids (N) · <b>m</b> masse (kg) · <b>g</b> ≈ 9,81 m/s² sur Terre
+      <b>P⃗</b> poids (N) · <b>m</b> masse (kg) · <b>g</b> ≈ 9,81 m/s² sur Terre (1,62 sur la Lune, 3,71 sur Mars)
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Ne pas confondre <b>masse</b> (kg, invariante) et <b>poids</b> (N, dépend de l'astre).</li>
+        <li>Multiplier \( m \times g \) du lieu considéré.</li>
+        <li>Le poids est toujours dirigé vers le centre de l'astre.</li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 :</strong> masse 60 kg sur Terre. \( P = 60 \times 9{,}81 = 588{,}6\ \text{N} \)
     </div>
     <div class="exo">
-      <strong>Exo :</strong> masse 60 kg sur Terre.<br>
-      \( P = 60 \times 9{,}81 = 589\ \text{N} \)
+      <strong>Exo 2 (Lune) :</strong> même personne sur la Lune.<br>
+      \( P = 60 \times 1{,}62 = 97{,}2\ \text{N} \) (6× moins !)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> un astronaute pèse 750 N sur Terre. Quelle est sa masse ?<br>
+      \( m = \frac{750}{9{,}81} \approx 76{,}5\ \text{kg} \)
     </div>
   </div>
 </details>
@@ -367,20 +545,39 @@ footer{
   <summary>
     <span class="tag">Gravitation</span>
     <div class="info">
-      <div class="name">Loi universelle</div>
+      <div class="name">Loi universelle de Newton</div>
       <div class="formula">\( F = G\,\frac{m_1 m_2}{r^2} \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
   <div class="body">
     <div class="label">Légende</div>
     <div class="legend">
-      <b>G</b> = 6,67·10⁻¹¹ N·m²/kg² · <b>m₁, m₂</b> masses (kg) · <b>r</b> distance (m)
+      <b>G</b> = 6,67·10⁻¹¹ N·m²/kg² · <b>m₁, m₂</b> masses (kg) · <b>r</b> distance entre les centres (m)
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Convertir les masses en kg et la distance en m.</li>
+        <li>Calculer \( r^2 \) (attention aux grandes distances).</li>
+        <li>Appliquer la formule, résultat en newtons.</li>
+        <li>Pour la pesanteur à la surface d'un astre : \( g = \frac{G M}{R^2} \).</li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 :</strong> deux masses de 10 kg à 1 m.<br>
+      \( F = 6{,}67 \times 10^{-11} \times \frac{100}{1} = 6{,}67 \times 10^{-9}\ \text{N} \) (minuscule !)
     </div>
     <div class="exo">
-      <strong>Exo :</strong> deux masses de 10 kg à 1 m.<br>
-      \( F \approx 6{,}67 \times 10^{-9}\ \text{N} \) (minuscule !)
+      <strong>Exo 2 :</strong> Terre (5,97·10²⁴ kg) et Lune (7,35·10²² kg), \( r = 3{,}84 \times 10^8\ \text{m} \).<br>
+      \( F \approx 1{,}98 \times 10^{20}\ \text{N} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> vérifier \( g \) terrestre.<br>
+      \( g = \frac{6{,}67 \times 10^{-11} \times 5{,}97 \times 10^{24}}{(6{,}37 \times 10^6)^2} \approx 9{,}81\ \text{m/s}^2 \)
     </div>
   </div>
 </details>
@@ -394,7 +591,7 @@ footer{
     <div class="info">
       <div class="name">Travail d'une force constante</div>
       <div class="formula">\( W = \vec{F} \cdot \vec{d} = F\,d\,\cos\theta \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
@@ -403,9 +600,32 @@ footer{
     <div class="legend">
       <b>W</b> travail (J) · <b>F</b> force (N) · <b>d</b> déplacement (m) · <b>θ</b> angle entre force et déplacement
     </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Repérer la <b>direction de la force</b> et celle du <b>déplacement</b>.</li>
+        <li>Calculer l'angle \( \theta \) entre les deux vecteurs.</li>
+        <li>Appliquer \( W = F d \cos\theta \).</li>
+        <li>Signe :
+          <br>• \( \theta = 0° \) → \( W > 0 \) (moteur)
+          <br>• \( \theta = 90° \) → \( W = 0 \)
+          <br>• \( \theta = 180° \) → \( W < 0 \) (résistant, ex. frottement)
+        </li>
+      </ol>
+    </div>
+
     <div class="exo">
-      <strong>Exo :</strong> F = 50 N, d = 4 m, même direction (θ = 0).<br>
+      <strong>Exo 1 :</strong> \( F = 50\ \text{N} \), \( d = 4\ \text{m} \), même direction (\( \theta = 0 \)).<br>
       \( W = 50 \times 4 \times 1 = 200\ \text{J} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 2 (frottement) :</strong> \( F = 30\ \text{N} \) opposée au mouvement sur 10 m.<br>
+      \( W = 30 \times 10 \times \cos(180°) = -300\ \text{J} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> tirer une valise avec 80 N à 60° du sol sur 5 m.<br>
+      \( W = 80 \times 5 \times \cos(60°) = 80 \times 5 \times 0{,}5 = 200\ \text{J} \)
     </div>
   </div>
 </details>
@@ -416,7 +636,7 @@ footer{
     <div class="info">
       <div class="name">Énergie cinétique</div>
       <div class="formula">\( E_c = \tfrac{1}{2}\,m\,v^2 \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
@@ -425,9 +645,27 @@ footer{
     <div class="legend">
       <b>E<sub>c</sub></b> énergie cinétique (J) · <b>m</b> masse (kg) · <b>v</b> vitesse (m/s)
     </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Convertir \( v \) en m/s (÷ 3,6 si en km/h).</li>
+        <li>Calculer \( v^2 \) <b>avant</b> de multiplier par \( m/2 \).</li>
+        <li>Le résultat est en joules.</li>
+        <li>Doubler la vitesse quadruple \( E_c \) (car \( v^2 \)).</li>
+      </ol>
+    </div>
+
     <div class="exo">
-      <strong>Exo :</strong> voiture 1000 kg à 20 m/s.<br>
-      \( E_c = \tfrac{1}{2} \times 1000 \times 20^2 = 200\ 000\ \text{J} \)
+      <strong>Exo 1 :</strong> voiture 1000 kg à 20 m/s.<br>
+      \( E_c = 0{,}5 \times 1000 \times 400 = 200\,000\ \text{J} = 200\ \text{kJ} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 2 :</strong> même voiture à 40 m/s. \( E_c = 800\,000\ \text{J} \) → <b>×4</b> !
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> balle de tennis 58 g à 180 km/h (= 50 m/s).<br>
+      \( E_c = 0{,}5 \times 0{,}058 \times 2500 = 72{,}5\ \text{J} \)
     </div>
   </div>
 </details>
@@ -438,29 +676,48 @@ footer{
     <div class="info">
       <div class="name">Énergie potentielle de pesanteur</div>
       <div class="formula">\( E_p = m\,g\,h \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
   <div class="body">
     <div class="label">Légende</div>
     <div class="legend">
-      <b>E<sub>p</sub></b> énergie potentielle (J) · <b>m</b> masse (kg) · <b>g</b> ≈ 9,81 · <b>h</b> hauteur (m)
+      <b>E<sub>p</sub></b> énergie potentielle (J) · <b>m</b> masse (kg) · <b>g</b> ≈ 9,81 m/s² · <b>h</b> hauteur par rapport à la référence (m)
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Choisir une <b>origine</b> pour les hauteurs (\( h = 0 \) où on veut).</li>
+        <li>Mesurer \( h \) depuis cette origine, positif vers le haut.</li>
+        <li>Appliquer \( E_p = m g h \).</li>
+        <li>Si \( h \) devient négatif (point sous l'origine), \( E_p \) devient négatif aussi.</li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 :</strong> masse 2 kg à 5 m.<br>
+      \( E_p = 2 \times 9{,}81 \times 5 = 98{,}1\ \text{J} \)
     </div>
     <div class="exo">
-      <strong>Exo :</strong> masse 2 kg à 5 m de haut.<br>
-      \( E_p = 2 \times 9{,}81 \times 5 \approx 98\ \text{J} \)
+      <strong>Exo 2 :</strong> pomme de 150 g à 3 m.<br>
+      \( E_p = 0{,}15 \times 9{,}81 \times 3 \approx 4{,}4\ \text{J} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> ascenseur de 800 kg monte de 20 m.<br>
+      \( \Delta E_p = 800 \times 9{,}81 \times 20 = 156\,960\ \text{J} \approx 157\ \text{kJ} \)
     </div>
   </div>
 </details>
 
 <details>
   <summary>
-    <span class="tag">Énergie</span>
+    <span class="tag green">Énergie</span>
     <div class="info">
-      <div class="name">Énergie mécanique</div>
-      <div class="formula">\( E_m = E_c + E_p \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="name">Énergie mécanique &amp; conservation</div>
+      <div class="formula">\( E_m = E_c + E_p = \text{constante} \) (sans frottement)</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
@@ -469,9 +726,29 @@ footer{
     <div class="legend">
       Sans frottement, <b>E<sub>m</sub> reste constante</b>. E<sub>c</sub> et E<sub>p</sub> s'échangent entre elles.
     </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Vérifier qu'il n'y a <b>pas de frottement</b> (ou les négliger).</li>
+        <li>Écrire \( E_m \) au point de départ : \( E_{c,i} + E_{p,i} \).</li>
+        <li>Écrire \( E_m \) au point d'arrivée : \( E_{c,f} + E_{p,f} \).</li>
+        <li>Égaliser, puis résoudre pour l'inconnue (souvent la vitesse).</li>
+        <li>S'il y a frottement : \( E_{m,f} = E_{m,i} - W_{frott} \).</li>
+      </ol>
+    </div>
+
     <div class="exo">
-      <strong>Exo :</strong> en haut d'une pente : E<sub>c</sub> = 0, E<sub>p</sub> = 100 J.<br>
-      En bas : E<sub>c</sub> = 100 J, E<sub>p</sub> = 0. <strong>E<sub>m</sub> = 100 J partout.</strong>
+      <strong>Exo 1 :</strong> en haut d'une pente : \( E_c = 0 \), \( E_p = 100\ \text{J} \).<br>
+      En bas : \( E_c = 100\ \text{J} \), \( E_p = 0 \). <strong>E<sub>m</sub> = 100 J partout.</strong>
+    </div>
+    <div class="exo">
+      <strong>Exo 2 :</strong> chute libre depuis 20 m. Quelle vitesse au sol ?<br>
+      \( m g h = \tfrac{1}{2} m v^2 \Rightarrow v = \sqrt{2gh} = \sqrt{2 \times 9{,}81 \times 20} \approx 19{,}8\ \text{m/s} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> un skateur part d'une rampe à 5 m. Quelle vitesse en bas ?<br>
+      \( v = \sqrt{2 \times 9{,}81 \times 5} \approx 9{,}9\ \text{m/s} \) (≈ 36 km/h)
     </div>
   </div>
 </details>
@@ -482,18 +759,35 @@ footer{
     <div class="info">
       <div class="name">Puissance moyenne</div>
       <div class="formula">\( P = \frac{W}{t} = \vec{F} \cdot \vec{v} \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
   <div class="body">
     <div class="label">Légende</div>
     <div class="legend">
-      <b>P</b> puissance (W) · <b>W</b> travail (J) · <b>t</b> durée (s)
+      <b>P</b> puissance (W) · <b>W</b> travail (J) · <b>t</b> durée (s) · <b>F</b> force (N) · <b>v</b> vitesse (m/s)
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Si on connaît \( W \) et \( t \) : \( P = W/t \).</li>
+        <li>Si on connaît \( F \) et \( v \) : \( P = F v \) (force parallèle au mouvement).</li>
+        <li>1 cheval-vapeur ≈ 736 W.</li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 :</strong> travail de 600 J en 3 s. \( P = 600/3 = 200\ \text{W} \)
     </div>
     <div class="exo">
-      <strong>Exo :</strong> travail de 600 J en 3 s.<br>
-      \( P = \frac{600}{3} = 200\ \text{W} \)
+      <strong>Exo 2 :</strong> voiture à 30 m/s, force motrice 1200 N.<br>
+      \( P = 1200 \times 30 = 36\,000\ \text{W} = 36\ \text{kW} \) (≈ 49 ch)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> monter 60 kg au 3ᵉ étage (9 m) en 15 s.<br>
+      \( W = 60 \times 9{,}81 \times 9 \approx 5297\ \text{J} \Rightarrow P \approx 353\ \text{W} \)
     </div>
   </div>
 </details>
@@ -503,25 +797,44 @@ footer{
     <span class="tag">Rendement</span>
     <div class="info">
       <div class="name">Efficacité d'une machine</div>
-      <div class="formula">\( \eta = \frac{P_{utile}}{P_{consommée}} \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="formula">\( \eta = \frac{P_{utile}}{P_{consommée}} = \frac{E_{utile}}{E_{consommée}} \)</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
   <div class="body">
     <div class="label">Légende</div>
     <div class="legend">
-      <b>η</b> rendement (entre 0 et 1) — multiplie par 100 pour un pourcentage
+      <b>η</b> rendement (entre 0 et 1) — multiplie par 100 pour un pourcentage. Toujours \( \eta \le 1 \).
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Identifier la puissance (ou énergie) <b>utile</b> (ce qu'on veut).</li>
+        <li>Identifier la puissance (ou énergie) <b>consommée / reçue</b> (ce qu'on paie).</li>
+        <li>Faire le rapport, multiplier par 100 pour le %.</li>
+        <li>Les pertes = \( P_{consommée} - P_{utile} \) (chaleur, bruit, frottements).</li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 :</strong> moteur : 800 W utile absorbés sur 1000 W.<br>
+      \( \eta = 800/1000 = 0{,}8 = 80\% \)
     </div>
     <div class="exo">
-      <strong>Exo :</strong> moteur : 800 W utile absorbés sur 1000 W.<br>
-      \( \eta = \frac{800}{1000} = 0{,}8 \Rightarrow 80\,\% \)
+      <strong>Exo 2 :</strong> ampoule à incandescence : 10 W de lumière pour 100 W consommés.<br>
+      \( \eta = 10\% \) (90 W partent en chaleur)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> panneau solaire reçoit 1000 W/m², produit 180 W/m².<br>
+      \( \eta = 18\% \)
     </div>
   </div>
 </details>
 
 <!-- ================= QUANTITÉ DE MOUVEMENT ================= -->
-<div class="section" id="quantite">Quantité de mouvement (Nugget 4)</div>
+<div class="section" id="quantite">Quantité de mouvement</div>
 
 <details>
   <summary>
@@ -529,7 +842,7 @@ footer{
     <div class="info">
       <div class="name">Quantité de mouvement</div>
       <div class="formula">\( \vec{p} = m\,\vec{v} \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
@@ -539,9 +852,28 @@ footer{
       <b>p⃗</b> quantité de mouvement (kg·m/s) · <b>m</b> masse (kg) · <b>v⃗</b> vitesse (m/s)<br>
       C'est le « punch » d'un objet en mouvement : plus il est lourd ou rapide, plus il en a.
     </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Convertir masse (kg) et vitesse (m/s).</li>
+        <li>Le vecteur \( \vec{p} \) a <b>même direction et sens</b> que \( \vec{v} \).</li>
+        <li>Pour sommer plusieurs \( \vec{p} \), travailler en composantes (x, y).</li>
+      </ol>
+    </div>
+
     <div class="exo">
-      <strong>Exo :</strong> voiture 1000 kg à 20 m/s.<br>
-      \( p = 1000 \times 20 = 20\ 000\ \text{kg·m/s} \)
+      <strong>Exo 1 :</strong> voiture 1000 kg à 20 m/s.<br>
+      \( p = 1000 \times 20 = 20\,000\ \text{kg·m/s} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 2 :</strong> ballon de foot 0,43 kg frappé à 30 m/s.<br>
+      \( p = 0{,}43 \times 30 = 12{,}9\ \text{kg·m/s} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 (comparaison) :</strong> voiture de 1,5 t à 50 km/h vs camion 30 t à 5 km/h.<br>
+      Voiture : \( p = 1500 \times 13{,}9 \approx 20\,833\ \text{kg·m/s} \)<br>
+      Camion : \( p = 30\,000 \times 1{,}39 \approx 41\,667\ \text{kg·m/s} \) → le camion en a 2× plus !
     </div>
   </div>
 </details>
@@ -550,21 +882,38 @@ footer{
   <summary>
     <span class="tag">Impulsion</span>
     <div class="info">
-      <div class="name">Impulsion d'une force</div>
+      <div class="name">Impulsion d'une force constante</div>
       <div class="formula">\( \vec{j} = \vec{F}\,\Delta t = m(\vec{v} - \vec{v}_0) \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
   <div class="body">
     <div class="label">Légende</div>
     <div class="legend">
-      <b>j⃗</b> impulsion (N·s = kg·m/s) · <b>F⃗</b> force (N) · <b>Δt</b> durée d'application<br>
-      L'impulsion est égale à la variation de quantité de mouvement.
+      <b>j⃗</b> impulsion (N·s = kg·m/s) · <b>F⃗</b> force (N) · <b>Δt</b> durée (s)
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Repérer la force appliquée et la durée d'application.</li>
+        <li>Multiplier \( F \times \Delta t \) (ou utiliser \( \Delta p \) si on connaît les vitesses).</li>
+        <li>L'impulsion est un vecteur, même direction que la force.</li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 :</strong> pousser un objet avec \( F = 100\ \text{N} \) pendant 0,5 s.<br>
+      \( j = 100 \times 0{,}5 = 50\ \text{N·s} \)
     </div>
     <div class="exo">
-      <strong>Exo :</strong> on pousse un objet avec F = 100 N pendant 0,5 s.<br>
-      \( j = 100 \times 0{,}5 = 50\ \text{N·s} \)
+      <strong>Exo 2 (airbag) :</strong> tête de 5 kg passe de 15 m/s à 0 en 0,1 s.<br>
+      \( j = 0 - 5 \times 15 = -75\ \text{N·s} \Rightarrow F = -750\ \text{N} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> même choc sans airbag, arrêt en 0,01 s.<br>
+      \( F = -75 / 0{,}01 = -7500\ \text{N} \) → 10× plus violent ! Voilà pourquoi les airbags sauvent des vies.
     </div>
   </div>
 </details>
@@ -575,7 +924,7 @@ footer{
     <div class="info">
       <div class="name">Impulsion — force variable (cas discret)</div>
       <div class="formula">\( \vec{j} = \sum_i \vec{F}_i \,\Delta t_i = m\vec{v}_N - m\vec{v}_0 \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
@@ -584,9 +933,28 @@ footer{
     <div class="legend">
       On découpe le temps en petits intervalles où la force est presque constante, puis on additionne. À la fin, les vitesses intermédiaires s'annulent une à une — il ne reste que le début et la fin.
     </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Découper le temps total en intervalles \( \Delta t_i \).</li>
+        <li>Pour chaque intervalle, noter la force moyenne \( F_i \).</li>
+        <li>Calculer \( F_i \cdot \Delta t_i \) et additionner.</li>
+        <li>Le résultat est égal à \( m v_{final} - m v_{initial} \) (théorème impulsion).</li>
+      </ol>
+    </div>
+
     <div class="exo">
-      <strong>Exo :</strong> F₁ = 10 N pendant 0,2 s, puis F₂ = 30 N pendant 0,1 s.<br>
+      <strong>Exo 1 :</strong> \( F_1 = 10\ \text{N} \) pendant 0,2 s, puis \( F_2 = 30\ \text{N} \) pendant 0,1 s.<br>
       \( j = 10 \times 0{,}2 + 30 \times 0{,}1 = 2 + 3 = 5\ \text{N·s} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 2 :</strong> graphique triangulaire : force monte de 0 à 200 N en 0,5 s puis redescend à 0.<br>
+      Aire du triangle : \( j = \tfrac{1}{2} \times 0{,}5 \times 200 = 50\ \text{N·s} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> force constante 50 N pendant 2 s, puis 0 pendant 1 s, puis -30 N pendant 0,5 s.<br>
+      \( j = 50(2) + 0(1) + (-30)(0{,}5) = 100 - 15 = 85\ \text{N·s} \)
     </div>
   </div>
 </details>
@@ -595,9 +963,9 @@ footer{
   <summary>
     <span class="tag">Théorème</span>
     <div class="info">
-      <div class="name">Impulsion ↔ quantité de mouvement</div>
+      <div class="name">Théorème impulsion ↔ quantité de mouvement</div>
       <div class="formula">\( \vec{j} = \vec{p}_f - \vec{p}_i = \Delta \vec{p} \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
@@ -607,31 +975,220 @@ footer{
       <b>j⃗</b> impulsion résultante · <b>p⃗<sub>i</sub></b> quantité de mouvement initiale · <b>p⃗<sub>f</sub></b> finale<br>
       L'impulsion de la résultante des forces sur un objet = l'accroissement de sa quantité de mouvement.
     </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Calculer \( \vec{p}_i = m \vec{v}_i \) et \( \vec{p}_f = m \vec{v}_f \).</li>
+        <li>Faire la différence \( \Delta \vec{p} \).</li>
+        <li>Si on cherche la force : \( F = \frac{\Delta p}{\Delta t} \).</li>
+        <li>Si on cherche la durée : \( \Delta t = \frac{\Delta p}{F} \).</li>
+      </ol>
+    </div>
+
     <div class="exo">
-      <strong>Exo :</strong> une balle de 0,2 kg frappée à 30 m/s s'arrête en 0,1 s.<br>
-      \( j = 0 - 0{,}2 \times 30 = -6\ \text{N·s} \)
+      <strong>Exo 1 :</strong> balle 0,2 kg à 30 m/s s'arrête en 0,1 s.<br>
+      \( \Delta p = 0 - 6 = -6\ \text{kg·m/s} \Rightarrow F = -60\ \text{N} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 2 :</strong> balle 0,2 kg arrive à 20 m/s, repart à -20 m/s après la raquette (0,05 s).<br>
+      \( \Delta p = 0{,}2(-20) - 0{,}2(20) = -8\ \text{kg·m/s} \Rightarrow F = -160\ \text{N} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 :</strong> pour changer \( p \) de 30 kg·m/s avec une force de 100 N :<br>
+      \( \Delta t = 30 / 100 = 0{,}3\ \text{s} \)
     </div>
   </div>
 </details>
 
 <details>
   <summary>
-    <span class="tag">Conservation</span>
+    <span class="tag green">Conservation</span>
     <div class="info">
       <div class="name">Conservation de la quantité de mouvement</div>
       <div class="formula">\( \sum \vec{p}_{\,i} = \sum \vec{p}_{\,f} \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
   <div class="body">
     <div class="label">Légende</div>
     <div class="legend">
-      Dans un <b>système isolé</b> (aucune force extérieure), la quantité de mouvement totale reste constante — choc, explosion, tir, peu importe. C'est une conséquence directe de l'action-réaction.
+      Dans un <b>système isolé</b> (aucune force extérieure), la quantité de mouvement totale reste constante — choc, explosion, tir, peu importe. Conséquence directe de l'action-réaction.
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Vérifier que le système est <b>isolé</b> (ou que les forces extérieures se compensent).</li>
+        <li>Sommer les \( \vec{p} \) <b>avant</b> l'interaction.</li>
+        <li>Sommer les \( \vec{p} \) <b>après</b> l'interaction.</li>
+        <li>Égaliser les deux sommes.</li>
+        <li>Choisir un axe + pour projeter et travailler en scalaires.</li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 (choc mou) :</strong> balle de 0,1 kg à 5 m/s tirée sur balle de 0,4 kg immobile.<br>
+      \( 0{,}1 \times 5 = (0{,}1 + 0{,}4) v \Rightarrow v = 1\ \text{m/s} \)
     </div>
     <div class="exo">
-      <strong>Exo :</strong> balle de 0,1 kg à 5 m/s tirée sur une balle de 0,4 kg immobile. Après le choc (parfaitement inélastique) les deux avancent ensemble à :<br>
-      \( v = \frac{0{,}1 \times 5}{0{,}1 + 0{,}4} = 1\ \text{m/s} \)
+      <strong>Exo 2 (explosion) :</strong> fusée de 5 kg immobile explose en 2 morceaux, l'un de 3 kg part à 10 m/s.<br>
+      \( 0 = 3(10) + 2 v_2 \Rightarrow v_2 = -15\ \text{m/s} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 (recul de canon) :</strong> canon 800 kg tire un obus de 5 kg à 400 m/s.<br>
+      \( 0 = 5 \times 400 + 800 v \Rightarrow v = -2{,}5\ \text{m/s} \)
+    </div>
+  </div>
+</details>
+
+<!-- ================= CHOCS ================= -->
+<div class="section" id="chocs">Chocs — Élastiques vs Inélastiques</div>
+
+<details>
+  <summary>
+    <span class="tag green">Choc élastique</span>
+    <div class="info">
+      <div class="name">Choc élastique (1D) — énergie conservée</div>
+      <div class="formula">\( m_1 v_1 + m_2 v_2 = m_1 v_1' + m_2 v_2' \) &nbsp; ET &nbsp; \( \sum E_c = \sum E_c' \)</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
+    </div>
+    <span class="chev">▶</span>
+  </summary>
+  <div class="body">
+    <div class="label">Légende</div>
+    <div class="legend">
+      <b>v₁, v₂</b> vitesses avant · <b>v₁', v₂'</b> vitesses après<br>
+      Dans un choc <b>élastique</b>, la quantité de mouvement ET l'énergie cinétique se conservent. Les corps ne se collent pas, pas de déformation permanente.
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode (1D, deux inconnues)</div>
+      <ol>
+        <li>Écrire la conservation de \( p \) : \( m_1 v_1 + m_2 v_2 = m_1 v_1' + m_2 v_2' \).</li>
+        <li>Écrire la conservation de \( E_c \) : \( m_1 v_1^2 + m_2 v_2^2 = m_1 v_1'^2 + m_2 v_2'^2 \).</li>
+        <li>Résoudre le système (2 équations, 2 inconnues).</li>
+        <li><b>Astuce</b> : utiliser les formules toutes faites :
+          \[ v_1' = \frac{m_1 - m_2}{m_1 + m_2}v_1 + \frac{2 m_2}{m_1 + m_2}v_2 \]
+          \[ v_2' = \frac{2 m_1}{m_1 + m_2}v_1 + \frac{m_2 - m_1}{m_1 + m_2}v_2 \]
+        </li>
+        <li>Cas particuliers :
+          <br>• \( m_1 = m_2 \) → échange de vitesses (\( v_1' = v_2,\ v_2' = v_1 \))
+          <br>• \( m_1 \gg m_2 \) (boule de pétanque vs bille) → la grosse continue, la petite part vite
+        </li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 (masses égales) :</strong> boule de 2 kg à 5 m/s frappe une boule de 2 kg immobile.<br>
+      \( v_1' = 0\ \text{m/s}, \quad v_2' = 5\ \text{m/s} \) — elles échangent leurs vitesses !
+    </div>
+    <div class="exo">
+      <strong>Exo 2 (m₁ &gt; m₂) :</strong> \( m_1 = 3\ \text{kg} \) à 4 m/s, \( m_2 = 1\ \text{kg} \) immobile.<br>
+      \( v_1' = \frac{3-1}{4} \times 4 = 2\ \text{m/s} \) ; \( v_2' = \frac{2 \times 3}{4} \times 4 = 6\ \text{m/s} \)<br>
+      Vérif : \( E_c \) avant \( = \tfrac{1}{2}(3)(16) = 24\ \text{J} \) ; après \( = \tfrac{1}{2}(3)(4) + \tfrac{1}{2}(1)(36) = 6 + 18 = 24\ \text{J} \) ✔
+    </div>
+    <div class="exo">
+      <strong>Exo 3 (choc frontal) :</strong> \( m_1 = 2\ \text{kg} \) à 3 m/s percute \( m_2 = 1\ \text{kg} \) à \(-2\ \text{m/s}\).<br>
+      \( v_1' = \frac{1}{3}(3) + \frac{2}{3}(-2) = -\tfrac{1}{3}\ \text{m/s} \)<br>
+      \( v_2' = \frac{4}{3}(3) + \frac{-1}{3}(-2) = \frac{14}{3} \approx 4{,}67\ \text{m/s} \)
+    </div>
+
+    <div class="note green">
+      ✔ <b>Choc élastique</b> : billes d'acier, gaz parfaits (théorie cinétique), atomes en collision. <b>E<sub>c</sub> et p</b> conservées.
+    </div>
+  </div>
+</details>
+
+<details>
+  <summary>
+    <span class="tag orange">Choc inélastique</span>
+    <div class="info">
+      <div class="name">Choc inélastique — énergie perdue</div>
+      <div class="formula">\( m_1 v_1 + m_2 v_2 = m_1 v_1' + m_2 v_2' \) (mais \( E_c' < E_c \))</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
+    </div>
+    <span class="chev">▶</span>
+  </summary>
+  <div class="body">
+    <div class="label">Légende</div>
+    <div class="legend">
+      Dans un choc <b>inélastique</b>, la quantité de mouvement se conserve <b>toujours</b>, mais l'énergie cinétique <b>diminue</b> (chaleur, déformation, bruit). Les corps peuvent se séparer ou rester collés.
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Écrire la conservation de \( p \) (toujours valable dans un système isolé).</li>
+        <li><b>Ne pas</b> écrire la conservation de \( E_c \).</li>
+        <li>Calculer \( E_c \) avant et après pour trouver l'énergie perdue :
+          \[ \Delta E_c = E_c^{avant} - E_c^{après} \]
+        </li>
+        <li>Cette énergie perdue part en chaleur, déformation ou son.</li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 :</strong> \( m_1 = 2\ \text{kg} \) à 3 m/s percute \( m_2 = 1\ \text{kg} \) immobile. Après : \( v_1' = 0\ \text{m/s} \), \( v_2' = 4\ \text{m/s} \).<br>
+      \( p \) avant \( = 6 \), \( p \) après \( = 1 \times 4 = 4 \ne 6 \) → impossible ! (cet exemple viole la conservation)
+    </div>
+    <div class="exo">
+      <strong>Exo 2 (corrigé) :</strong> \( m_1 = 2\ \text{kg} \) à 3 m/s percute \( m_2 = 1\ \text{kg} \) immobile. Après : \( v_1' = 1\ \text{m/s} \), \( v_2' = 4\ \text{m/s} \).<br>
+      \( p \) avant \( = 6 \), \( p \) après \( = 2 + 4 = 6 \) ✔<br>
+      \( E_c \) avant \( = 9\ \text{J} \), après \( = 1 + 8 = 9\ \text{J} \) → c'est en fait un choc <b>élastique</b> !
+    </div>
+    <div class="exo">
+      <strong>Exo 3 (vrai inélastique) :</strong> \( m_1 = 2\ \text{kg} \) à 3 m/s, \( m_2 = 1\ \text{kg} \) immobile. Après : \( v_1' = 1{,}5\ \text{m/s} \), \( v_2' = 3\ \text{m/s} \).<br>
+      \( p \) avant \( = 6 \) ; après \( = 3 + 3 = 6 \) ✔<br>
+      \( E_c \) avant \( = 9\ \text{J} \) ; après \( = 2{,}25 + 4{,}5 = 6{,}75\ \text{J} \)<br>
+      <b>Perte : 2,25 J</b> (chaleur, déformation)
+    </div>
+
+    <div class="note">
+      ⚠️ Un choc inélastique <b>sépare ou non</b> les corps, mais <b>p</b> se conserve <b>toujours</b>. L'énergie cinétique, elle, ne se conserve <b>que si le choc est élastique</b>.
+    </div>
+  </div>
+</details>
+
+<details>
+  <summary>
+    <span class="tag orange">Choc mou</span>
+    <div class="info">
+      <div class="name">Choc parfaitement inélastique (les corps se collent)</div>
+      <div class="formula">\( m_1 v_1 + m_2 v_2 = (m_1 + m_2)\,v' \)</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
+    </div>
+    <span class="chev">▶</span>
+  </summary>
+  <div class="body">
+    <div class="label">Légende</div>
+    <div class="legend">
+      Les deux corps <b>restent collés</b> après le choc et avancent à la même vitesse \( v' \). C'est le cas le plus simple : une seule inconnue.
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Écrire \( p_{avant} = m_1 v_1 + m_2 v_2 \).</li>
+        <li>Écrire \( p_{après} = (m_1 + m_2) v' \) (une seule vitesse).</li>
+        <li>Égaliser : \( v' = \frac{m_1 v_1 + m_2 v_2}{m_1 + m_2} \).</li>
+        <li>Pour l'énergie perdue : \( \Delta E_c = E_c^{av} - \tfrac{1}{2}(m_1+m_2)v'^2 \).</li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 :</strong> balle 0,1 kg à 5 m/s tirée sur balle 0,4 kg immobile.<br>
+      \( v' = \frac{0{,}5}{0{,}5} = 1\ \text{m/s} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 2 :</strong> wagon 10 000 kg à 2 m/s accroche wagon 15 000 kg immobile.<br>
+      \( v' = \frac{10\,000 \times 2}{25\,000} = 0{,}8\ \text{m/s} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 (énergie perdue) :</strong> deux argiles \( m_1 = m_2 = 1\ \text{kg} \), l'une à 4 m/s, l'autre immobile.<br>
+      \( v' = 2\ \text{m/s} \) ; \( E_c^{av} = 8\ \text{J} \) ; \( E_c^{ap} = \tfrac{1}{2}(2)(4) = 4\ \text{J} \)<br>
+      <b>Perte : 4 J</b> (50 % de l'énergie part en chaleur !)
     </div>
   </div>
 </details>
@@ -640,9 +1197,9 @@ footer{
   <summary>
     <span class="tag">Choc</span>
     <div class="info">
-      <div class="name">Choc à deux corps (cas général)</div>
+      <div class="name">Choc à deux corps — cas général</div>
       <div class="formula">\( m_1 v_1 + m_2 v_2 = m_1 v_1' + m_2 v_2' \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
@@ -650,12 +1207,32 @@ footer{
     <div class="label">Légende</div>
     <div class="legend">
       <b>v₁, v₂</b> vitesses avant le choc · <b>v₁', v₂'</b> vitesses après<br>
-      <b>Choc élastique</b> : l'énergie cinétique se conserve aussi → 2 équations, 2 inconnues.<br>
-      <b>Choc inélastique</b> : l'énergie cinétique diminue (chaleur, déformation), les corps peuvent rester collés.
+      <b>Choc élastique</b> : \( E_c \) conservée aussi → 2 équations, 2 inconnues.<br>
+      <b>Choc inélastique</b> : \( E_c \) diminue (chaleur, déformation), les corps peuvent rester collés.
+    </div>
+
+    <div class="steps">
+      <div class="label">Méthode (choisir le bon cas)</div>
+      <ol>
+        <li>Le choc est-il <b>élastique</b> ou <b>inélastique</b> ? (info donnée ou à déduire)</li>
+        <li><b>Élastique</b> → utiliser les formules toutes faites (voir carte Choc élastique).</li>
+        <li><b>Inélastique</b> → une seule équation, p conservation.</li>
+        <li><b>Parfaitement inélastique</b> → les corps collés, \( v' = \frac{m_1 v_1 + m_2 v_2}{m_1 + m_2} \).</li>
+        <li>Choisir un axe + pour projeter et fixer les signes de \( v \).</li>
+      </ol>
+    </div>
+
+    <div class="exo">
+      <strong>Exo 1 :</strong> \( m_1 = 2\ \text{kg} \) à 3 m/s percute \( m_2 = 1\ \text{kg} \) immobile. Choc parfaitement inélastique :<br>
+      \( v' = \frac{2 \times 3}{2 + 1} = 2\ \text{m/s} \) (les deux avancent à 2 m/s)
     </div>
     <div class="exo">
-      <strong>Exo :</strong> m₁ = 2 kg à 3 m/s percute m₂ = 1 kg immobile. Choc parfaitement inélastique :<br>
-      \( v' = \frac{2 \times 3}{2 + 1} = 2\ \text{m/s} \) (les deux avancent à 2 m/s)
+      <strong>Exo 2 :</strong> \( m_1 = 4\ \text{kg} \) à 5 m/s percute \( m_2 = 2\ \text{kg} \) à \(-1\ \text{m/s}\). Choc parfaitement inélastique.<br>
+      \( v' = \frac{20 - 2}{6} = 3\ \text{m/s} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 (avec signe) :</strong> deux patineurs se repoussent. \( m_1 = 60\ \text{kg} \) part à \(-2\ \text{m/s}\), \( m_2 = 40\ \text{kg} \).<br>
+      \( 0 = 60(-2) + 40 v_2 \Rightarrow v_2 = 3\ \text{m/s} \)
     </div>
   </div>
 </details>
@@ -666,7 +1243,7 @@ footer{
     <div class="info">
       <div class="name">Position du centre de masse</div>
       <div class="formula">\( \vec{r}_G = \frac{m_1 \vec{r}_1 + m_2 \vec{r}_2}{m_1 + m_2} \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
@@ -676,9 +1253,28 @@ footer{
       <b>r⃗<sub>G</sub></b> position du centre de masse · <b>m₁, m₂</b> masses · <b>r⃗₁, r⃗₂</b> positions<br>
       C'est la moyenne des positions, pondérée par les masses. Pour deux objets, G est plus proche du plus lourd.
     </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Choisir une origine et un axe (souvent x).</li>
+        <li>Noter les positions \( x_1, x_2 \) et les masses \( m_1, m_2 \).</li>
+        <li>Appliquer \( x_G = \frac{m_1 x_1 + m_2 x_2}{m_1 + m_2} \).</li>
+        <li>Pour N corps : \( x_G = \frac{\sum m_i x_i}{\sum m_i} \).</li>
+      </ol>
+    </div>
+
     <div class="exo">
-      <strong>Exo :</strong> m₁ = 1 kg en x = 0, m₂ = 3 kg en x = 4 m.<br>
+      <strong>Exo 1 :</strong> \( m_1 = 1\ \text{kg} \) en \( x = 0 \), \( m_2 = 3\ \text{kg} \) en \( x = 4 \).<br>
       \( x_G = \frac{1 \times 0 + 3 \times 4}{1 + 3} = \frac{12}{4} = 3\ \text{m} \) (plus proche du lourd)
+    </div>
+    <div class="exo">
+      <strong>Exo 2 (3 corps) :</strong> 2 kg en 0, 3 kg en 4, 5 kg en 10.<br>
+      \( x_G = \frac{0 + 12 + 50}{10} = 6{,}2\ \text{m} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 (Haltère) :</strong> haltère de 20 kg avec deux masses de 10 kg aux extrémités d'une barre de 1 m.<br>
+      Le centre de masse est au milieu de la barre (par symétrie), à 0,5 m.
     </div>
   </div>
 </details>
@@ -689,7 +1285,7 @@ footer{
     <div class="info">
       <div class="name">Vitesse du centre de masse</div>
       <div class="formula">\( \vec{v}_G = \frac{m_1 \vec{v}_1 + m_2 \vec{v}_2}{m_1 + m_2} = \frac{\vec{p}_{tot}}{M} \)</div>
-      <div class="hint">Clique pour l'exemple</div>
+      <div class="hint">Clique pour la méthode et 3 exemples</div>
     </div>
     <span class="chev">▶</span>
   </summary>
@@ -699,9 +1295,28 @@ footer{
       <b>v⃗<sub>G</sub></b> vitesse du centre de masse · <b>p⃗<sub>tot</sub></b> quantité de mouvement totale · <b>M</b> masse totale<br>
       Théorème : dans un système isolé, <b>v⃗<sub>G</sub> est constante</b>. C'est directement équivalent à la conservation de la quantité de mouvement.
     </div>
+
+    <div class="steps">
+      <div class="label">Méthode</div>
+      <ol>
+        <li>Calculer la quantité de mouvement totale \( \vec{p}_{tot} = \sum m_i \vec{v}_i \).</li>
+        <li>Diviser par la masse totale \( M = \sum m_i \).</li>
+        <li>Pour un système isolé, \( v_G \) est <b>constante</b> — même pendant un choc !</li>
+        <li>Dans le référentiel du centre de masse, la quantité de mouvement totale est nulle.</li>
+      </ol>
+    </div>
+
     <div class="exo">
-      <strong>Exo :</strong> m₁ = 2 kg à 3 m/s (vers la droite), m₂ = 1 kg à -3 m/s.<br>
-      \( v_G = \frac{2 \times 3 + 1 \times (-3)}{3} = \frac{3}{3} = 1\ \text{m/s} \)
+      <strong>Exo 1 :</strong> \( m_1 = 2\ \text{kg} \) à 3 m/s, \( m_2 = 1\ \text{kg} \) à \(-3\ \text{m/s}\).<br>
+      \( v_G = \frac{2(3) + 1(-3)}{3} = \frac{3}{3} = 1\ \text{m/s} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 2 :</strong> camion 2000 kg à 20 m/s, voiture 1000 kg à 0 m/s.<br>
+      \( v_G = \frac{2000(20) + 0}{3000} = \frac{40\,000}{3000} \approx 13{,}3\ \text{m/s} \)
+    </div>
+    <div class="exo">
+      <strong>Exo 3 (après choc) :</strong> dans le cas précédent, après collision les deux avancent collés.<br>
+      \( v_G \) reste = 13,3 m/s — cohérent car c'est aussi leur vitesse commune après le choc !
     </div>
   </div>
 </details>
