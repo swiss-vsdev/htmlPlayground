@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐘 SQL Playground — Apprends les bases de données relationnelles</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+<style>
+  :root{
+    --blue:#4d6bfe;
+    --blue-soft:#eef1ff;
+    --ink:#0d0d0d;
+    --muted:#6b7280;
+    --line:#e5e5e5;
+    --line2:#d1d5db;
+    --bg:#f7f8fa;
+    --ok:#16a34a;
+    --ok-soft:#eafaf0;
+    --err:#dc2626;
+    --err-soft:#fdeeee;
+    --warn:#d97706;
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:14px;line-height:1.5;
+  }
+  code,pre,.mono,textarea{font-family:"SF Mono",ui-monospace,Menlo,Consolas,"Liberation Mono",monospace}
+
+  /* ---------- HEADER ---------- */
+  header{
+    background:#fff;border-bottom:1px solid var(--line);
+    padding:10px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    position:sticky;top:0;z-index:50;
+  }
+  .brand{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;white-space:nowrap}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--blue);display:inline-block}
+  .progress-wrap{flex:1;min-width:160px;display:flex;align-items:center;gap:10px}
+  .bar{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+  .bar > i{display:block;height:100%;width:0;background:var(--blue);border-radius:99px;transition:width .45s cubic-bezier(.2,.8,.3,1)}
+  .pct{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .hd-btn{
+    background:#fff;border:1px solid var(--line2);color:var(--ink);
+    padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:500;
+  }
+  .hd-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+  /* ---------- LAYOUT ---------- */
+  main{
+    display:grid;
+    grid-template-columns:250px minmax(0,1fr) 270px;
+    gap:14px;padding:14px;max-width:1600px;margin:0 auto;align-items:start;
+  }
+  @media (max-width:1180px){
+    main{grid-template-columns:220px minmax(0,1fr)}
+    .col-schema{display:none}
+  }
+  @media (max-width:820px){
+    main{grid-template-columns:1fr}
+    .col-lessons{max-height:none !important}
+  }
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04)}
+
+  /* ---------- LESSONS ---------- */
+  .col-lessons{position:sticky;top:64px;max-height:calc(100vh - 80px);overflow-y:auto;padding:8px}
+  .chap{margin:6px 0 10px}
+  .chap-t{
+    font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--muted);font-weight:700;padding:8px 10px 4px;
+  }
+  .item{
+    display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;
+    cursor:pointer;font-size:13px;border:1px solid transparent;
+  }
+  .item:hover{background:var(--blue-soft)}
+  .item.active{background:var(--blue-soft);border-color:#c9d3ff;font-weight:600}
+  .item.done .tick{color:var(--ok)}
+  .tick{width:16px;text-align:center;color:#cbd5e1;font-size:12px;flex:none}
+  .item .num{color:var(--muted);font-size:11px;width:16px;flex:none;font-variant-numeric:tabular-nums}
+  .item.active .num{color:var(--blue)}
+
+  /* ---------- WORKSPACE ---------- */
+  .work{display:flex;flex-direction:column;gap:12px;min-width:0}
+  .prompt{padding:16px 18px}
+  .prompt .tag{
+    display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--blue);background:var(--blue-soft);padding:3px 9px;border-radius:99px;margin-bottom:8px;
+  }
+  .prompt h2{margin:0 0 8px;font-size:18px;letter-spacing:-.01em}
+  .prompt p{margin:0;color:#374151;font-size:14px}
+  .prompt code{background:#f1f3f7;padding:1.5px 5px;border-radius:5px;font-size:12.5px;color:#1f2937}
+
+  .editor-card{overflow:hidden}
+  .editor-top{
+    display:flex;align-items:center;gap:8px;padding:8px 12px;
+    background:#fbfbfd;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)
+  }
+  .editor-top .lights{display:flex;gap:5px}
+  .editor-top .lights i{width:9px;height:9px;border-radius:50%;display:block}
+  textarea{
+    width:100%;border:0;outline:0;resize:vertical;min-height:110px;
+    padding:14px 16px;font-size:13.5px;line-height:1.7;background:#fff;color:#111827;
+    tab-size:2;
+  }
+  .actions{
+    display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px;
+    border-top:1px solid var(--line);background:#fbfbfd;
+  }
+  .btn{
+    border:0;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:600;
+    cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:transform .08s, filter .15s;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--blue);color:#fff}
+  .btn-primary:hover{filter:brightness(1.07)}
+  .btn-ok{background:var(--ok);color:#fff}
+  .btn-ok:hover{filter:brightness(1.07)}
+  .btn-ghost{background:#fff;border:1px solid var(--line2);color:#374151}
+  .btn-ghost:hover{border-color:var(--blue);color:var(--blue)}
+  .spacer{flex:1}
+
+  .feedback{padding:13px 16px;border-radius:var(--radius);border:1px solid var(--line);font-size:13.5px;display:none}
+  .feedback.show{display:block;animation:pop .25s ease}
+  .feedback.ok{background:var(--ok-soft);border-color:#b7e8c9;color:#14532d}
+  .feedback.err{background:var(--err-soft);border-color:#f5c6c6;color:#7f1d1d}
+  .feedback.hint{background:#fffbeb;border-color:#fde68a;color:#78350f}
+  .feedback b{font-weight:700}
+  @keyframes pop{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+  .results{padding:0;overflow:hidden}
+  .results-head{
+    padding:10px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);
+    display:flex;justify-content:space-between;align-items:center;background:#fbfbfd
+  }
+  .table-scroll{overflow:auto;max-height:340px}
+  table{border-collapse:collapse;width:100%;font-size:12.5px}
+  th{
+    background:#f4f6fb;text-align:left;padding:8px 12px;font-weight:700;
+    color:#374151;position:sticky;top:0;border-bottom:1px solid var(--line);white-space:nowrap
+  }
+  td{padding:7px 12px;border-bottom:1px solid #f1f2f5;white-space:nowrap;font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+  tr:hover td{background:#fafbff}
+  .null{color:#9ca3af;font-style:italic}
+
+  /* ---------- SCHEMA ---------- */
+  .col-schema{position:sticky;top:64px;max-height:calc(100vh - 80px);overflow-y:auto;padding:8px}
+  .tbl-card{border:1px solid var(--line);border-radius:10px;margin-bottom:9px;overflow:hidden;background:#fff;cursor:pointer;transition:border-color .15s}
+  .tbl-card:hover{border-color:var(--blue)}
+  .tbl-head{
+    padding:7px 11px;font-weight:700;font-size:12.5px;background:#f4f6fb;
+    display:flex;align-items:center;justify-content:space-between;gap:6px
+  }
+  .tbl-head span{font-size:10.5px;color:var(--muted);font-weight:500}
+  .col-row{
+    display:flex;align-items:center;gap:6px;padding:4px 11px;font-size:11.5px;
+    font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;border-top:1px solid #f4f5f8
+  }
+  .col-row .nm{flex:1;color:#1f2937}
+  .col-row .ty{color:#9ca3af;font-size:10.5px}
+  .badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;letter-spacing:.03em}
+  .pk{background:#fef3c7;color:#92400e}
+  .fk{background:#dbeafe;color:#1e40af}
+  .schema-note{font-size:11px;color:var(--muted);padding:4px 10px 10px;line-height:1.6}
+
+  /* ---------- CONFETTI ---------- */
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden}
+  .cf{position:absolute;width:9px;height:9px;border-radius:2px;animation:fall linear forwards}
+  @keyframes fall{
+    from{transform:translateY(-20px) rotate(0);opacity:1}
+    to{transform:translateY(100vh) rotate(720deg);opacity:0}
+  }
+  .loading{display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:14px;color:var(--muted)}
+  .spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">
+  <div class="spin"></div>
+  <div>Chargement du moteur SQLite…</div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="brand"><span class="dot"></span> SQL Playground <span style="font-weight:400;color:#9ca3af">· Zoo de Sion</span></div>
+    <div class="progress-wrap">
+      <div class="bar"><i id="bar"></i></div>
+      <div class="pct" id="pct">0 / 0</div>
+    </div>
+    <button class="hd-btn" onclick="resetDb(true)">♻️ Réinitialiser la base</button>
+  </header>
+
+  <main>
+    <aside class="col-lessons card" id="lessons"></aside>
+
+    <section class="work">
+      <div class="card prompt" id="prompt"></div>
+
+      <div class="card editor-card">
+        <div class="editor-top">
+          <div class="lights"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+          <span style="margin-left:6px">requete.sql</span>
+          <span class="spacer" style="flex:1"></span>
+          <span>Ctrl + Entrée pour exécuter</span>
+        </div>
+        <textarea id="sql" spellcheck="false" placeholder="-- Écris ta requête SQL ici...&#10;SELECT * FROM espece;"></textarea>
+        <div class="actions">
+          <button class="btn btn-primary" onclick="run()">▶ Exécuter</button>
+          <button class="btn btn-ok" onclick="check()">✓ Vérifier</button>
+          <button class="btn btn-ghost" onclick="showHint()">💡 Indice</button>
+          <button class="btn btn-ghost" onclick="showSolution()">🔓 Solution</button>
+          <span class="spacer"></span>
+          <button class="btn btn-ghost" onclick="clearEditor()">Effacer</button>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div class="card results" id="results" style="display:none">
+        <div class="results-head">
+          <span id="resInfo">Résultat</span>
+          <span id="resTime"></span>
+        </div>
+        <div class="table-scroll" id="resBody"></div>
+      </div>
+    </section>
+
+    <aside class="col-schema card" id="schema"></aside>
+  </main>
+</div>
+
+<div id="confetti"></div>
+
+<script>
+/* =========================================================
+   1. SCHÉMA + DONNÉES (le Zoo de Sion)
+   ========================================================= */
+const SCHEMA = `
+CREATE TABLE espece (
+  espece_id   INTEGER PRIMARY KEY,
+  nom_commun  TEXT NOT NULL,
+  pop_max     INTEGER NOT NULL,
+  emoji       TEXT
+);
+
+CREATE TABLE enclos (
+  enclos_id INTEGER PRIMARY KEY,
+  nom       TEXT NOT NULL,
+  capacite  INTEGER NOT NULL,
+  ville     TEXT
+);
+
+CREATE TABLE soigneur (
+  soigneur_id   INTEGER PRIMARY KEY,
+  nom           TEXT NOT NULL,
+  ville         TEXT,
+  date_embauche TEXT
+);
+
+CREATE TABLE animal (
+  animal_id      INTEGER PRIMARY KEY,
+  nom            TEXT NOT NULL,
+  date_naissance TEXT,
+  espece_id      INTEGER REFERENCES espece(espece_id),
+  enclos_id      INTEGER REFERENCES enclos(enclos_id)
+);
+
+CREATE TABLE nourrissage (
+  soigneur_id INTEGER REFERENCES soigneur(soigneur_id),
+  animal_id   INTEGER REFERENCES animal(animal_id),
+  date_repas  TEXT,
+  repas       TEXT,
+  PRIMARY KEY (soigneur_id, animal_id, date_repas)
+);
+
+INSERT INTO espece VALUES
+ (1,'Lion',4,'🦁'),
+ (2,'Pingouin',12,'🐧'),
+ (3,'Lémurien',8,'🐒'),
+ (4,'Flamant rose',20,'🦩'),
+ (5,'Tortue géante',3,'🐢');
+
+INSERT INTO enclos VALUES
+ (1,'Savane',10,'Sion'),
+ (2,'Banquise',15,'Sion'),
+ (3,'Forêt tropicale',12,'Sion'),
+ (4,'Marais',25,'Sierre'),
+ (5,'Serre chaude',6,'Sierre');
+
+INSERT INTO soigneur VALUES
+ (1,'Alice','Sion','2019-03-01'),
+ (2,'Bob','Sierre','2021-09-15'),
+ (3,'Chloé','Sion','2022-01-10'),
+ (4,'David','Brig','2023-06-20');
+
+INSERT INTO animal VALUES
+ (1,'Simba','2015-06-01',1,1),
+ (2,'Nala','2016-04-12',1,1),
+ (3,'Mufasa','2012-01-20',1,1),
+ (4,'Pingu','2018-11-05',2,2),
+ (5,'Tux','2019-02-14',2,2),
+ (6,'Pinga','2020-07-30',2,2),
+ (7,'Pongo','2021-03-22',2,2),
+ (8,'Zaza','2017-05-09',3,3),
+ (9,'Maki','2019-08-19',3,3),
+ (10,'Riki','2022-02-02',3,3),
+ (11,'Rose','2020-06-11',4,4),
+ (12,'Flam','2021-01-25',4,4),
+ (13,'Pinky','2022-09-03',4,4),
+ (14,'Georges','1920-05-15',5,4),
+ (15,'Joséphine','1935-10-10',5,4),
+ (16,'Kiki','2023-04-01',3,NULL);
+
+INSERT INTO nourrissage VALUES
+ (1,1,'2026-10-01','Viande'),
+ (1,2,'2026-10-01','Viande'),
+ (1,4,'2026-10-02','Poisson'),
+ (2,8,'2026-10-01','Fruits'),
+ (2,9,'2026-10-02','Fruits'),
+ (2,11,'2026-10-03','Céréales'),
+ (3,4,'2026-10-02','Poisson'),
+ (3,5,'2026-10-03','Poisson'),
+ (3,12,'2026-10-03','Céréales'),
+ (1,14,'2026-10-04','Salade'),
+ (4,15,'2026-10-04','Salade'),
+ (2,16,'2026-10-05','Fruits'),
+ (3,1,'2026-10-05','Viande'),
+ (4,2,'2026-10-06','Viande'),
+ (1,8,'2026-10-06','Fruits');
+`;
+
+/* =========================================================
+   2. EXERCICES
+   ========================================================= */
+const EXOS = [
+/* ---------- CHAPITRE 1 : DÉCOUVRIR ---------- */
+{
+  chap:'1 · Découvrir',
+  emoji:'🔍',
+  titre:'Toute la table',
+  tag:'SELECT',
+  but:"Affiche <b>toutes les colonnes</b> de la table <code>espece</code> pour voir à quoi ressemble une table relationnelle.",
+  indice:"La formule magique : <code>SELECT * FROM nom_de_table;</code> — l'étoile <code>*</code> veut dire « toutes les colonnes ».",
+  sol:"SELECT * FROM espece;",
+  ref:"SELECT * FROM espece;"
+},
+{
+  chap:'1 · Découvrir',
+  emoji:'🎯',
+  titre:'Choisir ses colonnes',
+  tag:'SELECT',
+  but:"Affiche uniquement le <b>nom commun</b> et l'<b>emoji</b> des espèces. Pas besoin de tout ramener !",
+  indice:"Remplace le <code>*</code> par la liste des colonnes séparées par des virgules : <code>SELECT col1, col2 FROM ...</code>",
+  sol:"SELECT nom_commun, emoji FROM espece;",
+  ref:"SELECT nom_commun, emoji FROM espece;"
+},
+{
+  chap:'1 · Découvrir',
+  emoji:'🔤',
+  titre:'Trier le résultat',
+  tag:'ORDER BY',
+  but:"Affiche le <b>nom</b> et la <b>date de naissance</b> des animaux, du <b>plus récent au plus ancien</b>.",
+  indice:"<code>ORDER BY colonne DESC</code> trie du plus grand au plus petit. <code>ASC</code> (par défaut) fait l'inverse.",
+  sol:"SELECT nom, date_naissance FROM animal ORDER BY date_naissance DESC;",
+  ref:"SELECT nom, date_naissance FROM animal ORDER BY date_naissance DESC;",
+  order:true
+},
+{
+  chap:'1 · Découvrir',
+  emoji:'✂️',
+  titre:'Les 3 premiers',
+  tag:'LIMIT',
+  but:"Affiche le <b>nom</b> des 3 premiers animaux par <b>ordre alphabétique</b>.",
+  indice:"<code>ORDER BY nom ASC</code> puis <code>LIMIT 3</code> à la toute fin de la requête.",
+  sol:"SELECT nom FROM animal ORDER BY nom ASC LIMIT 3;",
+  ref:"SELECT nom FROM animal ORDER BY nom ASC LIMIT 3;",
+  order:true
+},
+
+/* ---------- CHAPITRE 2 : FILTRER ---------- */
+{
+  chap:'2 · Filtrer',
+  emoji:'⏳',
+  titre:'Condition simple',
+  tag:'WHERE',
+  but:"Affiche le <b>nom</b> des animaux nés <b>après le 1er janvier 2015</b>.",
+  indice:"Les dates s'écrivent entre guillemets simples : <code>WHERE date_naissance > '2015-01-01'</code>",
+  sol:"SELECT nom FROM animal WHERE date_naissance > '2015-01-01';",
+  ref:"SELECT nom FROM animal WHERE date_naissance > '2015-01-01';"
+},
+{
+  chap:'2 · Filtrer',
+  emoji:'🅿️',
+  titre:'Motif de texte',
+  tag:'LIKE',
+  but:"Affiche le <b>nom</b> des animaux qui <b>commencent par la lettre P</b>.",
+  indice:"<code>LIKE 'P%'</code> : le <code>%</code> remplace « n'importe quelle suite de caractères ». Le <code>_</code> remplace un seul caractère.",
+  sol:"SELECT nom FROM animal WHERE nom LIKE 'P%';",
+  ref:"SELECT nom FROM animal WHERE nom LIKE 'P%';"
+},
+{
+  chap:'2 · Filtrer',
+  emoji:'📋',
+  titre:'Liste de valeurs',
+  tag:'IN',
+  but:"Affiche le <b>nom</b> et la <b>ville</b> des soigneurs qui habitent à <b>Sion ou Sierre</b>.",
+  indice:"<code>WHERE ville IN ('Sion', 'Sierre')</code> — plus court que deux <code>OR</code>.",
+  sol:"SELECT nom, ville FROM soigneur WHERE ville IN ('Sion', 'Sierre');",
+  ref:"SELECT nom, ville FROM soigneur WHERE ville IN ('Sion', 'Sierre');"
+},
+{
+  chap:'2 · Filtrer',
+  emoji:'📏',
+  titre:'Intervalle',
+  tag:'BETWEEN',
+  but:"Affiche le <b>nom commun</b> et la <b>pop_max</b> des espèces dont la population maximale est <b>entre 5 et 15</b> (bornes incluses).",
+  indice:"<code>WHERE pop_max BETWEEN 5 AND 15</code>",
+  sol:"SELECT nom_commun, pop_max FROM espece WHERE pop_max BETWEEN 5 AND 15;",
+  ref:"SELECT nom_commun, pop_max FROM espece WHERE pop_max BETWEEN 5 AND 15;"
+},
+{
+  chap:'2 · Filtrer',
+  emoji:'🕳️',
+  titre:'Les valeurs manquantes',
+  tag:'IS NULL',
+  but:"Affiche le <b>nom</b> des animaux qui <b>n'ont pas d'enclos</b> (valeur inconnue).",
+  indice:"On <b>ne peut pas</b> écrire <code>= NULL</code> ! NULL n'est pas une valeur, c'est une absence. Utilise <code>IS NULL</code>.",
+  sol:"SELECT nom FROM animal WHERE enclos_id IS NULL;",
+  ref:"SELECT nom FROM animal WHERE enclos_id IS NULL;"
+},
+
+/* ---------- CHAPITRE 3 : CALCULER ---------- */
+{
+  chap:'3 · Calculer',
+  emoji:'🔢',
+  titre:'Compter les lignes',
+  tag:'COUNT',
+  but:"Combien y a-t-il d'animaux au total ? Affiche une seule valeur, nommée <code>total</code>.",
+  indice:"<code>SELECT COUNT(*) AS total FROM animal;</code> — <code>AS</code> donne un nom à la colonne calculée.",
+  sol:"SELECT COUNT(*) AS total FROM animal;",
+  ref:"SELECT COUNT(*) AS total FROM animal;"
+},
+{
+  chap:'3 · Calculer',
+  emoji:'📊',
+  titre:'Grouper et compter',
+  tag:'GROUP BY',
+  but:"Affiche l'<b>enclos_id</b> et le <b>nombre d'animaux</b> (nommé <code>nb</code>) dans chaque enclos. <b>Ignore</b> les animaux sans enclos.",
+  indice:"<code>SELECT enclos_id, COUNT(*) AS nb FROM animal GROUP BY enclos_id;</code> — GROUP BY crée un « seau » par valeur.",
+  sol:"SELECT enclos_id, COUNT(*) AS nb FROM animal WHERE enclos_id IS NOT NULL GROUP BY enclos_id;",
+  ref:"SELECT enclos_id, COUNT(*) AS nb FROM animal WHERE enclos_id IS NOT NULL GROUP BY enclos_id;"
+},
+{
+  chap:'3 · Calculer',
+  emoji:'🔠',
+  titre:'Fonctions de texte',
+  tag:'UPPER',
+  but:"Affiche le <b>nom</b> des animaux <b>en majuscules</b>, dans une colonne nommée <code>nom_maj</code>.",
+  indice:"<code>SELECT UPPER(nom) AS nom_maj FROM animal;</code> — il existe aussi <code>LOWER()</code>, <code>CHAR_LENGTH()</code>, <code>REPLACE()</code>…",
+  sol:"SELECT UPPER(nom) AS nom_maj FROM animal;",
+  ref:"SELECT UPPER(nom) AS nom_maj FROM animal;"
+},
+{
+  chap:'3 · Calculer',
+  emoji:'📅',
+  titre:'Extraire une année',
+  tag:'SUBSTR',
+  but:"Affiche le <b>nom</b> et l'<b>année de naissance</b> (4 premiers caractères de la date) dans une colonne <code>annee</code>.",
+  indice:"<code>SUBSTR(date_naissance, 1, 4)</code> prend 4 caractères à partir du 1er. En SQL standard on écrit <code>SUBSTRING(x FROM 1 FOR 4)</code>.",
+  sol:"SELECT nom, SUBSTR(date_naissance, 1, 4) AS annee FROM animal;",
+  ref:"SELECT nom, SUBSTR(date_naissance, 1, 4) AS annee FROM animal;"
+},
+
+/* ---------- CHAPITRE 4 : JOINDRE ---------- */
+{
+  chap:'4 · Joindre',
+  emoji:'🔗',
+  titre:'Première jointure',
+  tag:'JOIN',
+  but:"Affiche le <b>nom de chaque animal</b> avec le <b>nom de son espèce</b>.",
+  indice:"<code>FROM animal a JOIN espece e ON a.espece_id = e.espece_id</code> — la condition <code>ON</code> relie la clé étrangère à la clé primaire.",
+  sol:"SELECT a.nom AS animal, e.nom_commun AS espece FROM animal a JOIN espece e ON a.espece_id = e.espece_id;",
+  ref:"SELECT a.nom AS animal, e.nom_commun AS espece FROM animal a JOIN espece e ON a.espece_id = e.espece_id;"
+},
+{
+  chap:'4 · Joindre',
+  emoji:'🏠',
+  titre:'Animal et son enclos',
+  tag:'JOIN',
+  but:"Affiche le <b>nom de l'animal</b>, le <b>nom de l'enclos</b> et la <b>ville</b> de l'enclos.",
+  indice:"Même principe : <code>JOIN enclos en ON a.enclos_id = en.enclos_id</code>.",
+  sol:"SELECT a.nom AS animal, en.nom AS enclos, en.ville FROM animal a JOIN enclos en ON a.enclos_id = en.enclos_id;",
+  ref:"SELECT a.nom AS animal, en.nom AS enclos, en.ville FROM animal a JOIN enclos en ON a.enclos_id = en.enclos_id;"
+},
+{
+  chap:'4 · Joindre',
+  emoji:'👈',
+  titre:'Tout garder à gauche',
+  tag:'LEFT JOIN',
+  but:"Affiche <b>tous les enclos</b> (même ceux qui sont vides) avec le <b>nom de l'animal</b> quand il y en a un. Les enclos vides doivent apparaître avec une valeur <code>NULL</code>.",
+  indice:"<code>LEFT JOIN</code> garde toutes les lignes de la table de gauche. La table de gauche doit donc être <code>enclos</code> !",
+  sol:"SELECT en.nom AS enclos, a.nom AS animal FROM enclos en LEFT JOIN animal a ON a.enclos_id = en.enclos_id;",
+  ref:"SELECT en.nom AS enclos, a.nom AS animal FROM enclos en LEFT JOIN animal a ON a.enclos_id = en.enclos_id;"
+},
+{
+  chap:'4 · Joindre',
+  emoji:'🍽️',
+  titre:'Trois tables',
+  tag:'JOIN ×3',
+  but:"Affiche la <b>liste sans doublon</b> des animaux nourris par <b>Alice</b>, triée par nom croissant.",
+  indice:"Il faut chaîner : animal → nourrissage → soigneur. Ajoute <code>DISTINCT</code> car un animal peut être nourri plusieurs fois.",
+  sol:"SELECT DISTINCT a.nom FROM animal a JOIN nourrissage n ON a.animal_id = n.animal_id JOIN soigneur s ON s.soigneur_id = n.soigneur_id WHERE s.nom = 'Alice' ORDER BY a.nom ASC;",
+  ref:"SELECT DISTINCT a.nom FROM animal a JOIN nourrissage n ON a.animal_id = n.animal_id JOIN soigneur s ON s.soigneur_id = n.soigneur_id WHERE s.nom = 'Alice' ORDER BY a.nom ASC;",
+  order:true
+},
+
+/* ---------- CHAPITRE 5 : MODIFIER ---------- */
+{
+  chap:'5 · Modifier',
+  emoji:'➕',
+  titre:'Insérer une ligne',
+  tag:'INSERT',
+  but:"Ajoute un nouveau soigneur : <b>Emma</b>, ville <b>Sion</b>, embauchée le <b>2024-05-01</b>, avec l'id <b>5</b>.",
+  indice:"<code>INSERT INTO soigneur (soigneur_id, nom, ville, date_embauche) VALUES (5, 'Emma', 'Sion', '2024-05-01');</code>",
+  sol:"INSERT INTO soigneur (soigneur_id, nom, ville, date_embauche) VALUES (5, 'Emma', 'Sion', '2024-05-01');",
+  mutation:true,
+  checkSql:"SELECT nom FROM soigneur WHERE soigneur_id = 5;",
+  expected:[["Emma"]]
+},
+{
+  chap:'5 · Modifier',
+  emoji:'✏️',
+  titre:'Mettre à jour',
+  tag:'UPDATE',
+  but:"Agrandis la <b>Savane</b> : sa capacité passe à <b>20</b>.",
+  indice:"<code>UPDATE enclos SET capacite = 20 WHERE nom = 'Savane';</code> — <b>n'oublie jamais le WHERE</b>, sinon tu modifies toutes les lignes !",
+  sol:"UPDATE enclos SET capacite = 20 WHERE nom = 'Savane';",
+  mutation:true,
+  checkSql:"SELECT capacite FROM enclos WHERE nom = 'Savane';",
+  expected:[[20]]
+},
+{
+  chap:'5 · Modifier',
+  emoji:'🗑️',
+  titre:'Supprimer',
+  tag:'DELETE',
+  but:"Supprime l'animal nommé <b>Riki</b> (il est parti dans un autre zoo).",
+  indice:"<code>DELETE FROM animal WHERE nom = 'Riki';</code> — sans WHERE, tu vides toute la table 😱",
+  sol:"DELETE FROM animal WHERE nom = 'Riki';",
+  mutation:true,
+  checkSql:"SELECT COUNT(*) FROM animal WHERE nom = 'Riki';",
+  expected:[[0]]
+},
+
+/* ---------- CHAPITRE 6 : CRÉER ---------- */
+{
+  chap:'6 · Créer',
+  emoji:'🏗️',
+  titre:'Créer une table',
+  tag:'CREATE TABLE',
+  but:"Crée une table <code>visite</code> avec 3 colonnes : <code>visite_id</code> (entier, clé primaire), <code>nom_visiteur</code> (texte) et <code>date_visite</code> (texte).",
+  indice:"<code>CREATE TABLE visite ( visite_id INTEGER PRIMARY KEY, nom_visiteur TEXT, date_visite TEXT );</code>",
+  sol:"CREATE TABLE visite (\n  visite_id INTEGER PRIMARY KEY,\n  nom_visiteur TEXT,\n  date_visite TEXT\n);",
+  mutation:true,
+  checkSql:"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='visite';",
+  expected:[[1]]
+}
+];
+
+/* =========================================================
+   3. ÉTAT GLOBAL
+   ========================================================= */
+let SQL = null, db = null, pristine = null;
+let current = 0;
+const done = new Set();
+let chapOuverts = {};
+
+/* =========================================================
+   4. INITIALISATION
+   ========================================================= */
+async function boot(){
+  SQL = await initSqlJs({
+    locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${f}`
+  });
+  db = new SQL.Database();
+  db.run(SCHEMA);
+  pristine = db.export();
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  renderLessons();
+  renderSchema();
+  selectExo(0);
+}
+
+function resetDb(verbose){
+  db.close();
+  db = new SQL.Database(pristine);
+  if(verbose) flash("♻️ Base de données réinitialisée (données d'origine restaurées).", 'hint');
+}
+
+/* =========================================================
+   5. RENDU : LISTE DES LEÇONS
+   ========================================================= */
+function renderLessons(){
+  const box = document.getElementById('lessons');
+  let html = '';
+  let lastChap = null;
+  EXOS.forEach((ex, i) => {
+    if(ex.chap !== lastChap){
+      html += `<div class="chap-t">${ex.chap}</div>`;
+      lastChap = ex.chap;
+    }
+    const isDone = done.has(i);
+    html += `<div class="item ${i===current?'active':''} ${isDone?'done':''}" onclick="selectExo(${i})">
+      <span class="tick">${isDone?'✓':'○'}</span>
+      <span class="num">${String(i+1).padStart(2,'0')}</span>
+      <span style="flex:1">${ex.emoji} ${ex.titre}</span>
+    </div>`;
+  });
+  box.innerHTML = html;
+  updateProgress();
+}
+
+function updateProgress(){
+  const p = done.size / EXOS.length;
+  document.getElementById('bar').style.width = (p*100).toFixed(1)+'%';
+  document.getElementById('pct').textContent = `${done.size} / ${EXOS.length}`;
+}
+
+/* =========================================================
+   6. RENDU : SCHÉMA
+   ========================================================= */
+const SCHEMA_META = [
+  {t:'espece', cols:[['espece_id','INTEGER','pk'],['nom_commun','TEXT',''],['pop_max','INTEGER',''],['emoji','TEXT','']]},
+  {t:'enclos', cols:[['enclos_id','INTEGER','pk'],['nom','TEXT',''],['capacite','INTEGER',''],['ville','TEXT','']]},
+  {t:'soigneur', cols:[['soigneur_id','INTEGER','pk'],['nom','TEXT',''],['ville','TEXT',''],['date_embauche','TEXT','']]},
+  {t:'animal', cols:[['animal_id','INTEGER','pk'],['nom','TEXT',''],['date_naissance','TEXT',''],['espece_id','INTEGER','fk → espece'],['enclos_id','INTEGER','fk → enclos']]},
+  {t:'nourrissage', cols:[['soigneur_id','INTEGER','pk fk → soigneur'],['animal_id','INTEGER','pk fk → animal'],['date_repas','TEXT','pk'],['repas','TEXT','']]}
+];
+
+function renderSchema(){
+  let html = `<div style="padding:10px 12px 4px;font-weight:700;font-size:13px">🗺️ Schéma de la base</div>`;
+  SCHEMA_META.forEach(t => {
+    html += `<div class="tbl-card" onclick="inject('SELECT * FROM ${t.t};')" title="Cliquer pour insérer la requête">
+      <div class="tbl-head">${t.t}<span>${t.cols.length} col.</span></div>`;
+    t.cols.forEach(([n, ty, key]) => {
+      let badge = '';
+      if(key.includes('pk')) badge += `<span class="badge pk">PK</span>`;
+      if(key.includes('fk')) badge += `<span class="badge fk">FK</span>`;
+      html += `<div class="col-row">
+        <span class="nm">${n}</span>${badge}
+        <span class="ty">${ty.split(' ')[0]}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  html += `<div class="schema-note">
+    <b>PK</b> = clé primaire (identifie chaque ligne de façon unique).<br>
+    <b>FK</b> = clé étrangère (pointe vers la clé primaire d'une autre table).<br>
+    Clique sur une table pour insérer un <code>SELECT *</code>.
+  </div>`;
+  document.getElementById('schema').innerHTML = html;
+}
+
+/* =========================================================
+   7. SÉLECTION D'UN EXERCICE
+   ========================================================= */
+function selectExo(i){
+  current = i;
+  const ex = EXOS[i];
+  document.getElementById('prompt').innerHTML = `
+    <div class="tag">${ex.tag} · Exercice ${i+1}</div>
+    <h2>${ex.emoji} ${ex.titre}</h2>
+    <p>${ex.but}</p>
+  `;
+  const ta = document.getElementById('sql');
+  ta.value = ex.starter || '';
+  hideFeedback();
+  document.getElementById('results').style.display = 'none';
+  renderLessons();
+  ta.focus();
+}
+
+function inject(text){
+  const ta = document.getElementById('sql');
+  ta.value = text;
+  ta.focus();
+}
+
+function clearEditor(){
+  document.getElementById('sql').value = '';
+  document.getElementById('sql').focus();
+}
+
+/* =========================================================
+   8. EXÉCUTION SQL
+   ========================================================= */
+function execRaw(sql){
+  const res = db.exec(sql);
+  return res;
+}
+
+function run(){
+  const sql = document.getElementById('sql').value.trim();
+  if(!sql){ flash("Écris d'abord une requête 😉", 'hint'); return; }
+  const t0 = performance.now();
+  try{
+    const res = execRaw(sql);
+    const dt = (performance.now()-t0).toFixed(1);
+    if(res.length === 0){
+      document.getElementById('results').style.display = 'none';
+      flash("✅ Requête exécutée. Aucune ligne renvoyée (c'est normal pour INSERT / UPDATE / DELETE / CREATE).", 'ok');
+      return;
+    }
+    const last = res[res.length-1];
+    renderResult(last, dt);
+    hideFeedback();
+  }catch(e){
+    document.getElementById('results').style.display = 'none';
+    flash("❌ <b>Erreur SQL :</b> " + escapeHtml(e.message), 'err');
+  }
+}
+
+function renderResult(res, dt){
+  const cols = res.columns;
+  const vals = res.values;
+  const MAX = 200;
+  let html = '<table><thead><tr>';
+  cols.forEach(c => html += `<th>${escapeHtml(c)}</th>`);
+  html += '</tr></thead><tbody>';
+  vals.slice(0, MAX).forEach(row => {
+    html += '<tr>';
+    row.forEach(v => {
+      html += `<td>${v === null ? '<span class="null">NULL</span>' : escapeHtml(String(v))}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('resBody').innerHTML = html;
+  document.getElementById('resInfo').textContent = `${vals.length} ligne${vals.length>1?'s':''} · ${cols.length} colonne${cols.length>1?'s':''}`;
+  document.getElementById('resTime').textContent = dt ? dt + ' ms' : '';
+  document.getElementById('results').style.display = 'block';
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* =========================================================
+   9. VÉRIFICATION
+   ========================================================= */
+function normalize(res, orderMatters){
+  if(!res) return [];
+  const rows = res.values.map(r => r.map(v => v === null ? '\u0000NULL' : String(v)));
+  if(!orderMatters){
+    rows.sort((a,b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+  }
+  return rows;
+}
+
+function sameRows(a, b){
+  if(a.length !== b.length) return false;
+  for(let i=0;i<a.length;i++){
+    if(JSON.stringify(a[i]) !== JSON.stringify(b[i])) return false;
+  }
+  return true;
+}
+
+function check(){
+  const ex = EXOS[current];
+  const sql = document.getElementById('sql').value.trim();
+  if(!sql){ flash("Écris une requête avant de vérifier 😉", 'hint'); return; }
+
+  /* --- Exercices de modification : on repart d'une base propre --- */
+  if(ex.mutation){
+    resetDb(false);
+    try{
+      execRaw(sql);
+    }catch(e){
+      flash("❌ <b>Erreur SQL :</b> " + escapeHtml(e.message), 'err');
+      return;
+    }
+    let got;
+    try{
+      got = normalize(execRaw(ex.checkSql), false);
+    }catch(e){
+      flash("❌ Erreur pendant la vérification : " + escapeHtml(e.message), 'err');
+      return;
+    }
+    const want = normalize({values: ex.expected}, false);
+    if(sameRows(got, want)){
+      success();
+    }else{
+      fail(`La base ne contient pas ce qui est attendu.<br>
+            <b>Vérification :</b> <code>${escapeHtml(ex.checkSql)}</code><br>
+            <b>Attendu :</b> <code>${escapeHtml(JSON.stringify(ex.expected))}</code><br>
+            <b>Obtenu :</b> <code>${escapeHtml(JSON.stringify(got))}</code>`);
+    }
+    return;
+  }
+
+  /* --- Exercices SELECT : on compare au résultat de référence --- */
+  let userRes;
+  try{
+    const r = execRaw(sql);
+    if(r.length === 0){ fail("Ta requête ne renvoie aucun résultat."); return; }
+    userRes = r[r.length-1];
+  }catch(e){
+    flash("❌ <b>Erreur SQL :</b> " + escapeHtml(e.message), 'err');
+    return;
+  }
+
+  let refRes;
+  try{
+    const r = execRaw(ex.ref);
+    refRes = r[r.length-1];
+  }catch(e){
+    flash("⚠️ Erreur interne de référence : " + escapeHtml(e.message), 'err');
+    return;
+  }
+
+  const got  = normalize(userRes, ex.order);
+  const want = normalize(refRes,  ex.order);
+
+  if(sameRows(got, want)){
+    success();
+    renderResult(userRes, null);
+  }else{
+    let msg = "Ce n'est pas encore tout à fait ça.";
+    if(got.length !== want.length){
+      msg += `<br>Tu obtiens <b>${got.length}</b> ligne(s), il en faut <b>${want.length}</b>.`;
+    }else{
+      msg += `<br>Tu as le bon nombre de lignes (<b>${want.length}</b>) mais les valeurs ou l'ordre diffèrent.`;
+      if(ex.order) msg += `<br>⚠️ Cet exercice exige un <b>tri précis</b> (ORDER BY).`;
+    }
+    msg += `<br><br><b>Attendu :</b><br><code>${escapeHtml(JSON.stringify(want.slice(0,6)))}${want.length>6?' …':''}</code>`;
+    msg += `<br><b>Obtenu :</b><br><code>${escapeHtml(JSON.stringify(got.slice(0,6)))}${got.length>6?' …':''}</code>`;
+    fail(msg);
+  }
+}
+
+function success(){
+  const first = !done.has(current);
+  done.add(current);
+  renderLessons();
+  confetti();
+  const ex = EXOS[current];
+  flash(`🎉 <b>Bravo !</b> Exercice réussi. <br><br>
+    <b>Ce qu'il faut retenir :</b> ${ex.sol.split('\n')[0].trim().length < 120 ? '<code>'+escapeHtml(ex.sol.split('\n')[0])+'</code>' : 'requête correcte ✔'}
+    ${first && current < EXOS.length-1 ? '<br><br>➡️ <b>Exercice suivant débloqué !</b> Clique dessus dans la liste de gauche.' : ''}`, 'ok');
+}
+
+function fail(html){ flash("❌ " + html, 'err'); }
+
+function flash(html, type){
+  const f = document.getElementById('feedback');
+  f.className = 'feedback show ' + type;
+  f.innerHTML = html;
+}
+function hideFeedback(){
+  document.getElementById('feedback').className = 'feedback';
+}
+
+function showHint(){
+  const ex = EXOS[current];
+  flash("💡 <b>Indice :</b> " + ex.indice, 'hint');
+}
+
+function showSolution(){
+  const ex = EXOS[current];
+  const ta = document.getElementById('sql');
+  ta.value = ex.sol;
+  ta.focus();
+  flash("🔓 <b>Solution affichée.</b> Lis-la bien, puis clique sur <b>Vérifier</b> pour la valider et passer à la suite.", 'hint');
+}
+
+/* =========================================================
+   10. CONFETTI 🎊
+   ========================================================= */
+function confetti(){
+  const box = document.getElementById('confetti');
+  const colors = ['#4d6bfe','#16a34a','#f59e0b','#ec4899','#06b6d4','#8b5cf6'];
+  for(let i=0;i<70;i++){
+    const d = document.createElement('div');
+    d.className = 'cf';
+    d.style.left = Math.random()*100 + 'vw';
+    d.style.background = colors[Math.floor(Math.random()*colors.length)];
+    d.style.animationDuration = (1.6 + Math.random()*1.6) + 's';
+    d.style.animationDelay = (Math.random()*0.35) + 's';
+    if(Math.random() > 0.6) d.style.borderRadius = '50%';
+    box.appendChild(d);
+    setTimeout(() => d.remove(), 3600);
+  }
+}
+
+/* =========================================================
+   11. RACCOURCIS CLAVIER
+   ========================================================= */
+document.addEventListener('keydown', e => {
+  if(e.ctrlKey && e.key === 'Enter'){
+    e.preventDefault();
+    run();
+  }
+  if(e.ctrlKey && e.shiftKey && e.key === 'Enter'){
+    e.preventDefault();
+    check();
+  }
+});
+
+/* Tabulation dans le textarea */
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('sql');
+  ta.addEventListener('keydown', e => {
+    if(e.key === 'Tab'){
+      e.preventDefault();
+      const s = ta.selectionStart, en = ta.selectionEnd;
+      ta.value = ta.value.substring(0, s) + '  ' + ta.value.substring(en);
+      ta.selectionStart = ta.selectionEnd = s + 2;
+    }
+  });
+});
+
+/* C'est parti ! */
+boot();
+</script>
+</body>
+</html>
