@@ -1,0 +1,2725 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ Algo Quest — Rattrape ton cours en jouant</title>
+<style>
+  :root {
+    --accent: #4d6bfe;
+    --accent-soft: #eef1ff;
+    --bg: #f7f8fb;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --text: #0d0d0d;
+    --muted: #6b7280;
+    --good: #16a34a;
+    --bad: #dc2626;
+    --warn: #d97706;
+    --gold: #f59e0b;
+    --pink: #ec4899;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    display: flex;
+    min-height: 100vh;
+  }
+  button, .qa, .nav-item, .quiz-opt, .hud-btn, .next-btn, .ds-item { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+
+  .hud {
+    position: fixed;
+    top: 0; left: 260px; right: 0;
+    height: 56px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 24px;
+    z-index: 20;
+  }
+  .hud-level {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 12px;
+    background: linear-gradient(135deg, var(--accent), #7c3aed);
+    color: white;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(77,107,254,0.25);
+  }
+  .hud-level .emoji { font-size: 15px; }
+  .hud-xp-wrap {
+    flex: 1;
+    max-width: 240px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hud-xp-bar {
+    flex: 1;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .hud-xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--pink));
+    border-radius: 999px;
+    width: 0%;
+    transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .hud-xp-text {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    font-family: monospace;
+    white-space: nowrap;
+  }
+  .hud-streak {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: 999px;
+    transition: all 0.3s;
+  }
+  .hud-streak.hot {
+    background: linear-gradient(135deg, #fef3c7, #fed7aa);
+    color: #ea580c;
+    transform: scale(1.05);
+  }
+  .hud-btn {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .hud-btn:hover { background: var(--accent-soft); border-color: var(--accent); transform: scale(1.05); }
+  .hud-btn:active { transform: scale(0.95); }
+  .hud-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  .sidebar {
+    width: 260px;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    padding: 20px 0 30px;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    overflow-y: auto;
+    z-index: 15;
+  }
+  .sidebar::-webkit-scrollbar { width: 6px; }
+  .sidebar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+  .brand {
+    padding: 0 20px 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .brand h1 {
+    font-size: 15px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .brand p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    font-size: 13.5px;
+    color: var(--muted);
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+    text-decoration: none;
+    position: relative;
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--accent-soft); color: var(--accent); }
+  .nav-item.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-left-color: var(--accent);
+    font-weight: 600;
+  }
+  .nav-item .emoji { font-size: 15px; flex-shrink: 0; }
+  .nav-item .label { flex: 1; }
+  .nav-item .check {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid #d1d5db;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: transparent;
+    flex-shrink: 0;
+    transition: all 0.25s;
+  }
+  .nav-item.done .check {
+    background: var(--good);
+    border-color: var(--good);
+    color: white;
+  }
+  .nav-section {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #9ca3af;
+    padding: 14px 20px 5px;
+    font-weight: 700;
+  }
+
+  .main {
+    margin-left: 260px;
+    flex: 1;
+    padding: 84px 40px 120px;
+    max-width: 1100px;
+  }
+  .page { display: none; animation: fade 0.35s ease; }
+  .page.active { display: block; }
+  @keyframes fade {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  h2.page-title {
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2.page-title .big-emoji { font-size: 32px; }
+  .page-sub {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 14px;
+  }
+
+  .goal-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 15px;
+    background: linear-gradient(135deg, #eef1ff, #f0f9ff);
+    border: 1.5px dashed var(--accent);
+    border-radius: 10px;
+    font-size: 13px;
+    color: #1e293b;
+    margin-bottom: 18px;
+    transition: all 0.3s;
+  }
+  .goal-banner .goal-icon { font-size: 18px; flex-shrink: 0; }
+  .goal-banner .goal-progress {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: monospace;
+    color: var(--accent);
+    background: white;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid #dbeafe;
+  }
+  .goal-banner.done {
+    background: linear-gradient(135deg, #dcfce7, #f0fdf4);
+    border-color: var(--good);
+    border-style: solid;
+    color: #065f46;
+  }
+  .goal-banner.done .goal-progress {
+    color: var(--good);
+    border-color: #bbf7d0;
+  }
+
+  .tldr {
+    background: linear-gradient(135deg, #fff7ed, #fef3c7);
+    border-left: 4px solid var(--warn);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 22px;
+    font-size: 13.5px;
+  }
+  .tldr strong { color: #92400e; }
+  .tldr .ttl {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 800;
+    color: var(--warn);
+    margin-bottom: 4px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin-bottom: 20px;
+    transition: box-shadow 0.2s;
+  }
+  .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
+  .card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card h3 .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    background: var(--accent);
+    color: white;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .card p { font-size: 14px; color: #374151; margin-bottom: 10px; }
+  .card ul, .card ol { padding-left: 22px; font-size: 14px; color: #374151; }
+  .card li { margin-bottom: 5px; }
+
+  .formula {
+    background: #0f172a;
+    color: #a5f3fc;
+    padding: 12px 16px;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 13px;
+    border-radius: 10px;
+    margin: 10px 0;
+    overflow-x: auto;
+    line-height: 1.7;
+  }
+  .formula .hi { color: #fbbf24; }
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 5px;
+    font-size: 11.5px;
+    font-weight: 700;
+    font-family: monospace;
+  }
+  .tag.green { background: #dcfce7; color: var(--good); }
+  .tag.red { background: #fee2e2; color: var(--bad); }
+  .tag.orange { background: #ffedd5; color: #ea580c; }
+
+  .btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(77,107,254,0.3); }
+  .btn:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-outline {
+    background: transparent;
+    color: var(--accent);
+    border: 1.5px solid var(--accent);
+  }
+  .btn-outline:hover:not(:disabled) { background: var(--accent-soft); box-shadow: none; }
+  .btn-sm { padding: 6px 12px; font-size: 12.5px; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover:not(:disabled) { background: #f9fafb; box-shadow: none; }
+  .btn-success {
+    background: var(--good) !important;
+    color: white !important;
+  }
+  .input {
+    padding: 9px 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.15s;
+    background: white;
+  }
+  .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(77,107,254,0.15); }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+  canvas {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fafbfc;
+    display: block;
+    max-width: 100%;
+  }
+
+  table.tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 10px;
+  }
+  table.tbl th, table.tbl td {
+    padding: 9px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  table.tbl th {
+    background: #f9fafb;
+    font-weight: 700;
+    font-size: 11.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  table.tbl code {
+    font-family: monospace;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  .quiz-q {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .quiz-q:last-child { border-bottom: none; }
+  .quiz-q p.qtext {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+  .quiz-q p.qtext code {
+    font-family: monospace;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12.5px;
+    color: #7c3aed;
+  }
+  .quiz-opt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 15px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-size: 13.5px;
+    transition: all 0.15s;
+    background: white;
+    font-weight: 500;
+    user-select: none;
+  }
+  .quiz-opt:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-soft); transform: translateX(3px); }
+  .quiz-opt.correct {
+    border-color: var(--good);
+    background: #f0fdf4;
+    color: var(--good);
+    font-weight: 700;
+    animation: popGood 0.4s ease;
+  }
+  .quiz-opt.wrong {
+    border-color: var(--bad);
+    background: #fef2f2;
+    color: var(--bad);
+    animation: shake 0.4s ease;
+  }
+  .quiz-opt.disabled { pointer-events: none; }
+  .quiz-opt .mark {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid #d1d5db;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .quiz-opt.correct .mark { background: var(--good); border-color: var(--good); color: white; }
+  .quiz-opt.wrong .mark { background: var(--bad); border-color: var(--bad); color: white; }
+  @keyframes popGood {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+  .quiz-explain {
+    font-size: 13px;
+    color: #374151;
+    padding: 11px 15px;
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    margin-top: 8px;
+    display: none;
+    animation: slideDown 0.3s ease;
+  }
+  .quiz-explain.show { display: block; }
+  @keyframes slideDown {
+    from { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; }
+    to { opacity: 1; max-height: 200px; }
+  }
+
+  .ds-box {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    min-height: 60px;
+    padding: 10px;
+    background: #fafbfc;
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    align-items: center;
+  }
+  .ds-item {
+    min-width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--accent), #7c3aed);
+    color: white;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 15px;
+    animation: pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    padding: 0 12px;
+    box-shadow: 0 3px 8px rgba(77,107,254,0.3);
+  }
+  .ds-item.green { background: linear-gradient(135deg, var(--good), #22c55e); box-shadow: 0 3px 8px rgba(22,163,74,0.3); }
+  @keyframes pop {
+    0% { transform: scale(0.4); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .stack-v {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 5px;
+    min-height: 220px;
+    padding: 12px;
+    background: #fafbfc;
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    justify-content: flex-start;
+  }
+  .stack-v .ds-item { width: 100%; height: 38px; }
+
+  .log {
+    font-family: monospace;
+    font-size: 12px;
+    background: #0f172a;
+    color: #a5f3fc;
+    padding: 12px 15px;
+    border-radius: 10px;
+    min-height: 60px;
+    max-height: 160px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    line-height: 1.7;
+  }
+
+  .hash-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .hash-cell {
+    background: #fafbfc;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 6px;
+    min-height: 70px;
+    font-size: 11px;
+    text-align: center;
+    transition: all 0.25s;
+  }
+  .hash-cell.hit {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    transform: scale(1.05);
+  }
+  .hash-cell .idx {
+    font-weight: 800;
+    color: var(--accent);
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+  .hash-cell .keys {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .hash-cell .key {
+    background: linear-gradient(135deg, var(--accent), #7c3aed);
+    color: white;
+    border-radius: 5px;
+    padding: 2px 5px;
+    font-size: 10px;
+    font-family: monospace;
+    font-weight: 700;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+  .badge.good { background: #dcfce7; color: var(--good); }
+  .badge.bad { background: #fee2e2; color: var(--bad); }
+  .badge.info { background: var(--accent-soft); color: var(--accent); }
+  .badge.gold { background: linear-gradient(135deg, #fef3c7, #fbbf24); color: #92400e; }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin: 14px 0;
+  }
+  .kpi {
+    background: #fafbfc;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    transition: all 0.2s;
+  }
+  .kpi:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  .kpi .v {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent);
+    font-family: monospace;
+    line-height: 1.2;
+  }
+  .kpi .l {
+    font-size: 10.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 3px;
+    font-weight: 600;
+  }
+
+  .muted { color: var(--muted); font-size: 13px; }
+  .accent { color: var(--accent); font-weight: 700; }
+
+  .next-wrap {
+    margin-top: 30px;
+    text-align: right;
+    padding-top: 20px;
+    border-top: 1px dashed var(--border);
+  }
+  .next-btn {
+    background: linear-gradient(135deg, var(--accent), var(--pink));
+    color: white;
+    border: none;
+    padding: 13px 26px;
+    border-radius: 12px;
+    font-size: 14.5px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 14px rgba(77,107,254,0.3);
+  }
+  .next-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(77,107,254,0.4); }
+  .next-btn:active { transform: translateY(0) scale(0.98); }
+  .next-btn.locked {
+    background: #d1d5db;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 0.85;
+  }
+  .next-btn.locked:hover { transform: none; box-shadow: none; }
+
+  #confetti-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+  }
+
+  #toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #0f172a;
+    color: white;
+    padding: 14px 22px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+    z-index: 10000;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 90vw;
+  }
+  #toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  #toast .emoji { font-size: 20px; }
+
+  .xp-popup {
+    position: fixed;
+    color: var(--gold);
+    font-weight: 900;
+    font-size: 22px;
+    pointer-events: none;
+    z-index: 10001;
+    animation: xpFloat 1.2s ease forwards;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  @keyframes xpFloat {
+    0% { transform: translateY(0) scale(0.5); opacity: 0; }
+    20% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+    100% { transform: translateY(-90px) scale(1); opacity: 0; }
+  }
+
+  body.focus-mode .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+  body.focus-mode .main { margin-left: 0; max-width: 900px; }
+  body.focus-mode .hud { left: 0; }
+
+  @media (max-width: 900px) {
+    .sidebar { width: 100%; position: relative; height: auto; transform: none; }
+    .hud { left: 0; }
+    .main { margin-left: 0; padding: 84px 20px 120px; }
+    body { flex-direction: column; }
+    .hud-xp-wrap { max-width: 120px; }
+    .hud-level .label { display: none; }
+  }
+
+  .quick-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .qa {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .qa:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); transform: translateY(-1px); }
+  .qa:active { transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+<div id="toast"><span class="emoji">✨</span><span class="msg">Nice!</span></div>
+
+<div class="hud">
+  <div class="hud-level" id="hudLevel">
+    <span class="emoji">🌱</span>
+    <span class="label">Novice</span>
+  </div>
+  <div class="hud-xp-wrap">
+    <div class="hud-xp-bar"><div class="hud-xp-fill" id="xpFill"></div></div>
+    <span class="hud-xp-text" id="xpText">0 / 50 XP</span>
+  </div>
+  <div class="hud-streak" id="hudStreak">🔥 <span id="streakVal">0</span></div>
+  <button type="button" class="hud-btn" id="soundBtn" title="Son on/off">🔊</button>
+  <button type="button" class="hud-btn" id="focusBtn" title="Mode focus">🎯</button>
+  <button type="button" class="hud-btn" id="resetBtn" title="Reset progression">🔄</button>
+</div>
+
+<aside class="sidebar">
+  <div class="brand">
+    <h1>⚡ Algo Quest</h1>
+    <p>Rattrape ton cours en jouant</p>
+  </div>
+  <div class="nav-section">🌱 Démarrage</div>
+  <a class="nav-item active" data-page="home" role="button" tabindex="0"><span class="emoji">🏠</span><span class="label">Accueil</span><span class="check">✓</span></a>
+  <div class="nav-section">📊 Complexité</div>
+  <a class="nav-item" data-page="complexity" role="button" tabindex="0"><span class="emoji">🔢</span><span class="label">Compter les ops</span><span class="check">✓</span></a>
+  <a class="nav-item" data-page="bigo" role="button" tabindex="0"><span class="emoji">📈</span><span class="label">Big O Visualizer</span><span class="check">✓</span></a>
+  <div class="nav-section">📦 Structures</div>
+  <a class="nav-item" data-page="array" role="button" tabindex="0"><span class="emoji">📦</span><span class="label">Tableau</span><span class="check">✓</span></a>
+  <a class="nav-item" data-page="linked" role="button" tabindex="0"><span class="emoji">🔗</span><span class="label">Liste chaînée</span><span class="check">✓</span></a>
+  <a class="nav-item" data-page="stackqueue" role="button" tabindex="0"><span class="emoji">🥞</span><span class="label">Pile &amp; File</span><span class="check">✓</span></a>
+  <a class="nav-item" data-page="hash" role="button" tabindex="0"><span class="emoji">#️⃣</span><span class="label">Table de hachage</span><span class="check">✓</span></a>
+  <div class="nav-section">🕸️ Graphes</div>
+  <a class="nav-item" data-page="graphs" role="button" tabindex="0"><span class="emoji">🕸️</span><span class="label">Bases des graphes</span><span class="check">✓</span></a>
+  <a class="nav-item" data-page="traversal" role="button" tabindex="0"><span class="emoji">🧭</span><span class="label">BFS / DFS</span><span class="check">✓</span></a>
+  <a class="nav-item" data-page="bipartite" role="button" tabindex="0"><span class="emoji">🔴</span><span class="label">Bipartite</span><span class="check">✓</span></a>
+  <div class="nav-section">🧠 Théorie</div>
+  <a class="nav-item" data-page="theory" role="button" tabindex="0"><span class="emoji">🧙</span><span class="label">Turing, P vs NP</span><span class="check">✓</span></a>
+  <a class="nav-item" data-page="choose" role="button" tabindex="0"><span class="emoji">🎯</span><span class="label">Choisir sa structure</span><span class="check">✓</span></a>
+  <a class="nav-item" data-page="quiz" role="button" tabindex="0"><span class="emoji">🏆</span><span class="label">Quiz final</span><span class="check">✓</span></a>
+</aside>
+
+<main class="main">
+
+<!-- ========== HOME ========== -->
+<section class="page active" id="home">
+  <h2 class="page-title"><span class="big-emoji">🚀</span>Bienvenue dans Algo Quest</h2>
+  <p class="page-sub">Rattrape ton cours 201.1 en jouant. Chaque section a un objectif clair — complète-le pour gagner des XP.</p>
+
+  <div class="tldr">
+    <div class="ttl">⚡ TL;DR</div>
+    <strong>Comment ça marche :</strong> chaque section affiche un <strong>objectif</strong> en haut. Réalise-le pour gagner <strong>+25 XP</strong> et cocher la section. Pas d'XP gratuit en arrivant 🚫.
+  </div>
+
+  <div class="quick-actions">
+    <div class="qa" data-goto="complexity">🎯 Commencer par Complexité</div>
+    <div class="qa" data-action="randomFact">🎲 Fun fact aléatoire</div>
+    <div class="qa" data-goto="quiz">🏆 Direct au quiz final</div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="v">O(1)</div><div class="l">Constant</div></div>
+    <div class="kpi"><div class="v">O(log n)</div><div class="l">Logarithmique</div></div>
+    <div class="kpi"><div class="v">O(n)</div><div class="l">Linéaire</div></div>
+    <div class="kpi"><div class="v">O(n²)</div><div class="l">Quadratique</div></div>
+    <div class="kpi"><div class="v">O(2ⁿ)</div><div class="l">Exponentiel</div></div>
+  </div>
+
+  <div class="card">
+    <h3>🗺️ Ton parcours</h3>
+    <ul>
+      <li><strong>📊 Complexité</strong> — Compter les ops, notation O</li>
+      <li><strong>📦 Structures</strong> — Tableau, liste, pile, file, hash</li>
+      <li><strong>🕸️ Graphes</strong> — BFS, DFS, bipartite, König</li>
+      <li><strong>🧠 Théorie</strong> — Turing, P vs NP, choisir sa structure</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>🎮 Système de jeu</h3>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="v">+10</div><div class="l">XP par bonne réponse</div></div>
+      <div class="kpi"><div class="v">+25</div><div class="l">XP par objectif de section</div></div>
+      <div class="kpi"><div class="v">+15</div><div class="l">XP bonus streak ≥ 5</div></div>
+      <div class="kpi"><div class="v">👑</div><div class="l">Légende à 500 XP</div></div>
+    </div>
+  </div>
+
+  <div class="next-wrap">
+    <button type="button" class="next-btn" data-goto="complexity">Commencer 🚀</button>
+  </div>
+</section>
+
+<!-- ========== COMPLEXITY ========== -->
+<section class="page" id="complexity">
+  <h2 class="page-title"><span class="big-emoji">🔢</span>Compter les opérations</h2>
+  <p class="page-sub">La complexité = combien d'opérations élémentaires fait ton algo.</p>
+
+  <div class="tldr">
+    <div class="ttl">⚡ TL;DR</div>
+    On compte les opérations, on jette les constantes, on garde le terme dominant. <strong>O(1) &lt; O(log n) &lt; O(n) &lt; O(n²) &lt; O(2ⁿ)</strong>.
+  </div>
+
+  <div class="card">
+    <h3><span class="num">1</span>Pourquoi compter ?</h3>
+    <p>Le temps réel dépend du CPU, du langage... pas équitable. On compte donc les <strong>opérations élémentaires</strong> (+, -, ×, comparaison, affectation).</p>
+    <div class="formula">Complexité ≈ <span class="hi">nombre d'opérations élémentaires</span> = f(N)</div>
+  </div>
+
+  <div class="card">
+    <h3><span class="num">2</span>🎮 Défi — Compte les ops</h3>
+    <p>Ajuste N et clique sur les 3 boutons <strong>Tester</strong>.</p>
+    <div class="row" style="margin:12px 0;">
+      <label style="font-size:13px; font-weight:700;">N = </label>
+      <input type="range" id="opN" min="1" max="100" value="10" style="flex:1; max-width:300px;">
+      <span class="tag" id="opNval">10</span>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:12px;">
+      <div class="card" style="margin:0; padding:16px;">
+        <div style="font-weight:700; font-size:13px; margin-bottom:6px;">A) Boucle simple</div>
+        <div class="formula" style="font-size:11px;">for i in range(N):<br>&nbsp;&nbsp;total += i</div>
+        <div class="row">
+          <button type="button" class="btn btn-sm" data-op="simple">▶ Tester</button>
+          <span class="tag" id="opSimple">—</span>
+        </div>
+      </div>
+      <div class="card" style="margin:0; padding:16px;">
+        <div style="font-weight:700; font-size:13px; margin-bottom:6px;">B) Boucle double</div>
+        <div class="formula" style="font-size:11px;">for i in range(N):<br>&nbsp;&nbsp;for j in range(N):<br>&nbsp;&nbsp;&nbsp;&nbsp;total += 1</div>
+        <div class="row">
+          <button type="button" class="btn btn-sm" data-op="double">▶ Tester</button>
+          <span class="tag" id="opDouble">—</span>
+        </div>
+      </div>
+      <div class="card" style="margin:0; padding:16px;">
+        <div style="font-weight:700; font-size:13px; margin-bottom:6px;">C) Version formule</div>
+        <div class="formula" style="font-size:11px;">total = N*(N-1)/2</div>
+        <div class="row">
+          <button type="button" class="btn btn-sm" data-op="formula">▶ Tester</button>
+          <span class="tag" id="opFormula">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="muted" style="margin-top:14px;" id="opExplain">Ajuste N et clique sur un bouton.</div>
+  </div>
+
+  <div class="card">
+    <h3><span class="num">3</span>Règles de simplification</h3>
+    <div class="formula">
+      2N + 5  →  <span class="hi">O(N)</span><br>
+      3N + 4 + N²  →  <span class="hi">O(N²)</span><br>
+      100N + 10N² + N³  →  <span class="hi">O(N³)</span>
+    </div>
+    <p><strong>Pourquoi ?</strong> Quand N grandit, le terme dominant écrase tout.</p>
+  </div>
+
+  <div class="card">
+    <h3><span class="num">4</span>🎮 Mini-quiz</h3>
+    <div id="complexityQuiz"></div>
+  </div>
+
+  <div class="card">
+    <h3><span class="num">5</span>Estimation du temps</h3>
+    <p>Si un algo linéaire met 1s pour N=1000 :</p>
+    <table class="tbl">
+      <tr><th>N</th><th>O(1)</th><th>O(N)</th><th>O(N²)</th></tr>
+      <tr><td>100</td><td>1s</td><td>1s</td><td>10s</td></tr>
+      <tr><td>1000</td><td>1s</td><td>1s</td><td>~17 min</td></tr>
+      <tr><td>10⁴</td><td>1s</td><td>10s</td><td>~27 h</td></tr>
+      <tr><td>10⁶</td><td>1s</td><td>~17 min</td><td>~31 ans</td></tr>
+    </table>
+  </div>
+
+  <div class="next-wrap">
+    <button type="button" class="next-btn" data-goto="bigo" data-requires="complexity">Suivant : Big O 📈</button>
+  </div>
+</section>
+
+<!-- ========== BIGO ========== -->
+<section class="page" id="bigo">
+  <h2 class="page-title"><span class="big-emoji">📈</span>Big O Visualizer</h2>
+  <p class="page-sub">Vois comment chaque complexité explose quand N grandit.</p>
+
+  <div class="tldr">
+    <div class="ttl">⚡ TL;DR</div>
+    O(1) reste plat. O(n) monte droit. O(n²) décolle. <strong>O(2ⁿ) est un mur vertical.</strong>
+  </div>
+
+  <div class="card">
+    <div class="row" style="margin-bottom:14px;">
+      <label style="font-size:13px; font-weight:700;">N = </label>
+      <input type="range" id="bigoN" min="1" max="100" value="20" style="flex:1; max-width:400px;">
+      <span class="tag" id="bigoNval" style="min-width:50px; text-align:center;">20</span>
+    </div>
+    <canvas id="bigoCanvas" width="900" height="420"></canvas>
+    <div class="kpi-grid" id="bigoKpis" style="margin-top:16px;"></div>
+    <div class="muted" style="text-align:center; margin-top:10px;">🎯 Bouge le curseur — au moins 3 valeurs différentes</div>
+  </div>
+
+  <div class="card">
+    <h3>📋 Tableau de référence</h3>
+    <table class="tbl">
+      <tr><th>Notation</th><th>Nom</th><th>Exemple</th><th>N=10⁶ @1GHz</th></tr>
+      <tr><td><code>O(1)</code></td><td>Constante</td><td>a[i]</td><td>~100 ns</td></tr>
+      <tr><td><code>O(log N)</code></td><td>Logarithmique</td><td>Dichotomie</td><td>~1 ms</td></tr>
+      <tr><td><code>O(N)</code></td><td>Linéaire</td><td>Parcours</td><td>0.1 s</td></tr>
+      <tr><td><code>O(N log N)</code></td><td>Log-linéaire</td><td>Tri rapide</td><td>~1 s</td></tr>
+      <tr><td><code>O(N²)</code></td><td>Quadratique</td><td>Double boucle</td><td>~1 jour</td></tr>
+      <tr><td><code>O(N³)</code></td><td>Cubique</td><td>Triple boucle</td><td>~3000 ans</td></tr>
+      <tr><td><code>O(2ⁿ)</code></td><td>Exponentielle</td><td>Brute force</td><td>Impraticable</td></tr>
+    </table>
+  </div>
+
+  <div class="next-wrap">
+    <button type="button" class="next-btn" data-goto="array" data-requires="bigo">Suivant : Tableau 📦</button>
+  </div>
+</section>
+
+<!-- ========== ARRAY ========== -->
+<section class="page" id="array">
+  <h2 class="page-title"><span class="big-emoji">📦</span>Tableau (Array)</h2>
+  <p class="page-sub">Éléments contigus en mémoire. Accès direct par index.</p>
+
+  <div class="tldr">
+    <div class="ttl">⚡ TL;DR</div>
+    Accès index : <strong>O(1)</strong>. Insertion début/milieu : <strong>O(n)</strong> (il faut décaler). Insertion fin : <strong>O(1)</strong>.
+  </div>
+
+  <div class="card">
+    <h3>🎮 Défi — Insère une valeur</h3>
+    <div class="ds-box" id="arrayBox"></div>
+    <div class="row" style="margin-top:12px;">
+      <input type="number" class="input" id="arrayVal" value="8" style="width:80px;" placeholder="Valeur">
+      <input type="number" class="input" id="arrayIdx" value="3" style="width:80px;" placeholder="Indice">
+      <button type="button" class="btn" id="arrayInsertBtn">Insérer</button>
+      <button type="button" class="btn btn-ghost" id="arrayResetBtn">Reset</button>
+    </div>
+    <div class="log" id="arrayLog" style="margin-top:12px;">Prêt. Insère une valeur pour voir les décalages.</div>
+  </div>
+
+  <div class="card">
+    <h3>💰 Coûts</h3>
+    <table class="tbl">
+      <tr><th>Opération</th><th>Coût</th><th>Pourquoi</th></tr>
+      <tr><td><code>a[i]</code></td><td><span class="tag green">O(1)</span></td><td>Adresse calculée directement</td></tr>
+      <tr><td>Recherche</td><td><span class="tag orange">O(n)</span></td><td>Parcours séquentiel</td></tr>
+      <tr><td>Insertion début</td><td><span class="tag red">O(n)</span></td><td>Décalage de tous</td></tr>
+      <tr><td>Insertion fin</td><td><span class="tag green">O(1)</span></td><td>Pas de décalage</td></tr>
+    </table>
+  </div>
+
+  <div class="next-wrap">
+    <button type="button" class="next-btn" data-goto="linked" data-requires="array">Suivant : Liste chaînée 🔗</button>
+  </div>
+</section>
+
+<!-- ========== LINKED LIST ========== -->
+<section class="page" id="linked">
+  <h2 class="page-title"><span class="big-emoji">🔗</span>Liste chaînée</h2>
+  <p class="page-sub">Chaque cellule → valeur + adresse de la suivante.</p>
+
+  <div class="tldr">
+    <div class="ttl">⚡ TL;DR</div>
+    Insertion/suppression au début : <strong>O(1)</strong> 🚀. Accès par index : <strong>O(n)</strong> (faut suivre les pointeurs).
+  </div>
+
+  <div class="card">
+    <h3>🎮 Défi — Ajoute puis retire en tête</h3>
+    <div id="linkedBox" style="display:flex; align-items:center; gap:0; flex-wrap:wrap; padding:16px; background:#fafbfc; border:2px dashed var(--border); border-radius:12px; min-height:80px;"></div>
+    <div class="row" style="margin-top:12px;">
+      <input type="number" class="input" id="linkedVal" value="42" style="width:80px;">
+      <button type="button" class="btn" id="linkedAddBtn">⬅ Ajouter en tête</button>
+      <button type="button" class="btn btn-outline" id="linkedRemoveBtn">Retirer tête</button>
+      <button type="button" class="btn btn-ghost" id="linkedResetBtn">Reset</button>
+    </div>
+    <div class="log" id="linkedLog" style="margin-top:12px;">Liste initiale : 15 → 3 → 17 → 90 → NULL</div>
+  </div>
+
+  <div class="card">
+    <h3>💰 Tableau vs Liste</h3>
+    <table class="tbl">
+      <tr><th>Opération</th><th>Tableau</th><th>Liste</th></tr>
+      <tr><td>Accès index</td><td><code>O(1)</code></td><td><code>O(n)</code></td></tr>
+      <tr><td>Recherche</td><td><code>O(n)</code></td><td><code>O(n)</code></td></tr>
+      <tr><td>Insert/suppr début</td><td><code>O(n)</code></td><td><span class="tag green">O(1)</span></td></tr>
+      <tr><td>Insert/suppr fin</td><td><code>O(1)</code></td><td><code>O(1)</code></td></tr>
+    </table>
+    <p class="muted" style="margin-top:10px;">En Python : <code>collections.deque</code>.</p>
+  </div>
+
+  <div class="next-wrap">
+    <button type="button" class="next-btn" data-goto="stackqueue" data-requires="linked">Suivant : Pile &amp; File 🥞</button>
+  </div>
+</section>
+
+<!-- ========== STACK & QUEUE ========== -->
+<section class="page" id="stackqueue">
+  <h2 class="page-title"><span class="big-emoji">🥞</span>Pile &amp; File</h2>
+  <p class="page-sub">Deux types abstraits essentiels. LIFO vs FIFO.</p>
+
+  <div class="tldr">
+    <div class="ttl">⚡ TL;DR</div>
+    <strong>Pile</strong> = dernier entré, premier sorti (undo). <strong>File</strong> = premier entré, premier sorti (queue).
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+    <div class="card">
+      <h3>🥞 Pile — LIFO</h3>
+      <div class="stack-v" id="stackBox"></div>
+      <div class="row" style="margin-top:12px;">
+        <input type="number" class="input" id="stackVal" value="5" style="width:70px;">
+        <button type="button" class="btn btn-sm" id="stackPushBtn">Push ↑</button>
+        <button type="button" class="btn btn-sm btn-outline" id="stackPopBtn">Pop ↓</button>
+      </div>
+      <div class="log" id="stackLog" style="margin-top:10px; font-size:11px;">Pile vide.</div>
+    </div>
+
+    <div class="card">
+      <h3>🚶 File — FIFO</h3>
+      <div class="ds-box" id="queueBox" style="min-height:100px;"></div>
+      <div class="row" style="margin-top:12px;">
+        <input type="number" class="input" id="queueVal" value="7" style="width:70px;">
+        <button type="button" class="btn btn-sm" id="queueEnqueueBtn">→ Enqueue</button>
+        <button type="button" class="btn btn-sm btn-outline" id="queueDequeueBtn">← Dequeue</button>
+      </div>
+      <div class="log" id="queueLog" style="margin-top:10px; font-size:11px;">File vide.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🎮 Teste-toi</h3>
+    <p style="font-size:13px;">Tu cliques Ctrl+Z, Ctrl+Z, Ctrl+Z. Quelle structure gère ça ?</p>
+    <div class="row" id="quickTestBtns">
+      <button type="button" class="btn btn-sm btn-outline" data-quick="false" data-msg="FIFO = file. Ctrl+Z annule la dernière action → LIFO = pile !">File (FIFO)</button>
+      <button type="button" class="btn btn-sm btn-outline" data-quick="true" data-msg="Bravo ! Ctrl+Z = annuler la dernière action → LIFO → pile.">Pile (LIFO)</button>
+    </div>
+  </div>
+
+  <div class="next-wrap">
+    <button type="button" class="next-btn" data-goto="hash" data-requires="stackqueue">Suivant : Table de hachage #️⃣</button>
+  </div>
+</section>
+
+<!-- ========== HASH ========== -->
+<section class="page" id="hash">
+  <h2 class="page-title"><span class="big-emoji">#️⃣</span>Table de hachage</h2>
+  <p class="page-sub">Accès par clé en O(1). L'outil du « retrouve-moi vite par identifiant ».</p>
+
+  <div class="tldr">
+    <div class="ttl">⚡ TL;DR</div>
+    Fonction de hachage → index. Deux clés sur le même index = <strong>collision</strong> (résolue par chaînage). <strong>O(1) en moyenne</strong>.
+  </div>
+
+  <div class="card">
+    <h3>🎮 Défi — Insère 3 clés</h3>
+    <div class="row" style="margin:12px 0;">
+      <input type="text" class="input" id="hashKey" placeholder="Clé (ex: chat)" style="flex:1; max-width:200px;">
+      <input type="text" class="input" id="hashVal" placeholder="Valeur" style="flex:1; max-width:200px;">
+      <button type="button" class="btn" id="hashInsertBtn">Insérer</button>
+      <button type="button" class="btn btn-ghost" id="hashResetBtn">Reset</button>
+    </div>
+    <div class="hash-grid" id="hashGrid"></div>
+    <div class="log" id="hashLog" style="margin-top:12px;">Essaie "chat", "chien", "loup"... Regarde les collisions !</div>
+  </div>
+
+  <div class="card">
+    <h3>💰 Coûts</h3>
+    <table class="tbl">
+      <tr><th>Opération</th><th>Moyen</th><th>Pire cas</th></tr>
+      <tr><td>Accès par clé</td><td><span class="tag green">O(1)</span></td><td><code>O(n)</code></td></tr>
+      <tr><td>Insertion</td><td><span class="tag green">O(1)</span></td><td><code>O(n)</code></td></tr>
+      <tr><td>Suppression</td><td><span class="tag green">O(1)</span></td><td><code>O(n)</code></td></tr>
+    </table>
+    <p class="muted" style="margin-top:10px;">En Python : <code>dict</code> et <code>set</code>.</p>
+  </div>
+
+  <div class="next-wrap">
+    <button type="button" class="next-btn" data-goto="graphs" data-requires="hash">Suivant : Graphes 🕸️</button>
+  </div>
+</section>
+
+<!-- ========== GRAPHS ========== -->
+<section class="page" id="graphs">
+  <h2 class="page-title"><span class="big-emoji">🕸️</span>Graphes — Bases</h2>
+  <p class="page-sub">Sommets + arêtes. Ce qui compte, ce sont les LIENS.</p>
+
+  <div class="tldr">
+    <div class="ttl">⚡ TL;DR</div>
+    Graphe <strong>dense</strong> → matrice O(V²). Graphe <strong>creux</strong> (cas réel) → liste d'adjacence O(V+E).
+  </div>
+
+  <div class="card">
+    <h3>🎮 Construis ton graphe</h3>
+    <div class="row" style="margin:12px 0;">
+      <span class="badge info">Sommets : <b id="gNodes">0</b></span>
+      <span class="badge info">Arêtes : <b id="gEdges">0</b></span>
+      <button type="button" class="btn btn-sm btn-ghost" id="graphClearBtn">Effacer</button>
+      <button type="button" class="btn btn-sm" id="graphSampleBtn">Exemple</button>
+    </div>
+    <canvas id="graphCanvas" width="880" height="440" style="cursor:crosshair;"></canvas>
+    <div class="log" id="graphLog" style="margin-top:12px;">Clique pour ajouter un sommet. Clique sommet → sommet pour relier. Double-clic = supprimer.</div>
+  </div>
+
+  <div class="card">
+    <h3>📋 Représentations</h3>
+    <table class="tbl">
+      <tr><th>Représentation</th><th>Mémoire</th><th>Arête (u,v) ?</th><th>Voisins de u</th></tr>
+      <tr><td>Matrice</td><td><code>O(V²)</code></td><td><span class="tag green">O(1)</span></td><td><code>O(V)</code></td></tr>
+      <tr><td>Liste adj.</td><td><code>O(V+E)</code></td><td><code>O(deg(u))</code></td><td><span class="tag green">O(deg(u))</span></td></tr>
+    </table>
+  </div>
+
+  <div class="next-wrap">
+    <button type="button" class="next-btn" data-goto="traversal" data-requires="graphs">Suivant : BFS / DFS 🧭</button>
+  </div>
+</section>
+
+<!-- ========== TRAVERSAL ========== -->
+<section class="page" id="traversal">
+  <h2 class="page-title"><span class="big-emoji">🧭</span>BFS / DFS</h2>
+  <p class="page-sub">Deux stratégies d'exploration. BFS = file, DFS = pile.</p>
+
+  <div class="tldr">
+    <div class="ttl">⚡ TL;DR</div>
+    <strong>BFS</strong> explore par niveaux (file). <strong>DFS</strong> plonge à fond (pile/récursion). Complexité : <strong>O(V+E)</strong>.
+  </div>
+
+  <div class="card">
+    <h3>🎮 Lance BFS ou DFS</h3>
+    <div class="row" style="margin:12px 0;">
+      <select class="input" id="startNode" style="width:120px;"></select>
+      <button type="button" class="btn btn-sm" id="bfsBtn">▶ BFS</button>
+      <button type="button" class="btn btn-sm btn-outline" id="dfsBtn">▶ DFS</button>
+      <button type="button" class="btn btn-sm btn-ghost" id="travSampleBtn">Exemple</button>
+      <button type="button" class="btn btn-sm btn-ghost" id="travResetBtn">Reset</button>
+    </div>
+    <canvas id="travCanvas" width="880" height="380" style="cursor:pointer;"></canvas>
+    <div class="log" id="travLog" style="margin-top:12px;">Clique sur l'exemple pour commencer, puis lance BFS ou DFS !</div>
+  </div>
+
+  <div class="card">
+    <h3>📊 Comparaison</h3>
+    <table class="tbl">
+      <tr><th></th><th>BFS</th><th>DFS</th></tr>
+      <tr><td>Structure</td><td>File (FIFO)</td><td>Pile (LIFO)</td></tr>
+      <tr><td>Exploration</td><td>Par niveaux</td><td>En profondeur</td></tr>
+      <tr><td>Plus court chemin</td><td>✅</td><td>❌</td></tr>
+      <tr><td>Mémoire</td><td><code>O(V)</code></td><td><code>O(V)</code></td></tr>
+    </table>
+  </div>
+
+  <div class="next-wrap">
+    <button type="button" class="next-btn" data-goto="bipartite" data-requires="traversal">Suivant : Bipartite 🔴</button>
+  </div>
+</section>
+
+<!-- ========== BIPARTITE ========== -->
+<section class="page" id="bipartite">
+  <h2 class="page-title"><span class="big-emoji">🔴</span>Bipartite &amp; König</h2>
+  <p class="page-sub">Un graphe biparti se colorie avec 2 couleurs.</p>
+
+  <div class="tldr">
+    <div class="ttl">⚡ TL;DR</div>
+    <strong>Théorème de König :</strong> matching max = couverture min de sommets (dans un biparti). Applications : affectation, planning.
+  </div>
+
+  <div class="card">
+    <h3>🎮 Test de bipartisme</h3>
+    <div class="row" style="margin:12px 0;">
+      <button type="button" class="btn btn-sm" id="checkBipBtn">🔍 Vérifier</button>
+      <button type="button" class="btn btn-sm btn-ghost" id="bipSampleBtn">Exemple biparti</button>
+      <button type="button" class="btn btn-sm btn-ghost" id="bipSampleNonBtn">Exemple non-biparti</button>
+      <button type="button" class="btn btn-sm btn-ghost" id="bipResetBtn">Reset</button>
+      <span class="badge info" id="bipResult">—</span>
+    </div>
+    <canvas id="bipCanvas" width="880" height="380" style="cursor:pointer;"></canvas>
+    <div class="log" id="bipLog" style="margin-top:12px;">Clique sur un exemple, puis vérifie.</div>
+  </div>
+
+  <div class="card">
+    <h3>🧠 König &amp; Max-flow min-cut</h3>
+    <div class="formula">
+      Biparti : <span class="hi">matching max = couverture min</span><br>
+      Réseau de flot : <span class="hi">flot max = coupe min</span>
+    </div>
+    <p>Trouver la couverture minimale est NP-difficile en général, mais polynomial dans un biparti.</p>
+  </div>
+
+  <div class="next-wrap">
+    <button type="button" class="next-btn" data-goto="theory" data-requires="bipartite">Suivant : Théorie 🧙</button>
+  </div>
+</section>
+
+<!-- ========== THEORY ========== -->
+<section class="page" id="theory">
+  <h2 class="page-title"><span class="big-emoji">🧙</span>Turing, P vs NP</h2>
+  <p class="page-sub">Les fondations théoriques de l'informatique.</p>
+
+  <div class="tldr">
+    <div class="ttl">⚡ TL;DR</div>
+    <strong>P</strong> = facile à résoudre. <strong>NP</strong> = facile à vérifier. <strong>P = NP ?</strong> Personne sait, 1M$ à la clé.
+  </div>
+
+  <div class="card">
+    <h3>🖥️ Machine de Turing (1936)</h3>
+    <p>Ruban infini + tête lecture/écriture + états + instructions. Naissance de l'informatique théorique <strong>avant</strong> les ordinateurs.</p>
+    <p>Une machine <strong>universelle</strong> peut simuler n'importe quelle autre → fondement de l'ordinateur programmable.</p>
+  </div>
+
+  <div class="card">
+    <h3>📊 Classes de complexité</h3>
+    <table class="tbl">
+      <tr><th>Classe</th><th>Description</th><th>Exemple</th></tr>
+      <tr><td><strong>P</strong></td><td>Faciles (polynomial)</td><td>Tri, plus court chemin</td></tr>
+      <tr><td><strong>NP</strong></td><td>Vérif rapide, résolution lente</td><td>SAT, TSP</td></tr>
+      <tr><td><strong>EXP</strong></td><td>Exponentiel</td><td>Échecs généralisés</td></tr>
+      <tr><td><strong>Non calculable</strong></td><td>Aucun algo</td><td>Problème de l'arrêt</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>🔬 Les 4 précepts algorithmiques</h3>
+    <ul>
+      <li><strong>Brute force d'abord</strong> — pense naïf, puis optimise</li>
+      <li><strong>Sois ta propre inspiration</strong> — résous à la main</li>
+      <li><strong>Cherche les analogies</strong> — si ça ressemble à un canard...</li>
+      <li><strong>Challenge ta compréhension</strong> — vérifie tes hypothèses</li>
+    </ul>
+  </div>
+
+  <div class="card" style="text-align:center;">
+    <p style="font-size:13.5px;">📖 Section lecture — pas de bouton interactif. Quand tu as compris, clique pour valider :</p>
+    <button type="button" class="btn" id="theoryUnderstoodBtn">✅ J'ai compris</button>
+  </div>
+
+  <div class="next-wrap">
+    <button type="button" class="next-btn" data-goto="choose" data-requires="theory">Suivant : Choisir sa structure 🎯</button>
+  </div>
+</section>
+
+<!-- ========== CHOOSE ========== -->
+<section class="page" id="choose">
+  <h2 class="page-title"><span class="big-emoji">🎯</span>Choisir sa structure</h2>
+  <p class="page-sub">Le réflexe : pas « par habitude », mais selon l'usage.</p>
+
+  <div class="tldr">
+    <div class="ttl">⚡ TL;DR</div>
+    <strong>4 questions :</strong> Quelles ops ? Lesquelles fréquentes ? Quel volume ? Contrainte mémoire ?
+  </div>
+
+  <div class="card">
+    <h3>🎮 Exercices — Choisis la bonne structure</h3>
+    <div id="chooseQuiz"></div>
+  </div>
+
+  <div class="card">
+    <h3>📋 Fiche mémo</h3>
+    <table class="tbl">
+      <tr><th>Opération</th><th>Tableau</th><th>Liste</th><th>Hash</th></tr>
+      <tr><td>Index</td><td><code>O(1)</code></td><td><code>O(n)</code></td><td>n/a</td></tr>
+      <tr><td>Clé</td><td>n/a</td><td>n/a</td><td><code>O(1)</code>*</td></tr>
+      <tr><td>Début</td><td><code>O(n)</code></td><td><code>O(1)</code></td><td><code>O(1)</code>*</td></tr>
+      <tr><td>Fin</td><td><code>O(1)</code></td><td><code>O(1)</code></td><td><code>O(1)</code>*</td></tr>
+    </table>
+    <p class="muted" style="margin-top:8px;">* en moyenne</p>
+  </div>
+
+  <div class="next-wrap">
+    <button type="button" class="next-btn" data-goto="quiz" data-requires="choose">Quiz final 🏆</button>
+  </div>
+</section>
+
+<!-- ========== QUIZ ========== -->
+<section class="page" id="quiz">
+  <h2 class="page-title"><span class="big-emoji">🏆</span>Quiz final</h2>
+  <p class="page-sub">8 questions. Chaque bonne réponse = +10 XP. Bonne chance !</p>
+
+  <div class="card">
+    <div id="finalQuiz"></div>
+    <div class="row" style="margin-top:16px;">
+      <button type="button" class="btn" id="resetFinalQuizBtn">🔄 Recommencer</button>
+      <span class="badge gold" id="quizScore">Score : 0 / 0</span>
+    </div>
+  </div>
+
+  <div class="next-wrap">
+    <button type="button" class="next-btn" data-goto="home">🎉 Retour à l'accueil</button>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* ============================================================
+   STATE
+   ============================================================ */
+const STORAGE_KEY = 'algoquest_state_v4';
+const state = {
+  xp: 0,
+  streak: 0,
+  bestStreak: 0,
+  completed: {},
+  soundOn: true,
+  quizAnswers: {}   // qid -> { result: 'correct'|'wrong', chosen: index }
+};
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) Object.assign(state, JSON.parse(raw));
+  } catch(e) {}
+}
+
+const LEVELS = [
+  { min: 0,   name: 'Novice',   emoji: '🌱' },
+  { min: 50,  name: 'Sprout',   emoji: '🌿' },
+  { min: 150, name: 'Explorer', emoji: '🧭' },
+  { min: 300, name: 'Wizard',   emoji: '🧙' },
+  { min: 500, name: 'Legend',   emoji: '👑' }
+];
+function getLevel(xp) {
+  let lvl = LEVELS[0];
+  for (const l of LEVELS) if (xp >= l.min) lvl = l;
+  return lvl;
+}
+function getNextLevel(xp) {
+  for (const l of LEVELS) if (xp < l.min) return l;
+  return null;
+}
+
+/* ============================================================
+   TRACKERS
+   ============================================================ */
+const trackers = {
+  opDone: new Set(),
+  bigoValues: new Set(),
+  arrayInsertions: 0,
+  linkedAdd: 0,
+  linkedRemove: 0,
+  stackPush: 0,
+  stackPop: 0,
+  queueEnqueue: 0,
+  queueDequeue: 0,
+  quickAnswered: false,
+  hashInserts: 0,
+  graphSample: false,
+  traversalDone: false,
+  bipartiteChecked: false,
+  theoryRead: false
+};
+
+/* ============================================================
+   SECTION TASKS
+   ============================================================ */
+const SECTION_TASKS = {
+  complexity: {
+    label: 'Teste les 3 algos + réponds aux 5 questions du mini-quiz',
+    progress: () => `${trackers.opDone.size}/3 algos · ${countQuiz('complexity', 5)}/5 quiz`,
+    check: () => trackers.opDone.size === 3 && quizAllAnswered('complexity', 5)
+  },
+  bigo: {
+    label: 'Bouge le slider sur au moins 3 valeurs différentes',
+    progress: () => `${Math.min(trackers.bigoValues.size, 3)}/3 valeurs`,
+    check: () => trackers.bigoValues.size >= 3
+  },
+  array: {
+    label: 'Fais au moins 1 insertion dans le tableau',
+    progress: () => `${Math.min(trackers.arrayInsertions, 1)}/1 insertion`,
+    check: () => trackers.arrayInsertions >= 1
+  },
+  linked: {
+    label: 'Ajoute en tête ET retire en tête',
+    progress: () => `ajout ${Math.min(trackers.linkedAdd,1)}/1 · retrait ${Math.min(trackers.linkedRemove,1)}/1`,
+    check: () => trackers.linkedAdd >= 1 && trackers.linkedRemove >= 1
+  },
+  stackqueue: {
+    label: 'Push + Pop + Enqueue + Dequeue + réponds au test',
+    progress: () => `push ${Math.min(trackers.stackPush,1)}/1 · pop ${Math.min(trackers.stackPop,1)}/1 · enq ${Math.min(trackers.queueEnqueue,1)}/1 · deq ${Math.min(trackers.queueDequeue,1)}/1 · test ${trackers.quickAnswered?1:0}/1`,
+    check: () => trackers.stackPush >= 1 && trackers.stackPop >= 1
+              && trackers.queueEnqueue >= 1 && trackers.queueDequeue >= 1
+              && trackers.quickAnswered
+  },
+  hash: {
+    label: 'Insère 3 clés différentes',
+    progress: () => `${Math.min(trackers.hashInserts, 3)}/3 clés`,
+    check: () => trackers.hashInserts >= 3
+  },
+  graphs: {
+    label: 'Charge l\'exemple OU crée 3 sommets + 2 arêtes',
+    progress: () => trackers.graphSample ? 'exemple chargé' : `${graphNodes.length}/3 sommets · ${graphEdges.length}/2 arêtes`,
+    check: () => trackers.graphSample || (graphNodes.length >= 3 && graphEdges.length >= 2)
+  },
+  traversal: {
+    label: 'Lance BFS ou DFS jusqu\'au bout',
+    progress: () => trackers.traversalDone ? 'parcours fait' : 'pas encore lancé',
+    check: () => trackers.traversalDone
+  },
+  bipartite: {
+    label: 'Clique sur Vérifier (avec un graphe chargé)',
+    progress: () => trackers.bipartiteChecked ? 'vérifié' : 'pas encore vérifié',
+    check: () => trackers.bipartiteChecked
+  },
+  theory: {
+    label: 'Lis la section et clique sur "J\'ai compris"',
+    progress: () => trackers.theoryRead ? 'lu' : 'pas encore lu',
+    check: () => trackers.theoryRead
+  },
+  choose: {
+    label: 'Réponds aux 7 exercices de sélection',
+    progress: () => `${countQuiz('choose', 7)}/7 questions`,
+    check: () => quizAllAnswered('choose', 7)
+  },
+  quiz: {
+    label: 'Réponds aux 8 questions du quiz final',
+    progress: () => `${countQuiz('finalQuiz', 8)}/8 questions`,
+    check: () => quizAllAnswered('finalQuiz', 8)
+  }
+};
+
+function countQuiz(quizKey, total) {
+  let c = 0;
+  for (let i = 0; i < total; i++) if (state.quizAnswers[`${quizKey}-${i}`]) c++;
+  return c;
+}
+function quizAllAnswered(quizKey, total) {
+  return countQuiz(quizKey, total) === total;
+}
+
+/* ============================================================
+   GOAL BANNERS
+   ============================================================ */
+function injectGoalBanners() {
+  Object.keys(SECTION_TASKS).forEach(pageId => {
+    const page = document.getElementById(pageId);
+    if (!page) return;
+    const sub = page.querySelector('.page-sub');
+    if (!sub) return;
+    const banner = document.createElement('div');
+    banner.className = 'goal-banner';
+    banner.id = `goal-${pageId}`;
+    sub.parentNode.insertBefore(banner, sub.nextSibling);
+    updateGoalBanner(pageId);
+  });
+}
+function updateGoalBanner(pageId) {
+  const task = SECTION_TASKS[pageId];
+  const el = document.getElementById(`goal-${pageId}`);
+  if (!task || !el) return;
+  const done = !!state.completed[pageId];
+  if (done) {
+    el.className = 'goal-banner done';
+    el.innerHTML = `<span class="goal-icon">✅</span><span><strong>Objectif atteint !</strong> +25 XP</span><span class="goal-progress">DONE</span>`;
+  } else {
+    el.className = 'goal-banner';
+    el.innerHTML = `<span class="goal-icon">🎯</span><span><strong>Objectif :</strong> ${task.label}</span><span class="goal-progress">${task.progress()}</span>`;
+  }
+}
+
+/* ============================================================
+   COMPLETION
+   ============================================================ */
+function checkSectionComplete(pageId) {
+  if (!pageId || pageId === 'home') return;
+  if (state.completed[pageId]) return;
+  const task = SECTION_TASKS[pageId];
+  if (!task) return;
+  if (task.check()) {
+    state.completed[pageId] = true;
+    saveState();
+    updateHUD();
+    updateGoalBanner(pageId);
+    updateNextButtons();
+    addXP(25, 'section');
+    showToast(`🎯 Objectif atteint ! +25 XP`, 'correct');
+    confetti(40);
+    playSound('levelup');
+  } else {
+    updateGoalBanner(pageId);
+  }
+}
+
+/* ============================================================
+   NEXT BUTTONS
+   ============================================================ */
+function updateNextButtons() {
+  document.querySelectorAll('.next-btn[data-requires]').forEach(btn => {
+    const req = btn.dataset.requires;
+    const done = !!state.completed[req];
+    btn.classList.toggle('locked', !done);
+    btn.title = done ? '' : 'Termine d\'abord la section actuelle pour débloquer';
+  });
+}
+document.querySelectorAll('.next-btn[data-requires]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.preventDefault();
+    const req = btn.dataset.requires;
+    if (!state.completed[req]) {
+      showToast('🚧 Termine d\'abord l\'objectif de cette section !', 'wrong');
+      playSound('wrong');
+      return;
+    }
+    goTo(btn.dataset.goto);
+  });
+});
+
+/* ============================================================
+   HUD
+   ============================================================ */
+function updateHUD() {
+  const lvl = getLevel(state.xp);
+  const next = getNextLevel(state.xp);
+  const lvlEl = document.getElementById('hudLevel');
+  if (lvlEl) lvlEl.innerHTML = `<span class="emoji">${lvl.emoji}</span><span class="label">${lvl.name}</span>`;
+
+  let pct = 100, text = `${state.xp} XP`;
+  if (next) {
+    const range = next.min - lvl.min;
+    const done = state.xp - lvl.min;
+    pct = Math.min(100, Math.max(0, (done / range) * 100));
+    text = `${state.xp} / ${next.min} XP`;
+  }
+  const fillEl = document.getElementById('xpFill');
+  const txtEl = document.getElementById('xpText');
+  if (fillEl) fillEl.style.width = pct + '%';
+  if (txtEl) txtEl.textContent = text;
+
+  const sv = document.getElementById('streakVal');
+  if (sv) sv.textContent = state.streak;
+  const streakEl = document.getElementById('hudStreak');
+  if (streakEl) streakEl.classList.toggle('hot', state.streak >= 3);
+
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.toggle('done', !!state.completed[item.dataset.page]);
+  });
+}
+
+/* ============================================================
+   XP / SOUND / TOAST / CONFETTI
+   ============================================================ */
+function addXP(amount, reason, evt) {
+  const beforeLevel = getLevel(state.xp);
+  state.xp += amount;
+  saveState();
+  updateHUD();
+  const afterLevel = getLevel(state.xp);
+
+  let x = window.innerWidth / 2;
+  let y = window.innerHeight / 2;
+  if (evt && typeof evt.clientX === 'number' && (evt.clientX || evt.clientY)) {
+    x = evt.clientX; y = evt.clientY;
+  }
+  const pop = document.createElement('div');
+  pop.className = 'xp-popup';
+  pop.textContent = `+${amount} XP`;
+  pop.style.left = x + 'px';
+  pop.style.top = y + 'px';
+  document.body.appendChild(pop);
+  setTimeout(() => pop.remove(), 1200);
+
+  if (beforeLevel.name !== afterLevel.name) {
+    showToast(`${afterLevel.emoji} Niveau ${afterLevel.name} !`, 'level');
+    confetti(60);
+    playSound('levelup');
+  } else {
+    playSound('xp');
+  }
+}
+
+function increaseStreak() {
+  state.streak++;
+  if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+  saveState();
+  updateHUD();
+  if (state.streak > 0 && state.streak % 5 === 0) {
+    showToast(`🔥 Streak de ${state.streak} ! +15 XP bonus`, 'streak');
+    addXP(15, 'streak');
+  }
+}
+function resetStreak() {
+  state.streak = 0;
+  saveState();
+  updateHUD();
+}
+
+let toastTimer;
+function showToast(msg, type) {
+  type = type || 'info';
+  const el = document.getElementById('toast');
+  if (!el) return;
+  const emoji = type === 'correct' ? '🎉' : type === 'wrong' ? '😅' : type === 'level' ? '⭐' : type === 'streak' ? '🔥' : '✨';
+  el.innerHTML = `<span class="emoji">${emoji}</span><span class="msg">${msg}</span>`;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+let audioCtx;
+function playSound(type) {
+  if (!state.soundOn) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    if (type === 'correct') {
+      osc.frequency.setValueAtTime(523, now);
+      osc.frequency.setValueAtTime(659, now + 0.08);
+      osc.frequency.setValueAtTime(784, now + 0.16);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc.start(now); osc.stop(now + 0.35);
+    } else if (type === 'wrong') {
+      osc.frequency.setValueAtTime(200, now);
+      osc.frequency.exponentialRampToValueAtTime(120, now + 0.15);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      osc.start(now); osc.stop(now + 0.2);
+    } else if (type === 'xp') {
+      osc.frequency.setValueAtTime(880, now);
+      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.start(now); osc.stop(now + 0.12);
+    } else if (type === 'levelup') {
+      [523, 659, 784, 1046].forEach((f, i) => osc.frequency.setValueAtTime(f, now + i * 0.1));
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+      osc.start(now); osc.stop(now + 0.6);
+    } else {
+      osc.frequency.setValueAtTime(440, now);
+      gain.gain.setValueAtTime(0.05, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      osc.start(now); osc.stop(now + 0.1);
+    }
+  } catch(e) {}
+}
+
+const confettiCanvas = document.getElementById('confetti-canvas');
+const confettiCtx = confettiCanvas.getContext('2d');
+let confettiParticles = [];
+let confettiActive = false;
+function resizeConfetti() {
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeConfetti);
+resizeConfetti();
+function confetti(count) {
+  count = count || 40;
+  const colors = ['#4d6bfe', '#7c3aed', '#ec4899', '#f59e0b', '#16a34a', '#fbbf24'];
+  for (let i = 0; i < count; i++) {
+    confettiParticles.push({
+      x: Math.random() * window.innerWidth,
+      y: -20 - Math.random() * 100,
+      vx: (Math.random() - 0.5) * 6,
+      vy: 2 + Math.random() * 4,
+      size: 5 + Math.random() * 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rot: Math.random() * Math.PI * 2,
+      vrot: (Math.random() - 0.5) * 0.3,
+      life: 120
+    });
+  }
+  if (!confettiActive) { confettiActive = true; animateConfetti(); }
+}
+function animateConfetti() {
+  confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+  confettiParticles = confettiParticles.filter(p => p.y < window.innerHeight + 30 && p.life > 0);
+  confettiParticles.forEach(p => {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.rot += p.vrot; p.life--;
+    confettiCtx.save();
+    confettiCtx.translate(p.x, p.y);
+    confettiCtx.rotate(p.rot);
+    confettiCtx.fillStyle = p.color;
+    confettiCtx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+    confettiCtx.restore();
+  });
+  if (confettiParticles.length > 0) requestAnimationFrame(animateConfetti);
+  else { confettiActive = false; confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height); }
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+const PAGE_ORDER = ['home','complexity','bigo','array','linked','stackqueue','hash','graphs','traversal','bipartite','theory','choose','quiz'];
+
+function goTo(pageId) {
+  const item = document.querySelector(`.nav-item[data-page="${pageId}"]`);
+  if (!item) return;
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  item.classList.add('active');
+  const page = document.getElementById(pageId);
+  if (page) page.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (pageId !== 'home') updateGoalBanner(pageId);
+  if (pageId === 'bigo') setTimeout(drawBigO, 60);
+  if (pageId === 'traversal') setTimeout(() => updateStartOptions(), 60);
+}
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', e => { e.preventDefault(); goTo(item.dataset.page); });
+  item.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goTo(item.dataset.page); }
+  });
+});
+document.querySelectorAll('[data-goto]:not([data-requires])').forEach(el => {
+  el.addEventListener('click', e => { e.preventDefault(); goTo(el.dataset.goto); });
+});
+document.querySelectorAll('[data-action]').forEach(el => {
+  el.addEventListener('click', e => {
+    if (el.dataset.action === 'randomFact') randomFact();
+  });
+});
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+  const current = document.querySelector('.nav-item.active')?.dataset.page;
+  const idx = PAGE_ORDER.indexOf(current);
+  if (e.key === 'ArrowRight' && idx < PAGE_ORDER.length - 1) goTo(PAGE_ORDER[idx+1]);
+  if (e.key === 'ArrowLeft' && idx > 0) goTo(PAGE_ORDER[idx-1]);
+});
+
+document.getElementById('soundBtn').addEventListener('click', function() {
+  state.soundOn = !state.soundOn;
+  saveState();
+  this.textContent = state.soundOn ? '🔊' : '🔇';
+  this.classList.toggle('active', state.soundOn);
+  if (state.soundOn) playSound('xp');
+});
+document.getElementById('focusBtn').addEventListener('click', function() {
+  document.body.classList.toggle('focus-mode');
+  this.classList.toggle('active');
+  setTimeout(() => { if (document.querySelector('.nav-item.active')?.dataset.page === 'bigo') drawBigO(); }, 350);
+});
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (!confirm('Reset toute ta progression ? (XP, sections, streak)')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+});
+
+/* ============================================================
+   COMPLEXITY
+   ============================================================ */
+document.querySelectorAll('[data-op]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const type = btn.dataset.op;
+    const N = parseInt(document.getElementById('opN').value) || 1;
+    if (type === 'simple') {
+      const ops = 2 * N + 2;
+      document.getElementById('opSimple').textContent = `~${ops} ops → O(N)`;
+      document.getElementById('opExplain').innerHTML = `Boucle simple : <b>${N}</b> itérations → <b>linéaire O(N)</b>. Si N double, le temps double.`;
+    } else if (type === 'double') {
+      const ops = N * N + 2 * N + 1;
+      document.getElementById('opDouble').textContent = `~${ops} ops → O(N²)`;
+      document.getElementById('opExplain').innerHTML = `Boucle double : <b>${N}×${N} = ${N*N}</b> itérations → <b>quadratique O(N²)</b>. Si N double, le temps ×4.`;
+    } else {
+      document.getElementById('opFormula').textContent = `~3 ops → O(1)`;
+      document.getElementById('opExplain').innerHTML = `Formule directe : <b>3 opérations</b> quelle que soit la taille → <b>constante O(1)</b>. C'est l'optimisation !`;
+    }
+    playSound('xp');
+    trackers.opDone.add(type);
+    checkSectionComplete('complexity');
+  });
+});
+document.getElementById('opN').addEventListener('input', e => {
+  document.getElementById('opNval').textContent = e.target.value;
+});
+
+/* ============================================================
+   BIG O
+   ============================================================ */
+const bigoCanvas = document.getElementById('bigoCanvas');
+const bigoCtx = bigoCanvas.getContext('2d');
+function drawBigO() {
+  const N = parseInt(document.getElementById('bigoN').value) || 20;
+  document.getElementById('bigoNval').textContent = N;
+  const W = bigoCanvas.width, H = bigoCanvas.height;
+  const pad = 55;
+  bigoCtx.clearRect(0, 0, W, H);
+  bigoCtx.strokeStyle = '#e5e7eb'; bigoCtx.lineWidth = 1;
+  for (let i = 0; i <= 10; i++) {
+    const x = pad + (W - 2*pad) * i / 10;
+    const y = pad + (H - 2*pad) * i / 10;
+    bigoCtx.beginPath(); bigoCtx.moveTo(x, pad); bigoCtx.lineTo(x, H-pad); bigoCtx.stroke();
+    bigoCtx.beginPath(); bigoCtx.moveTo(pad, y); bigoCtx.lineTo(W-pad, y); bigoCtx.stroke();
+  }
+  bigoCtx.strokeStyle = '#9ca3af'; bigoCtx.lineWidth = 1.5;
+  bigoCtx.beginPath(); bigoCtx.moveTo(pad, H-pad); bigoCtx.lineTo(W-pad, H-pad); bigoCtx.stroke();
+  bigoCtx.beginPath(); bigoCtx.moveTo(pad, pad); bigoCtx.lineTo(pad, H-pad); bigoCtx.stroke();
+  const funcs = [
+    { name: 'O(1)',      color: '#4d6bfe', f: () => 1 },
+    { name: 'O(log n)',  color: '#16a34a', f: n => Math.log2(n+1) },
+    { name: 'O(n)',      color: '#d97706', f: n => n },
+    { name: 'O(n log n)',color: '#9333ea', f: n => n * Math.log2(n+1) },
+    { name: 'O(n²)',     color: '#dc2626', f: n => n*n },
+    { name: 'O(2ⁿ)',     color: '#db2777', f: n => Math.pow(2, n) }
+  ];
+  const maxN = 50;
+  const maxY = funcs.reduce((m, fn) => Math.max(m, fn.f(Math.min(N, maxN))), 1);
+  funcs.forEach(fn => {
+    bigoCtx.strokeStyle = fn.color; bigoCtx.lineWidth = 2.5;
+    bigoCtx.beginPath();
+    let first = true;
+    for (let i = 0; i <= maxN; i++) {
+      const x = pad + (W - 2*pad) * i / maxN;
+      const val = fn.f(i);
+      const y = H - pad - (H - 2*pad) * Math.min(val / maxY, 1);
+      if (first) { bigoCtx.moveTo(x, y); first = false; }
+      else bigoCtx.lineTo(x, y);
+    }
+    bigoCtx.stroke();
+  });
+  bigoCtx.font = 'bold 12px monospace';
+  funcs.forEach((fn, i) => {
+    bigoCtx.fillStyle = fn.color;
+    bigoCtx.fillText(fn.name, W - pad - 100, pad + 20 + i * 18);
+  });
+  document.getElementById('bigoKpis').innerHTML = funcs.map(fn => {
+    const v = fn.f(N);
+    const display = v > 1e6 ? v.toExponential(2) : Math.round(v).toLocaleString();
+    return `<div class="kpi"><div class="v" style="color:${fn.color}">${display}</div><div class="l">${fn.name}</div></div>`;
+  }).join('');
+}
+document.getElementById('bigoN').addEventListener('input', e => {
+  const v = parseInt(e.target.value);
+  trackers.bigoValues.add(v);
+  drawBigO();
+  checkSectionComplete('bigo');
+});
+drawBigO();
+
+/* ============================================================
+   ARRAY
+   ============================================================ */
+let arrayData = [1, 2, 3, 4, 5, 6, 7];
+function renderArray(highlightIdx) {
+  highlightIdx = highlightIdx === undefined ? -1 : highlightIdx;
+  document.getElementById('arrayBox').innerHTML = arrayData.map((v, i) =>
+    `<div class="ds-item ${i === highlightIdx ? 'green' : ''}">${v}</div>`
+  ).join('');
+}
+document.getElementById('arrayInsertBtn').addEventListener('click', e => {
+  const val = parseInt(document.getElementById('arrayVal').value);
+  const idx = parseInt(document.getElementById('arrayIdx').value);
+  if (isNaN(val) || isNaN(idx) || idx < 0 || idx > arrayData.length) {
+    document.getElementById('arrayLog').textContent = '⚠️ Valeur et indice valides requis (indice 0 à ' + arrayData.length + ').';
+    playSound('wrong');
+    showToast('Entre une valeur et un indice valides', 'wrong');
+    return;
+  }
+  arrayData.splice(idx, 0, val);
+  renderArray(idx);
+  const shifted = arrayData.length - idx - 1;
+  document.getElementById('arrayLog').textContent =
+    `✅ Insertion de ${val} à l'indice ${idx}.\n` +
+    `→ ${shifted} élément(s) décalé(s) à droite.\n` +
+    `→ Coût : O(n) — tout ce qui est à droite doit bouger.`;
+  playSound('correct');
+  trackers.arrayInsertions++;
+  checkSectionComplete('array');
+});
+document.getElementById('arrayResetBtn').addEventListener('click', () => {
+  arrayData = [1, 2, 3, 4, 5, 6, 7];
+  renderArray();
+  document.getElementById('arrayLog').textContent = 'Tableau réinitialisé.';
+});
+renderArray();
+
+/* ============================================================
+   LINKED
+   ============================================================ */
+let linkedData = [15, 3, 17, 90];
+function renderLinked() {
+  const box = document.getElementById('linkedBox');
+  let html = '<div style="font-weight:800; color:#4d6bfe; margin-right:8px; font-size:12px;">HEAD →</div>';
+  linkedData.forEach(v => {
+    html += `<div style="display:flex; align-items:center;">
+      <div class="ds-item">${v}</div>
+      <div style="width:22px; height:2px; background:#9ca3af;"></div>
+    </div>`;
+  });
+  html += '<div style="font-weight:800; color:#9ca3af; font-size:12px;">NULL</div>';
+  box.innerHTML = html;
+}
+document.getElementById('linkedAddBtn').addEventListener('click', e => {
+  const val = parseInt(document.getElementById('linkedVal').value);
+  if (isNaN(val)) { showToast('Entre un nombre valide !', 'wrong'); playSound('wrong'); return; }
+  linkedData.unshift(val);
+  renderLinked();
+  document.getElementById('linkedLog').textContent =
+    `✅ Ajout de ${val} en tête.\n→ Coût : O(1) — on change juste HEAD.\n→ Aucun décalage !`;
+  playSound('correct');
+  trackers.linkedAdd++;
+  checkSectionComplete('linked');
+});
+document.getElementById('linkedRemoveBtn').addEventListener('click', e => {
+  if (linkedData.length === 0) { showToast('La liste est déjà vide !', 'wrong'); playSound('wrong'); return; }
+  const removed = linkedData.shift();
+  renderLinked();
+  document.getElementById('linkedLog').textContent = `✅ Retrait de ${removed} en tête. Coût : O(1).`;
+  playSound('correct');
+  trackers.linkedRemove++;
+  checkSectionComplete('linked');
+});
+document.getElementById('linkedResetBtn').addEventListener('click', () => {
+  linkedData = [15, 3, 17, 90];
+  renderLinked();
+  document.getElementById('linkedLog').textContent = 'Liste réinitialisée : 15 → 3 → 17 → 90 → NULL';
+});
+renderLinked();
+
+/* ============================================================
+   STACK & QUEUE
+   ============================================================ */
+let stackData = [];
+let queueData = [];
+function renderStack() {
+  document.getElementById('stackBox').innerHTML = stackData.length
+    ? stackData.map((v, i) => `<div class="ds-item ${i === stackData.length-1 ? 'green' : ''}" style="width:100%;">${v}${i === stackData.length-1 ? ' ← sommet' : ''}</div>`).join('')
+    : '<div class="muted" style="text-align:center; padding:20px;">Pile vide — Push pour commencer</div>';
+  document.getElementById('stackLog').textContent = stackData.length
+    ? `Pile : [${stackData.join(', ')}] — sommet = ${stackData[stackData.length-1]}`
+    : 'Pile vide.';
+}
+function renderQueue() {
+  document.getElementById('queueBox').innerHTML = queueData.length
+    ? queueData.map((v, i) => `<div class="ds-item ${i === 0 ? 'green' : ''}">${v}${i === 0 ? ' ← tête' : ''}</div>`).join('')
+    : '<div class="muted" style="text-align:center; padding:20px; width:100%;">File vide — Enqueue pour commencer</div>';
+  document.getElementById('queueLog').textContent = queueData.length
+    ? `File : [${queueData.join(', ')}] — tête = ${queueData[0]}`
+    : 'File vide.';
+}
+document.getElementById('stackPushBtn').addEventListener('click', e => {
+  const val = parseInt(document.getElementById('stackVal').value);
+  if (isNaN(val)) { showToast('Entre un nombre !', 'wrong'); playSound('wrong'); return; }
+  stackData.push(val);
+  renderStack();
+  playSound('xp');
+  trackers.stackPush++;
+  checkSectionComplete('stackqueue');
+});
+document.getElementById('stackPopBtn').addEventListener('click', e => {
+  if (stackData.length === 0) { showToast('Pile vide, rien à pop !', 'wrong'); playSound('wrong'); return; }
+  const removed = stackData.pop();
+  renderStack();
+  document.getElementById('stackLog').textContent = `Pop → ${removed} retiré (LIFO).`;
+  playSound('correct');
+  trackers.stackPop++;
+  checkSectionComplete('stackqueue');
+});
+document.getElementById('queueEnqueueBtn').addEventListener('click', e => {
+  const val = parseInt(document.getElementById('queueVal').value);
+  if (isNaN(val)) { showToast('Entre un nombre !', 'wrong'); playSound('wrong'); return; }
+  queueData.push(val);
+  renderQueue();
+  playSound('xp');
+  trackers.queueEnqueue++;
+  checkSectionComplete('stackqueue');
+});
+document.getElementById('queueDequeueBtn').addEventListener('click', e => {
+  if (queueData.length === 0) { showToast('File vide, rien à dequeue !', 'wrong'); playSound('wrong'); return; }
+  const removed = queueData.shift();
+  renderQueue();
+  document.getElementById('queueLog').textContent = `Dequeue → ${removed} retiré (FIFO).`;
+  playSound('correct');
+  trackers.queueDequeue++;
+  checkSectionComplete('stackqueue');
+});
+renderStack(); renderQueue();
+
+document.querySelectorAll('#quickTestBtns [data-quick]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const parent = btn.parentElement;
+    if (parent.dataset.answered === '1') return;
+    parent.dataset.answered = '1';
+    parent.querySelectorAll('button').forEach(b => b.disabled = true);
+    const correct = btn.dataset.quick === 'true';
+    const msg = btn.dataset.msg;
+    trackers.quickAnswered = true;
+    if (correct) {
+      btn.classList.add('btn-success');
+      btn.textContent = '✅ ' + btn.textContent;
+      showToast(msg, 'correct');
+      playSound('correct');
+      increaseStreak();
+      addXP(10, 'quick', e);
+      confetti(25);
+    } else {
+      btn.style.borderColor = 'var(--bad)';
+      btn.style.color = 'var(--bad)';
+      btn.textContent = '❌ ' + btn.textContent;
+      showToast(msg, 'wrong');
+      playSound('wrong');
+      resetStreak();
+    }
+    checkSectionComplete('stackqueue');
+  });
+});
+
+/* ============================================================
+   HASH
+   ============================================================ */
+const HASH_SIZE = 8;
+let hashTable = Array.from({ length: HASH_SIZE }, () => []);
+function hashFunc(key) {
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) % HASH_SIZE;
+  return h;
+}
+function renderHash(highlightIdx) {
+  highlightIdx = highlightIdx === undefined ? -1 : highlightIdx;
+  document.getElementById('hashGrid').innerHTML = hashTable.map((bucket, i) =>
+    `<div class="hash-cell ${i === highlightIdx ? 'hit' : ''}">
+      <div class="idx">[${i}]</div>
+      <div class="keys">${bucket.map(k => `<div class="key">${k}</div>`).join('') || '<span style="color:#d1d5db;">·</span>'}</div>
+    </div>`
+  ).join('');
+}
+document.getElementById('hashInsertBtn').addEventListener('click', e => {
+  const key = document.getElementById('hashKey').value.trim();
+  const val = document.getElementById('hashVal').value.trim();
+  if (!key) {
+    document.getElementById('hashLog').textContent = '⚠️ Tape une clé !';
+    showToast('Tape une clé !', 'wrong');
+    playSound('wrong');
+    return;
+  }
+  const idx = hashFunc(key);
+  const collision = hashTable[idx].length > 0;
+  hashTable[idx].push(`${key}→${val || '?'}`);
+  renderHash(idx);
+  document.getElementById('hashLog').textContent =
+    `Clé "${key}" → hachage → index ${idx}\n` +
+    (collision
+      ? `⚠️ Collision ! Chaînage utilisé.\n→ O(1) moyen, O(n) pire.`
+      : `✅ Pas de collision. Coût : O(1).`);
+  playSound(collision ? 'xp' : 'correct');
+  document.getElementById('hashKey').value = '';
+  document.getElementById('hashVal').value = '';
+  document.getElementById('hashKey').focus();
+  trackers.hashInserts++;
+  checkSectionComplete('hash');
+});
+document.getElementById('hashResetBtn').addEventListener('click', () => {
+  hashTable = Array.from({ length: HASH_SIZE }, () => []);
+  renderHash();
+  document.getElementById('hashLog').textContent = 'Table réinitialisée.';
+});
+['hashKey','hashVal'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('hashInsertBtn').click(); }
+  });
+});
+renderHash();
+
+/* ============================================================
+   GRAPH BUILDER
+   ============================================================ */
+let graphNodes = [], graphEdges = [], selectedNode = null, graphNextId = 0;
+const graphCanvas = document.getElementById('graphCanvas');
+const gCtx = graphCanvas.getContext('2d');
+
+function drawGraph() {
+  gCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+  gCtx.strokeStyle = '#4d6bfe'; gCtx.lineWidth = 2.5;
+  graphEdges.forEach(e => {
+    const a = graphNodes.find(n => n.id === e.a);
+    const b = graphNodes.find(n => n.id === e.b);
+    if (!a || !b) return;
+    gCtx.beginPath(); gCtx.moveTo(a.x, a.y); gCtx.lineTo(b.x, b.y); gCtx.stroke();
+  });
+  graphNodes.forEach(n => {
+    gCtx.beginPath();
+    gCtx.arc(n.x, n.y, 22, 0, Math.PI * 2);
+    const grad = gCtx.createLinearGradient(n.x-20, n.y-20, n.x+20, n.y+20);
+    if (n === selectedNode) { grad.addColorStop(0, '#16a34a'); grad.addColorStop(1, '#22c55e'); }
+    else { grad.addColorStop(0, '#4d6bfe'); grad.addColorStop(1, '#7c3aed'); }
+    gCtx.fillStyle = grad;
+    gCtx.fill();
+    gCtx.fillStyle = 'white';
+    gCtx.font = 'bold 15px sans-serif';
+    gCtx.textAlign = 'center'; gCtx.textBaseline = 'middle';
+    gCtx.fillText(n.id, n.x, n.y);
+  });
+  document.getElementById('gNodes').textContent = graphNodes.length;
+  document.getElementById('gEdges').textContent = graphEdges.length;
+}
+function getCanvasPos(canvas, e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) * canvas.width / rect.width,
+    y: (e.clientY - rect.top) * canvas.height / rect.height
+  };
+}
+graphCanvas.addEventListener('click', e => {
+  const { x, y } = getCanvasPos(graphCanvas, e);
+  const clicked = graphNodes.find(n => Math.hypot(n.x - x, n.y - y) < 24);
+  if (clicked) {
+    if (selectedNode) {
+      if (selectedNode === clicked) { selectedNode = null; }
+      else {
+        if (!graphEdges.some(ed => (ed.a === selectedNode.id && ed.b === clicked.id) || (ed.a === clicked.id && ed.b === selectedNode.id))) {
+          graphEdges.push({ a: selectedNode.id, b: clicked.id });
+          document.getElementById('graphLog').textContent = `Arête ajoutée : ${selectedNode.id} — ${clicked.id}`;
+          playSound('xp');
+        }
+        selectedNode = null;
+      }
+    } else { selectedNode = clicked; }
+  } else {
+    graphNodes.push({ id: graphNextId++, x, y });
+    document.getElementById('graphLog').textContent = `Sommet ${graphNextId-1} ajouté. Clique un autre sommet pour relier.`;
+    playSound('xp');
+  }
+  drawGraph();
+  checkSectionComplete('graphs');
+});
+graphCanvas.addEventListener('dblclick', e => {
+  e.preventDefault();
+  const { x, y } = getCanvasPos(graphCanvas, e);
+  const clicked = graphNodes.find(n => Math.hypot(n.x - x, n.y - y) < 24);
+  if (clicked) {
+    graphNodes = graphNodes.filter(n => n !== clicked);
+    graphEdges = graphEdges.filter(ed => ed.a !== clicked.id && ed.b !== clicked.id);
+    if (selectedNode === clicked) selectedNode = null;
+    drawGraph();
+    document.getElementById('graphLog').textContent = `Sommet ${clicked.id} supprimé.`;
+  }
+});
+document.getElementById('graphClearBtn').addEventListener('click', () => {
+  graphNodes = []; graphEdges = []; selectedNode = null; graphNextId = 0;
+  drawGraph();
+  document.getElementById('graphLog').textContent = 'Graphe effacé.';
+});
+document.getElementById('graphSampleBtn').addEventListener('click', () => {
+  graphNodes = []; graphEdges = []; selectedNode = null; graphNextId = 0;
+  const W = graphCanvas.width, H = graphCanvas.height;
+  const pts = [
+    [W*0.2, H*0.3], [W*0.5, H*0.2], [W*0.8, H*0.35],
+    [W*0.35, H*0.7], [W*0.65, H*0.75]
+  ];
+  pts.forEach(([x, y]) => graphNodes.push({ id: graphNextId++, x, y }));
+  graphEdges.push({a:0,b:1},{a:1,b:2},{a:0,b:3},{a:3,b:4},{a:4,b:2},{a:1,b:3});
+  drawGraph();
+  document.getElementById('graphLog').textContent = 'Exemple chargé ! 5 sommets, 6 arêtes.';
+  playSound('correct');
+  trackers.graphSample = true;
+  checkSectionComplete('graphs');
+});
+
+/* ============================================================
+   TRAVERSAL
+   ============================================================ */
+let travNodes = [], travEdges = [], travSelected = null, travNextId = 0;
+const travCanvas = document.getElementById('travCanvas');
+const tCtx = travCanvas.getContext('2d');
+
+function drawTrav(visited, current) {
+  visited = visited || []; current = current || null;
+  tCtx.clearRect(0, 0, travCanvas.width, travCanvas.height);
+  tCtx.strokeStyle = '#d1d5db'; tCtx.lineWidth = 2.5;
+  travEdges.forEach(e => {
+    const a = travNodes.find(n => n.id === e.a);
+    const b = travNodes.find(n => n.id === e.b);
+    if (a && b) { tCtx.beginPath(); tCtx.moveTo(a.x, a.y); tCtx.lineTo(b.x, b.y); tCtx.stroke(); }
+  });
+  travNodes.forEach(n => {
+    const isVisited = visited.includes(n.id);
+    tCtx.beginPath(); tCtx.arc(n.x, n.y, 22, 0, Math.PI * 2);
+    const grad = tCtx.createLinearGradient(n.x-20, n.y-20, n.x+20, n.y+20);
+    if (n === current) { grad.addColorStop(0, '#d97706'); grad.addColorStop(1, '#f59e0b'); }
+    else if (isVisited) { grad.addColorStop(0, '#16a34a'); grad.addColorStop(1, '#22c55e'); }
+    else if (n === travSelected) { grad.addColorStop(0, '#4d6bfe'); grad.addColorStop(1, '#7c3aed'); }
+    else { grad.addColorStop(0, '#e5e7eb'); grad.addColorStop(1, '#d1d5db'); }
+    tCtx.fillStyle = grad;
+    tCtx.fill();
+    tCtx.fillStyle = (isVisited || n === current || n === travSelected) ? 'white' : '#374151';
+    tCtx.font = 'bold 14px sans-serif';
+    tCtx.textAlign = 'center'; tCtx.textBaseline = 'middle';
+    tCtx.fillText(n.id, n.x, n.y);
+  });
+}
+function updateStartOptions() {
+  const sel = document.getElementById('startNode');
+  if (!sel) return;
+  sel.innerHTML = travNodes.length ? travNodes.map(n => `<option value="${n.id}">${n.id}</option>`).join('') : '<option>—</option>';
+}
+travCanvas.addEventListener('click', e => {
+  const { x, y } = getCanvasPos(travCanvas, e);
+  const clicked = travNodes.find(n => Math.hypot(n.x - x, n.y - y) < 24);
+  if (clicked) {
+    if (travSelected) {
+      if (travSelected !== clicked && !travEdges.some(ed => (ed.a === travSelected.id && ed.b === clicked.id) || (ed.a === clicked.id && ed.b === travSelected.id))) {
+        travEdges.push({ a: travSelected.id, b: clicked.id });
+      }
+      travSelected = null;
+    } else { travSelected = clicked; }
+  } else {
+    travNodes.push({ id: travNextId++, x, y });
+    updateStartOptions();
+  }
+  drawTrav();
+});
+travCanvas.addEventListener('dblclick', e => {
+  e.preventDefault();
+  const { x, y } = getCanvasPos(travCanvas, e);
+  const clicked = travNodes.find(n => Math.hypot(n.x - x, n.y - y) < 24);
+  if (clicked) {
+    travNodes = travNodes.filter(n => n !== clicked);
+    travEdges = travEdges.filter(ed => ed.a !== clicked.id && ed.b !== clicked.id);
+    if (travSelected === clicked) travSelected = null;
+    updateStartOptions();
+    drawTrav();
+  }
+});
+function buildAdj(nodes, edges) {
+  const adj = {};
+  nodes.forEach(n => adj[n.id] = []);
+  edges.forEach(e => { adj[e.a].push(e.b); adj[e.b].push(e.a); });
+  return adj;
+}
+document.getElementById('travSampleBtn').addEventListener('click', () => {
+  travNodes = []; travEdges = []; travSelected = null; travNextId = 0;
+  const W = travCanvas.width, H = travCanvas.height;
+  const pts = [
+    [W*0.5, H*0.15], [W*0.2, H*0.5], [W*0.8, H*0.5],
+    [W*0.35, H*0.85], [W*0.65, H*0.85]
+  ];
+  pts.forEach(([x, y]) => travNodes.push({ id: travNextId++, x, y }));
+  travEdges.push({a:0,b:1},{a:0,b:2},{a:1,b:3},{a:2,b:4},{a:3,b:4});
+  updateStartOptions();
+  drawTrav();
+  document.getElementById('travLog').textContent = 'Exemple chargé ! Lance BFS ou DFS.';
+  playSound('correct');
+});
+document.getElementById('travResetBtn').addEventListener('click', () => {
+  travNodes = []; travEdges = []; travSelected = null; travNextId = 0;
+  updateStartOptions();
+  drawTrav();
+  document.getElementById('travLog').textContent = 'Clique sur l\'exemple ou construis ton graphe.';
+});
+document.getElementById('bfsBtn').addEventListener('click', e => runBFS(e));
+document.getElementById('dfsBtn').addEventListener('click', e => runDFS(e));
+
+async function runBFS(evt) {
+  const start = parseInt(document.getElementById('startNode').value);
+  if (isNaN(start) || travNodes.length === 0) {
+    document.getElementById('travLog').textContent = 'Charge un exemple d\'abord (ou construis un graphe).';
+    showToast('Charge un exemple d\'abord !', 'wrong');
+    playSound('wrong');
+    return;
+  }
+  const adj = buildAdj(travNodes, travEdges);
+  const visited = []; const queue = [start]; const order = [];
+  const log = document.getElementById('travLog');
+  log.textContent = `BFS depuis ${start}...\n`;
+  while (queue.length) {
+    const cur = queue.shift();
+    if (visited.includes(cur)) continue;
+    visited.push(cur); order.push(cur);
+    log.textContent += `Visite ${cur} | File : [${queue.join(', ')}]\n`;
+    drawTrav(visited, travNodes.find(n => n.id === cur));
+    playSound('xp');
+    await new Promise(r => setTimeout(r, 450));
+    adj[cur].forEach(v => { if (!visited.includes(v) && !queue.includes(v)) queue.push(v); });
+  }
+  log.textContent += `\n✅ Ordre BFS : ${order.join(' → ')}`;
+  playSound('correct');
+  confetti(20);
+  addXP(15, 'bfs', evt);
+  trackers.traversalDone = true;
+  checkSectionComplete('traversal');
+}
+async function runDFS(evt) {
+  const start = parseInt(document.getElementById('startNode').value);
+  if (isNaN(start) || travNodes.length === 0) {
+    document.getElementById('travLog').textContent = 'Charge un exemple d\'abord (ou construis un graphe).';
+    showToast('Charge un exemple d\'abord !', 'wrong');
+    playSound('wrong');
+    return;
+  }
+  const adj = buildAdj(travNodes, travEdges);
+  const visited = []; const order = [];
+  const log = document.getElementById('travLog');
+  log.textContent = `DFS depuis ${start}...\n`;
+  async function dfs(node) {
+    if (visited.includes(node)) return;
+    visited.push(node); order.push(node);
+    log.textContent += `Visite ${node}\n`;
+    drawTrav(visited, travNodes.find(n => n.id === node));
+    playSound('xp');
+    await new Promise(r => setTimeout(r, 450));
+    for (const v of adj[node]) if (!visited.includes(v)) await dfs(v);
+  }
+  await dfs(start);
+  log.textContent += `\n✅ Ordre DFS : ${order.join(' → ')}`;
+  playSound('correct');
+  confetti(20);
+  addXP(15, 'dfs', evt);
+  trackers.traversalDone = true;
+  checkSectionComplete('traversal');
+}
+
+/* ============================================================
+   BIPARTITE
+   ============================================================ */
+let bipNodes = [], bipEdges = [], bipSelected = null, bipNextId = 0;
+const bipCanvas = document.getElementById('bipCanvas');
+const bCtx = bipCanvas.getContext('2d');
+
+function drawBip(colors) {
+  colors = colors || {};
+  bCtx.clearRect(0, 0, bipCanvas.width, bipCanvas.height);
+  bCtx.strokeStyle = '#d1d5db'; bCtx.lineWidth = 2.5;
+  bipEdges.forEach(e => {
+    const a = bipNodes.find(n => n.id === e.a);
+    const b = bipNodes.find(n => n.id === e.b);
+    if (a && b) { bCtx.beginPath(); bCtx.moveTo(a.x, a.y); bCtx.lineTo(b.x, b.y); bCtx.stroke(); }
+  });
+  bipNodes.forEach(n => {
+    bCtx.beginPath(); bCtx.arc(n.x, n.y, 22, 0, Math.PI * 2);
+    let fill;
+    if (colors[n.id] === 0) fill = '#dc2626';
+    else if (colors[n.id] === 1) fill = '#16a34a';
+    else if (n === bipSelected) fill = '#4d6bfe';
+    else fill = '#e5e7eb';
+    bCtx.fillStyle = fill;
+    bCtx.fill();
+    bCtx.fillStyle = (colors[n.id] !== undefined || n === bipSelected) ? 'white' : '#374151';
+    bCtx.font = 'bold 14px sans-serif';
+    bCtx.textAlign = 'center'; bCtx.textBaseline = 'middle';
+    bCtx.fillText(n.id, n.x, n.y);
+  });
+}
+bipCanvas.addEventListener('click', e => {
+  const { x, y } = getCanvasPos(bipCanvas, e);
+  const clicked = bipNodes.find(n => Math.hypot(n.x - x, n.y - y) < 24);
+  if (clicked) {
+    if (bipSelected) {
+      if (bipSelected !== clicked && !bipEdges.some(ed => (ed.a === bipSelected.id && ed.b === clicked.id) || (ed.a === clicked.id && ed.b === bipSelected.id))) {
+        bipEdges.push({ a: bipSelected.id, b: clicked.id });
+      }
+      bipSelected = null;
+    } else { bipSelected = clicked; }
+  } else {
+    bipNodes.push({ id: bipNextId++, x, y });
+  }
+  drawBip();
+});
+bipCanvas.addEventListener('dblclick', e => {
+  e.preventDefault();
+  const { x, y } = getCanvasPos(bipCanvas, e);
+  const clicked = bipNodes.find(n => Math.hypot(n.x - x, n.y - y) < 24);
+  if (clicked) {
+    bipNodes = bipNodes.filter(n => n !== clicked);
+    bipEdges = bipEdges.filter(ed => ed.a !== clicked.id && ed.b !== clicked.id);
+    drawBip();
+  }
+});
+document.getElementById('checkBipBtn').addEventListener('click', e => {
+  if (bipNodes.length === 0) {
+    showToast('Charge un exemple ou construis un graphe !', 'wrong');
+    playSound('wrong');
+    return;
+  }
+  const adj = {};
+  bipNodes.forEach(n => adj[n.id] = []);
+  bipEdges.forEach(e => { adj[e.a].push(e.b); adj[e.b].push(e.a); });
+  const color = {};
+  let ok = true;
+  function bfs(start) {
+    color[start] = 0;
+    const q = [start];
+    while (q.length) {
+      const cur = q.shift();
+      for (const v of adj[cur]) {
+        if (color[v] === undefined) { color[v] = 1 - color[cur]; q.push(v); }
+        else if (color[v] === color[cur]) { ok = false; }
+      }
+    }
+  }
+  for (const n of bipNodes) if (color[n.id] === undefined) bfs(n.id);
+  drawBip(color);
+  const res = document.getElementById('bipResult');
+  if (ok) {
+    res.textContent = '✅ Bipartite';
+    res.className = 'badge good';
+    document.getElementById('bipLog').textContent = '✅ Biparti ! 2-coloriage réussi.';
+    playSound('correct');
+    confetti(25);
+  } else {
+    res.textContent = '❌ Non biparti';
+    res.className = 'badge bad';
+    document.getElementById('bipLog').textContent = '❌ Non biparti : conflit de couleur.';
+    playSound('wrong');
+  }
+  trackers.bipartiteChecked = true;
+  checkSectionComplete('bipartite');
+});
+document.getElementById('bipSampleBtn').addEventListener('click', () => {
+  bipNodes = []; bipEdges = []; bipSelected = null; bipNextId = 0;
+  const W = bipCanvas.width, H = bipCanvas.height;
+  const pts = [
+    [W*0.2, H*0.25], [W*0.2, H*0.75],
+    [W*0.5, H*0.3], [W*0.5, H*0.7],
+    [W*0.8, H*0.3], [W*0.8, H*0.7]
+  ];
+  pts.forEach(([x, y]) => bipNodes.push({ id: bipNextId++, x, y }));
+  bipEdges.push({a:0,b:2},{a:0,b:3},{a:1,b:3},{a:2,b:4},{a:3,b:5},{a:2,b:5});
+  drawBip();
+  document.getElementById('bipResult').textContent = '—';
+  document.getElementById('bipResult').className = 'badge info';
+  document.getElementById('bipLog').textContent = 'Exemple biparti chargé. Vérifie !';
+});
+document.getElementById('bipSampleNonBtn').addEventListener('click', () => {
+  bipNodes = []; bipEdges = []; bipSelected = null; bipNextId = 0;
+  const W = bipCanvas.width, H = bipCanvas.height;
+  const pts = [[W*0.5, H*0.15], [W*0.2, H*0.6], [W*0.8, H*0.6]];
+  pts.forEach(([x, y]) => bipNodes.push({ id: bipNextId++, x, y }));
+  bipEdges.push({a:0,b:1},{a:1,b:2},{a:2,b:0});
+  drawBip();
+  document.getElementById('bipResult').textContent = '—';
+  document.getElementById('bipResult').className = 'badge info';
+  document.getElementById('bipLog').textContent = 'Triangle = non biparti. Vérifie !';
+});
+document.getElementById('bipResetBtn').addEventListener('click', () => {
+  bipNodes = []; bipEdges = []; bipSelected = null; bipNextId = 0;
+  drawBip();
+  document.getElementById('bipResult').textContent = '—';
+  document.getElementById('bipResult').className = 'badge info';
+  document.getElementById('bipLog').textContent = 'Réinitialisé.';
+});
+
+/* ============================================================
+   THEORY BUTTON
+   ============================================================ */
+document.getElementById('theoryUnderstoodBtn').addEventListener('click', function(e) {
+  if (trackers.theoryRead) return;
+  trackers.theoryRead = true;
+  this.disabled = true;
+  this.textContent = '✅ Compris !';
+  this.classList.add('btn-success');
+  showToast('Bien joué !', 'correct');
+  playSound('correct');
+  confetti(25);
+  checkSectionComplete('theory');
+});
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+const complexityQuestions = [
+  { q: "Algorithme simple : <code>largeur = input(); longueur = input(); aire = largeur*longueur; perimetre = (largeur+longueur)*2</code>", options: ["O(1) — constant", "O(n) — linéaire", "O(n²) — quadratique"], correct: 0, explain: "Nombre d'opérations fixe, indépendant de N. Complexité constante O(1)." },
+  { q: "Boucle <code>while compteur <= 100: print('Bonjour'); compteur += 1</code>", options: ["O(1)", "O(100) = O(1) en Big O", "O(n)"], correct: 1, explain: "100 itérations, c'est une constante. En Big O, O(100) = O(1)." },
+  { q: "Boucle <code>while i <= iMax: total += i; i += 1</code> où <code>iMax</code> est une entrée", options: ["O(1)", "O(N) linéaire", "O(N²)"], correct: 1, explain: "Le nombre d'itérations dépend de iMax. C'est linéaire O(N)." },
+  { q: "Double boucle <code>for i in range(N): for j in range(N): ...</code>", options: ["O(N)", "O(N²) — quadratique", "O(log N)"], correct: 1, explain: "N × N = N² opérations. Complexité quadratique." },
+  { q: "Recherche dichotomique dans un tableau trié", options: ["O(N)", "O(log N)", "O(1)"], correct: 1, explain: "On divise l'espace par 2 à chaque étape → log₂(N)." }
+];
+
+const chooseQuestions = [
+  { q: "École : « la salle B12 est-elle libre mardi 10h-12h ? ». 60 salles, 40 créneaux.", options: ["Liste chaînée", "Tableau 2D [salles][créneaux]", "Graphe"], correct: 1, explain: "Accès par index direct O(1), bornes fixes → tableau 2D." },
+  { q: "Éditeur : Ctrl+Z (annuler) / Ctrl+Y (rétablir).", options: ["File (FIFO)", "Pile (LIFO)", "Table de hachage"], correct: 1, explain: "Dernière action = dernière annulée → LIFO → pile." },
+  { q: "Helpdesk : 500 tickets/jour, premier arrivé premier servi.", options: ["Pile", "File (FIFO)", "Arbre"], correct: 1, explain: "FIFO = file." },
+  { q: "Carnet d'adresses : retrouver par nom, milliers de contacts.", options: ["Tableau trié", "Table de hachage (dict)", "Liste chaînée"], correct: 1, explain: "Recherche par clé fréquente → O(1) moyen." },
+  { q: "2M de numéros de commande : détecter les doublons.", options: ["Set (hash)", "Liste chaînée", "Tableau 2D"], correct: 0, explain: "Test de présence O(1), parcours en O(N+M)." },
+  { q: "50 000 modules avec dépendances entre eux.", options: ["Tableau 2D", "Graphe orienté (liste adj.)", "Pile"], correct: 1, explain: "Relations orientées → graphe orienté." },
+  { q: "Navigateur : bouton « Précédent ».", options: ["Pile (LIFO)", "File (FIFO)", "Set"], correct: 0, explain: "Dernière page = première revisitée → LIFO." }
+];
+
+const finalQuestions = [
+  { q: "Complexité de l'accès par index dans un tableau ?", options: ["O(1)", "O(log n)", "O(n)", "O(n²)"], correct: 0, explain: "Adresse calculée directement." },
+  { q: "Structure pour FIFO ?", options: ["Pile", "File (deque)", "Tableau trié", "Set"], correct: 1, explain: "deque : enqueue/dequeue en O(1)." },
+  { q: "Théorème de König ?", options: ["Matching max = couverture min", "Graphe planaire", "Pas de cycle", "Sommets pairs"], correct: 0, explain: "Dans un biparti : matching max = couverture min de sommets." },
+  { q: "Complexité du BFS ?", options: ["O(V)", "O(E)", "O(V + E)", "O(V²)"], correct: 2, explain: "Chaque sommet + chaque arête visités une fois." },
+  { q: "O(2ⁿ) signifie ?", options: ["Constant", "Linéaire", "Exponentiel — impraticable N>50", "Logarithmique"], correct: 2, explain: "Double à chaque +1 de N." },
+  { q: "Pourquoi hash = O(1) en moyenne ?", options: ["Il trie", "Index calculé depuis la clé", "Liste chaînée", "Toujours vide"], correct: 1, explain: "Hachage → index direct, pas de parcours." },
+  { q: "P vs NP ?", options: ["P = NP prouvé", "P ≠ NP prouvé", "Ouvert — on pense P ≠ NP", "Même classe"], correct: 2, explain: "Question ouverte, 1M$ à la clé." },
+  { q: "Graphe creux (E ≪ V²) : représentation la plus économe ?", options: ["Matrice d'adj.", "Liste d'adjacence", "Équivalent", "Aucune"], correct: 1, explain: "O(V+E) au lieu de O(V²)." }
+];
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function renderQuiz(containerId, questions, quizKey) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = questions.map((q, qi) => {
+    const qid = `${quizKey}-${qi}`;
+    const saved = state.quizAnswers[qid];
+    const answered = !!saved;
+    const chosen = saved ? saved.chosen : undefined;
+    return `
+    <div class="quiz-q" data-qi="${qi}" data-qid="${qid}" ${answered ? 'data-answered="1"' : ''}>
+      <p class="qtext">${qi+1}. ${q.q}</p>
+      ${q.options.map((opt, oi) => {
+        let cls = 'quiz-opt';
+        let mark = String.fromCharCode(65+oi);
+        if (answered) {
+          cls += ' disabled';
+          if (oi === q.correct) { cls += ' correct'; mark = '✓'; }
+          else if (chosen !== undefined && oi === chosen) { cls += ' wrong'; mark = '✗'; }
+        }
+        return `<div class="${cls}" data-qi="${qi}" data-oi="${oi}">
+          <span class="mark">${mark}</span>
+          <span>${escapeHtml(opt)}</span>
+        </div>`;
+      }).join('')}
+      <div class="quiz-explain ${answered ? 'show' : ''}" id="${containerId}-ex-${qi}">💡 ${escapeHtml(q.explain)}</div>
+    </div>`;
+  }).join('');
+
+  // Attach click handlers to each option — pass qEl directly to avoid selector bugs
+  container.querySelectorAll('.quiz-opt').forEach(el => {
+    el.addEventListener('click', e => {
+      if (el.classList.contains('disabled')) return;
+      const qi = parseInt(el.dataset.qi, 10);
+      const oi = parseInt(el.dataset.oi, 10);
+      const correct = questions[qi].correct;
+      const qEl = el.closest('.quiz-q');
+      answerQuiz(containerId, questions, qi, oi, correct, e, qEl);
+    });
+  });
+}
+
+function answerQuiz(containerId, questions, qi, oi, correct, evt, qEl) {
+  // Fallback selector if qEl not passed
+  if (!qEl) {
+    qEl = document.querySelector(`#${containerId} .quiz-q[data-qi="${qi}"]`);
+  }
+  if (!qEl || qEl.dataset.answered === '1') return;
+
+  qEl.dataset.answered = '1';
+  const qid = qEl.dataset.qid;
+  const isCorrect = (oi === correct);
+
+  // Save result with chosen index
+  state.quizAnswers[qid] = {
+    result: isCorrect ? 'correct' : 'wrong',
+    chosen: oi
+  };
+  saveState();
+
+  // Update the clicked block visually
+  qEl.querySelectorAll('.quiz-opt').forEach((opt, idx) => {
+    opt.classList.add('disabled');
+    const mark = opt.querySelector('.mark');
+    if (idx === correct) {
+      opt.classList.add('correct');
+      if (mark) mark.textContent = '✓';
+    } else if (idx === oi) {
+      opt.classList.add('wrong');
+      if (mark) mark.textContent = '✗';
+    } else {
+      if (mark) mark.textContent = String.fromCharCode(65+idx);
+    }
+  });
+  const explainEl = document.getElementById(`${containerId}-ex-${qi}`);
+  if (explainEl) explainEl.classList.add('show');
+
+  // Feedback
+  if (isCorrect) {
+    increaseStreak();
+    addXP(10, 'quiz', evt);
+    showToast(pickRandom(['Bravo ! 🎉', 'Nice ! ⚡', 'Excellent !', 'Boom ! 💥', 'Tu gères ! 🔥']), 'correct');
+    playSound('correct');
+    confetti(20);
+  } else {
+    resetStreak();
+    showToast(pickRandom(['Presque ! 😅', 'Raté...', 'Pas tout à fait']), 'wrong');
+    playSound('wrong');
+  }
+
+  // Update final quiz score display
+  if (containerId === 'finalQuiz') {
+    const total = document.querySelectorAll('#finalQuiz .quiz-q').length;
+    const answeredCount = document.querySelectorAll('#finalQuiz .quiz-q[data-answered="1"]').length;
+    const correctCount = document.querySelectorAll('#finalQuiz .quiz-opt.correct').length;
+    const scoreEl = document.getElementById('quizScore');
+    if (scoreEl) scoreEl.textContent = `Score : ${correctCount} / ${total}`;
+    if (answeredCount === total && correctCount >= total * 0.75) {
+      setTimeout(() => { confetti(100); showToast('🏆 Quiz final réussi !', 'level'); }, 300);
+    }
+  }
+
+  // Check section completion
+  if (containerId === 'complexityQuiz') checkSectionComplete('complexity');
+  else if (containerId === 'chooseQuiz') checkSectionComplete('choose');
+  else if (containerId === 'finalQuiz') checkSectionComplete('quiz');
+}
+
+function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+document.getElementById('resetFinalQuizBtn').addEventListener('click', () => {
+  for (let i = 0; i < finalQuestions.length; i++) {
+    delete state.quizAnswers[`finalQuiz-${i}`];
+  }
+  saveState();
+  const scoreEl = document.getElementById('quizScore');
+  if (scoreEl) scoreEl.textContent = 'Score : 0 / 0';
+  renderQuiz('finalQuiz', finalQuestions, 'finalQuiz');
+  showToast('Quiz réinitialisé !', 'info');
+});
+
+/* ============================================================
+   FUN FACTS
+   ============================================================ */
+const funFacts = [
+  "🧠 La machine de Turing a été inventée en 1936, avant les ordinateurs.",
+  "💡 O(1) veut dire « temps constant » — pas « instantané ».",
+  "🚀 Une bonne structure de données peut rendre un algo 1000× plus rapide.",
+  "🔥 Un streak de 5 en quiz = +15 XP bonus.",
+  "📊 Un graphe creux a E ≪ V². Ex : réseau social = ~V×log(V) arêtes.",
+  "⚡ Python dict depuis 3.7 conserve l'ordre d'insertion.",
+  "🎯 Max-flow min-cut : flot max = coupe min. Magique.",
+  "🧙 P vs NP : 1M$ si tu prouves. Bonne chance !",
+  "🎲 BFS = file, DFS = pile. Retiens ça.",
+  "💎 Le théorème de König relie matching et couverture."
+];
+function randomFact() {
+  showToast(pickRandom(funFacts), 'info');
+  playSound('xp');
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+loadState();
+updateHUD();
+injectGoalBanners();
+renderQuiz('complexityQuiz', complexityQuestions, 'complexity');
+renderQuiz('chooseQuiz', chooseQuestions, 'choose');
+renderQuiz('finalQuiz', finalQuestions, 'finalQuiz');
+updateNextButtons();
+
+setTimeout(() => {
+  if (state.xp === 0) showToast('Bienvenue ! Chaque section a un objectif 🎯', 'info');
+}, 800);
+
+console.log('%c⚡ Algo Quest v4 — Quiz fix', 'color:#4d6bfe; font-size:16px; font-weight:bold;');
+</script>
+</body>
+</html>
