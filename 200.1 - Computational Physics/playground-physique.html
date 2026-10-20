@@ -15,8 +15,6 @@
     min-height:100vh;
     min-height:100dvh;
   }
-
-  /* ---------- sidebar (fixe à gauche) ---------- */
   .sidebar{
     position:sticky;top:0;
     width:240px;flex:0 0 240px;
@@ -26,78 +24,34 @@
     display:flex;flex-direction:column;
     z-index:10;
   }
-  .sidebar-head{
-    flex:0 0 auto;
-    padding:14px 16px 11px;
-    border-bottom:1px solid #f0f1f4;
-  }
+  .sidebar-head{flex:0 0 auto;padding:14px 16px 11px;border-bottom:1px solid #f0f1f4}
   .brand{display:flex;align-items:center;gap:8px;font-weight:650;font-size:13px;color:#0d0d0d}
   .brand .dot{width:8px;height:8px;border-radius:50%;background:#4d6bfe;flex:0 0 auto}
   .brand-sub{color:#8b9096;font-weight:500;font-size:11px;margin-top:3px;padding-left:16px}
-
-  .sidebar-list{
-    flex:1 1 auto;
-    min-height:0;
-    overflow-y:auto;
-    overflow-x:hidden;
-    padding:8px;
-  }
+  .sidebar-list{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:8px}
   .sidebar-list::-webkit-scrollbar{width:6px}
   .sidebar-list::-webkit-scrollbar-thumb{background:#e0e3e8;border-radius:99px}
-
-  .sidebar-item{
-    display:flex;align-items:center;gap:9px;
-    width:100%;padding:7px 10px;
-    background:transparent;border:none;border-radius:7px;
-    cursor:pointer;font:inherit;font-size:12px;color:#5b6167;
-    text-align:left;transition:background .15s,color .15s;
-    margin-bottom:1px;
-  }
+  .sidebar-item{display:flex;align-items:center;gap:9px;width:100%;padding:7px 10px;background:transparent;border:none;border-radius:7px;cursor:pointer;font:inherit;font-size:12px;color:#5b6167;text-align:left;transition:background .15s,color .15s;margin-bottom:1px}
   .sidebar-item:hover{background:#f4f5f8;color:#0d0d0d}
   .sidebar-item.active{background:#eef1ff;color:#2a3ea8;font-weight:600}
   .sidebar-item.active .num{color:#4d6bfe}
   .sidebar-item.done .num{color:#2f9e6b}
   .sidebar-item.locked{opacity:.4;cursor:not-allowed}
   .sidebar-item.locked:hover{background:transparent;color:#5b6167}
-  .sidebar-item .num{
-    font:700 10px ui-monospace,SFMono-Regular,monospace;
-    color:#b6bcc3;flex:0 0 auto;width:16px;
-  }
+  .sidebar-item .num{font:700 10px ui-monospace,SFMono-Regular,monospace;color:#b6bcc3;flex:0 0 auto;width:16px}
   .sidebar-item .label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
   .sidebar-item .check{font-size:11px;color:#2f9e6b;opacity:0;flex:0 0 auto}
   .sidebar-item.done .check{opacity:1}
-
-  .sidebar-foot{
-    flex:0 0 auto;
-    padding:11px 16px 14px;
-    border-top:1px solid #f0f1f4;
-    display:flex;flex-direction:column;gap:7px;
-  }
+  .sidebar-foot{flex:0 0 auto;padding:11px 16px 14px;border-top:1px solid #f0f1f4;display:flex;flex-direction:column;gap:7px}
   .sidebar-progress{display:flex;align-items:center;gap:9px}
   .prog{flex:1;height:5px;background:#eceef2;border-radius:99px;overflow:hidden;min-width:0}
   .prog-fill{height:100%;width:0;background:#4d6bfe;border-radius:99px;transition:width .4s ease}
   .prog-label{font:600 11px ui-monospace,SFMono-Regular,monospace;color:#5b6167;white-space:nowrap}
   .link{background:none;border:none;color:#8b9096;cursor:pointer;font:inherit;font-size:11px;padding:0;text-align:left}
   .link:hover{color:#4d6bfe;text-decoration:underline}
-
-  /* ---------- main ---------- */
-  main{
-    flex:1 1 auto;
-    min-width:0;
-    padding:22px 32px 60px;
-  }
-  .card{
-    max-width:960px;
-    margin:0 auto;
-    background:#fff;
-    border:1px solid #e5e5e5;
-    border-radius:12px;
-    padding:18px 20px 18px;
-    box-shadow:0 1px 2px rgba(13,13,13,.04);
-    animation:pop .28s cubic-bezier(.2,.8,.2,1);
-  }
+  main{flex:1 1 auto;min-width:0;padding:22px 32px 60px}
+  .card{max-width:980px;margin:0 auto;background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:18px 20px 18px;box-shadow:0 1px 2px rgba(13,13,13,.04);animation:pop .28s cubic-bezier(.2,.8,.2,1)}
   @keyframes pop{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-
   .eyebrow{font:600 10.5px ui-monospace,monospace;color:#4d6bfe;letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px}
   h2{margin:0 0 10px;font-size:17px;letter-spacing:-.01em}
   .pill{float:right;font:600 10px ui-monospace,monospace;color:#5b6167;background:#f2f3f6;border-radius:99px;padding:2px 8px}
@@ -106,27 +60,16 @@
   .theory b{color:#0d0d0d}
   .real{background:#f6f8ff;border:1px solid #e3e9ff;border-radius:8px;padding:8px 10px;font-size:12px;color:#2a3550;margin-bottom:12px}
   .real .tag{display:inline-block;font:700 9.5px ui-monospace,monospace;color:#4d6bfe;background:#fff;border:1px solid #dde4ff;border-radius:4px;padding:1px 5px;margin-right:5px;vertical-align:1px}
-
   .cv{width:100%;display:block;border:1px solid #eceef2;border-radius:8px;background:#fff}
-
   .ctrls{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:7px 15px;margin-top:11px}
   .ctrl{display:block;font-size:11.5px}
   .ctrl-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;color:#5b6167;font-weight:550}
   .ctrl-head .val{font:600 11px ui-monospace,monospace;color:#4d6bfe}
-  input[type=range]{
-    -webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:99px;background:#eceef2;outline:none;margin:5px 0;
-  }
-  input[type=range]::-webkit-slider-thumb{
-    -webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#4d6bfe;border:2px solid #fff;box-shadow:0 1px 3px rgba(77,107,254,.45);cursor:pointer;
-  }
-  input[type=range]::-moz-range-thumb{
-    width:12px;height:12px;border-radius:50%;background:#4d6bfe;border:2px solid #fff;cursor:pointer;
-  }
-  select,input[type=text],input[type=number]{
-    width:100%;padding:5px 8px;border:1px solid #e0e3e8;border-radius:7px;font:inherit;font-size:12px;background:#fff;color:#0d0d0d;outline:none;
-  }
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:99px;background:#eceef2;outline:none;margin:5px 0}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#4d6bfe;border:2px solid #fff;box-shadow:0 1px 3px rgba(77,107,254,.45);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:#4d6bfe;border:2px solid #fff;cursor:pointer}
+  select,input[type=text],input[type=number]{width:100%;padding:5px 8px;border:1px solid #e0e3e8;border-radius:7px;font:inherit;font-size:12px;background:#fff;color:#0d0d0d;outline:none}
   select:focus,input:focus{border-color:#4d6bfe;box-shadow:0 0 0 3px #eef1ff}
-
   .row{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
   .b{font:600 12px inherit;padding:6px 12px;border-radius:8px;border:1px solid #4d6bfe;background:#4d6bfe;color:#fff;cursor:pointer;transition:.15s}
   .b:hover{background:#3a56e0;border-color:#3a56e0}
@@ -134,20 +77,16 @@
   .b.ghost{background:#fff;color:#4d6bfe}
   .b.ghost:hover{background:#f5f7ff}
   .b:disabled{opacity:.4;cursor:not-allowed;transform:none}
-
   .readout{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
   .stat{font:600 11px ui-monospace,monospace;background:#f4f5f8;border-radius:6px;padding:5px 8px;color:#3b4148}
   .stat em{font-style:normal;color:#8b9096;font-weight:500}
   .stat.hi{background:#eef1ff;color:#2a3ea8}
-
   .quiz{margin-top:18px;border-top:1px solid #eef0f3;padding-top:13px}
   .quiz-title{font:700 10.5px ui-monospace,monospace;color:#8b9096;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px}
   .q{margin-bottom:11px}
   .q-text{font-weight:600;font-size:13px;margin-bottom:6px}
   .opts{display:flex;flex-direction:column;gap:5px}
-  .opt{
-    text-align:left;font:inherit;font-size:12.5px;padding:6px 10px;border:1px solid #e5e5e5;background:#fff;border-radius:7px;cursor:pointer;color:#2b2f33;transition:.15s;
-  }
+  .opt{text-align:left;font:inherit;font-size:12.5px;padding:6px 10px;border:1px solid #e5e5e5;background:#fff;border-radius:7px;cursor:pointer;color:#2b2f33;transition:.15s}
   .opt:hover{border-color:#c9d2ff;background:#fafbff}
   .opt.good{border-color:#2f9e6b;background:#f2fbf6;color:#1f7a52;font-weight:600}
   .opt.bad{border-color:#e05555;background:#fdf3f3;animation:shake .3s}
@@ -155,50 +94,24 @@
   .why{font-size:11.5px;color:#1f7a52;margin-top:5px;padding-left:2px}
   .finish{margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .finish .hint{font-size:11.5px;color:#8b9096}
-
   .bars{display:flex;gap:16px;align-items:flex-end;height:150px;margin:12px 0 6px;padding:0 6px}
   .barcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
   .barfill{width:100%;max-width:52px;border-radius:5px 5px 0 0;transition:height .09s linear}
   .barlabel{font:600 10.5px ui-monospace,monospace;color:#5b6167;margin-top:5px;text-align:center}
   .barval{font:600 10.5px ui-monospace,monospace;color:#0d0d0d;margin-bottom:3px}
-
-  pre.code{
-    background:#0d0d0d;color:#e8eaf0;border-radius:8px;padding:11px;overflow:auto;
-    font:11.5px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;margin:0;
-  }
+  pre.code{background:#0d0d0d;color:#e8eaf0;border-radius:8px;padding:11px;overflow:auto;font:11.5px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;margin:0}
   .tree{font:11.5px/1.65 ui-monospace,monospace;color:#2b2f33;white-space:pre;overflow:auto}
-
   .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   @media(max-width:880px){.two{grid-template-columns:1fr}}
-
   .done-badge{background:#f2fbf6;border:1px solid #c8e8d8;color:#1f7a52;border-radius:6px;padding:3px 8px;font:600 11px ui-monospace,monospace}
   .err-card{background:#fdf3f3;border:1px solid #f5c6c6;border-radius:8px;padding:10px 12px;color:#a83131;font-size:12px}
   .err-card b{color:#7a1f1f}
-
-  /* ---------- mobile : sidebar bascule en barre horizontale ---------- */
   @media(max-width:720px){
     body{flex-direction:column}
-    .sidebar{
-      position:static;
-      width:100%;flex:0 0 auto;
-      height:auto;min-height:0;
-      border-right:none;border-bottom:1px solid #e5e5e5;
-    }
+    .sidebar{position:static;width:100%;flex:0 0 auto;height:auto;min-height:0;border-right:none;border-bottom:1px solid #e5e5e5}
     .sidebar-head{padding:10px 12px 8px}
-    .sidebar-list{
-      flex:0 0 auto;
-      display:flex;flex-direction:row;
-      gap:4px;
-      overflow-x:auto;overflow-y:hidden;
-      padding:6px 10px;
-      min-height:0;
-    }
-    .sidebar-item{
-      flex:0 0 auto;
-      width:auto;
-      padding:6px 10px;
-      margin-bottom:0;
-    }
+    .sidebar-list{flex:0 0 auto;display:flex;flex-direction:row;gap:4px;overflow-x:auto;overflow-y:hidden;padding:6px 10px;min-height:0}
+    .sidebar-item{flex:0 0 auto;width:auto;padding:6px 10px;margin-bottom:0}
     .sidebar-item .label{max-width:100px}
     .sidebar-item .check{display:none}
     .sidebar-foot{flex-direction:row;align-items:center;padding:8px 12px 10px;gap:10px}
@@ -230,9 +143,6 @@
 <main id="stage"></main>
 
 <script>
-/* ============================================================
-   HELPERS
-   ============================================================ */
 window.addEventListener('error', e => {
   console.error('[playground] uncaught:', e.error || e.message);
 });
@@ -243,7 +153,10 @@ const rail  = document.getElementById('rail');
 const progFill = document.getElementById('progFill');
 const progLabel = document.getElementById('progLabel');
 
-const C = { blue:'#4d6bfe', ink:'#0d0d0d', grey:'#9aa0a6', light:'#d1d5db', orange:'#e8833a', green:'#2f9e6b', red:'#e05555' };
+const C = { blue:'#4d6bfe', ink:'#0d0d0d', grey:'#9aa0a6', light:'#d1d5db',
+            orange:'#e8833a', green:'#2f9e6b', red:'#e05555',
+            carBlue:'#4d6bfe', carDark:'#2a3ea8', carWin:'#bcd2ff',
+            road:'#e0e3e8', grass:'#eaf5ea' };
 
 function mkCanvas(host, h=250){
   const c = document.createElement('canvas');
@@ -347,11 +260,373 @@ function txt(ctx,s,x,y,color='#5b6167',font='600 11.5px ui-monospace,monospace')
 }
 
 /* ============================================================
+   SVG-STYLE DRAWING HELPERS (world objects)
+   ============================================================ */
+
+/* Side-view car — pointing right by default */
+function drawCar(ctx, cx, cy, w, opts={}){
+  const { flip=false, color=C.carBlue, dark=C.carDark, accent='#ffe066' } = opts;
+  const s = w / 110;
+  ctx.save();
+  ctx.translate(cx, cy);
+  if(flip) ctx.scale(-1, 1);
+  ctx.scale(s, s);
+
+  // ground shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  ctx.beginPath();
+  ctx.ellipse(0, 24, 52, 4, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // body
+  ctx.fillStyle = color;
+  ctx.strokeStyle = dark;
+  ctx.lineWidth = 1.5;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-52, 10);
+  ctx.quadraticCurveTo(-52, 0, -42, -2);
+  ctx.lineTo(-18, -2);
+  ctx.lineTo(-8, -20);
+  ctx.quadraticCurveTo(-2, -22, 10, -22);
+  ctx.quadraticCurveTo(20, -20, 26, -2);
+  ctx.lineTo(42, -2);
+  ctx.quadraticCurveTo(52, 0, 52, 10);
+  ctx.lineTo(52, 16);
+  ctx.quadraticCurveTo(52, 19, 48, 19);
+  ctx.lineTo(-48, 19);
+  ctx.quadraticCurveTo(-52, 19, -52, 16);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // windows
+  ctx.fillStyle = C.carWin;
+  ctx.strokeStyle = dark;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(-16, -2);
+  ctx.lineTo(-7, -18);
+  ctx.lineTo(2, -18);
+  ctx.lineTo(2, -2);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(6, -2);
+  ctx.lineTo(6, -18);
+  ctx.lineTo(9, -18);
+  ctx.quadraticCurveTo(16, -17, 23, -2);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // headlight
+  ctx.fillStyle = accent;
+  ctx.beginPath(); ctx.arc(50, 5, 2.5, 0, Math.PI*2); ctx.fill();
+
+  // wheels
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.arc(-30, 19, 9, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc( 30, 19, 9, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#9a9a9a';
+  ctx.beginPath(); ctx.arc(-30, 19, 3.5, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc( 30, 19, 3.5, 0, Math.PI*2); ctx.fill();
+
+  ctx.restore();
+}
+
+/* Top-view car (for circular motion) — front at +x when angle=0 */
+function drawCarTop(ctx, cx, cy, w, angle){
+  const s = w / 60;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+  ctx.scale(s, s);
+
+  // shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(-32, -17, 64, 34, 8)
+                : ctx.rect(-32, -17, 64, 34);
+  ctx.fill();
+
+  // body
+  ctx.fillStyle = C.carBlue;
+  ctx.strokeStyle = C.carDark;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(-30, -15, 60, 30, 6)
+                : ctx.rect(-30, -15, 60, 30);
+  ctx.fill(); ctx.stroke();
+
+  // windshield (front)
+  ctx.fillStyle = C.carWin;
+  ctx.beginPath();
+  ctx.moveTo(14, -12);
+  ctx.lineTo(24, -8);
+  ctx.lineTo(24, 8);
+  ctx.lineTo(14, 12);
+  ctx.closePath();
+  ctx.fill();
+
+  // rear window
+  ctx.beginPath();
+  ctx.moveTo(-24, -8);
+  ctx.lineTo(-16, -12);
+  ctx.lineTo(-16, 12);
+  ctx.lineTo(-24, 8);
+  ctx.closePath();
+  ctx.fill();
+
+  // headlights
+  ctx.fillStyle = '#ffe066';
+  ctx.beginPath(); ctx.arc(28, -8, 2, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(28, 8, 2, 0, Math.PI*2); ctx.fill();
+
+  // wheels (top view = small dark rects)
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(-22, -18, 6, 4); ctx.fillRect(16, -18, 6, 4);
+  ctx.fillRect(-22, 14, 6, 4);  ctx.fillRect(16, 14, 6, 4);
+
+  ctx.restore();
+}
+
+/* Basketball */
+function drawBasketball(ctx, cx, cy, r){
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // ball
+  ctx.fillStyle = '#e8833a';
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI*2); ctx.fill();
+
+  // outline
+  ctx.strokeStyle = '#5a2000';
+  ctx.lineWidth = Math.max(1, r*0.06);
+  ctx.beginPath(); ctx.arc(0, 0, r*0.95, 0, Math.PI*2); ctx.stroke();
+
+  // seams
+  ctx.lineWidth = Math.max(0.8, r*0.045);
+  ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(0, r); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-r*0.95, 0);
+  ctx.quadraticCurveTo(0, r*0.32, r*0.95, 0);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-r*0.95, 0);
+  ctx.quadraticCurveTo(0, -r*0.32, r*0.95, 0);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-r*0.5, -r*0.85);
+  ctx.quadraticCurveTo(-r*0.85, 0, -r*0.5, r*0.85);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(r*0.5, -r*0.85);
+  ctx.quadraticCurveTo(r*0.85, 0, r*0.5, r*0.85);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+/* Hoop */
+function drawHoop(ctx, x, y, size){
+  // pole
+  ctx.strokeStyle = '#7a8088';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x, y + size*1.6);
+  ctx.lineTo(x, y + size*0.2);
+  ctx.stroke();
+
+  // backboard
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#5b6167';
+  ctx.lineWidth = 2;
+  ctx.fillRect(x - size*0.5, y - size*0.9, size*0.9, size*0.7);
+  ctx.strokeRect(x - size*0.5, y - size*0.9, size*0.9, size*0.7);
+
+  // square inside
+  ctx.strokeStyle = '#c9ced4';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x - size*0.2, y - size*0.7, size*0.4, size*0.32);
+
+  // rim
+  ctx.strokeStyle = '#e8833a';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.ellipse(x, y + size*0.2, size*0.42, size*0.09, 0, 0, Math.PI*2);
+  ctx.stroke();
+
+  // net
+  ctx.strokeStyle = '#c0c6cc';
+  ctx.lineWidth = 1;
+  for(let i = 0; i < 9; i++){
+    const a = (i/9) * Math.PI * 2;
+    const x1 = x + Math.cos(a) * size*0.42;
+    const y1 = y + size*0.2 + Math.sin(a) * size*0.09;
+    const x2 = x + Math.cos(a) * size*0.16;
+    const y2 = y + size*0.55;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  }
+}
+
+/* Shopping cart — side view, optional filled with water packs */
+function drawCart(ctx, cx, cy, w, opts={}){
+  const { filled=false, color='#5b6167' } = opts;
+  const s = w / 80;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(s, s);
+
+  // shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  ctx.beginPath(); ctx.ellipse(0, 22, 32, 3, 0, 0, Math.PI*2); ctx.fill();
+
+  // basket outline
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-28, -18);
+  ctx.lineTo(28, -18);
+  ctx.lineTo(22, 12);
+  ctx.lineTo(-22, 12);
+  ctx.closePath();
+  ctx.stroke();
+
+  // horizontal bars
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(-27, -8); ctx.lineTo(27, -8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-25, 2);  ctx.lineTo(25, 2);  ctx.stroke();
+
+  // contents
+  if(filled){
+    ctx.fillStyle = '#c9d2ff';
+    ctx.strokeStyle = '#4d6bfe';
+    ctx.lineWidth = 1;
+    for(let row = 0; row < 2; row++){
+      for(let i = 0; i < 3; i++){
+        const x = -20 + i*14;
+        const y = -16 + row*9;
+        ctx.fillRect(x, y, 12, 8);
+        ctx.strokeRect(x, y, 12, 8);
+      }
+    }
+  }
+
+  // handle
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-28, -18);
+  ctx.lineTo(-34, -28);
+  ctx.lineTo(-42, -28);
+  ctx.stroke();
+
+  // wheels
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.arc(-16, 18, 4.5, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc( 16, 18, 4.5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#9a9a9a';
+  ctx.beginPath(); ctx.arc(-16, 18, 1.8, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc( 16, 18, 1.8, 0, Math.PI*2); ctx.fill();
+
+  ctx.restore();
+}
+
+/* Stick figure pushing (facing right by default) */
+function drawPusher(ctx, cx, cy, w, opts={}){
+  const { flip=false, color='#4d6bfe' } = opts;
+  const s = w / 40;
+  ctx.save();
+  ctx.translate(cx, cy);
+  if(flip) ctx.scale(-1, 1);
+  ctx.scale(s, s);
+
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+
+  // head
+  ctx.beginPath(); ctx.arc(0, -20, 6.5, 0, Math.PI*2); ctx.fill();
+
+  // body
+  ctx.beginPath(); ctx.moveTo(0, -13); ctx.lineTo(0, 8); ctx.stroke();
+
+  // arms pushing forward
+  ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(16, -2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(16, 2);  ctx.stroke();
+
+  // legs
+  ctx.beginPath(); ctx.moveTo(0, 8); ctx.lineTo(-6, 22); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, 8); ctx.lineTo( 5, 22); ctx.stroke();
+
+  ctx.restore();
+}
+
+/* Squash ball */
+function drawSquashBall(ctx, cx, cy, r){
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#7a7a7a';
+  ctx.beginPath(); ctx.arc(cx - r*0.3, cy - r*0.3, r*0.32, 0, Math.PI*2); ctx.fill();
+}
+
+/* Billiard ball */
+function drawBilliardBall(ctx, cx, cy, r, color, number){
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.1)';
+  ctx.beginPath();
+  ctx.ellipse(2, 4, r*1.1, r*0.35, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // ball
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI*2); ctx.fill();
+
+  // highlight
+  const g = ctx.createRadialGradient(-r*0.35, -r*0.35, r*0.1, 0, 0, r);
+  g.addColorStop(0, 'rgba(255,255,255,0.55)');
+  g.addColorStop(0.55, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI*2); ctx.fill();
+
+  if(number){
+    // white circle + number
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(0, 0, r*0.42, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = `bold ${r*0.55}px ui-monospace,monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(number), 0, 0);
+  } else {
+    // cue ball: red dot
+    ctx.fillStyle = '#e05555';
+    ctx.beginPath(); ctx.arc(0, 0, r*0.14, 0, Math.PI*2); ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+/* Ball with soft shine */
+function drawBall(ctx, cx, cy, r, color){
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.beginPath(); ctx.arc(cx - r*0.3, cy - r*0.3, r*0.35, 0, Math.PI*2); ctx.fill();
+}
+
+/* ============================================================
    SPRINTS
    ============================================================ */
 const SPRINTS = [];
 
-/* ---------- 1 ---------- */
+/* ---------- 1. Position / vitesse / accélération ---------- */
 SPRINTS.push({
   short:'Position & vitesse',
   tag:'Module 1 · Cinématique',
@@ -371,7 +646,7 @@ SPRINTS.push({
       why:"a = dv/dt. Elle mesure comment la vitesse change, pas la vitesse elle-même." }
   ],
   mount(host){
-    const {c, ctx, stop} = mkCanvas(host, 220);
+    const {c, ctx, stop} = mkCanvas(host, 230);
     const bar = el('div','ctrls'); host.appendChild(bar);
     let v0 = 12, a = 0, t = 0, run = true;
 
@@ -394,26 +669,52 @@ SPRINTS.push({
 
       const w = c.clientWidth, h = c.clientHeight;
       ctx.clearRect(0,0,w,h);
+
       const pxm = w / 46;
-      const cx = w/2, gy = h*0.68;
+      const cx = w/2;
+      const roadY = h * 0.72;
 
-      ctx.strokeStyle='#eceef2'; ctx.lineWidth=1;
-      for(let m=-20; m<=20; m+=5){
-        const px = cx + m*pxm;
-        ctx.beginPath(); ctx.moveTo(px, gy-4); ctx.lineTo(px, gy+4); ctx.stroke();
-        txt(ctx, m+' m', px-12, gy+8, '#c3c8ce', '600 10px ui-monospace,monospace');
+      // sky hint
+      ctx.fillStyle = '#f4f7ff';
+      ctx.fillRect(0, 0, w, roadY - 20);
+
+      // road strip
+      ctx.fillStyle = C.road;
+      ctx.fillRect(0, roadY - 4, w, 22);
+
+      // road dashed center line (fixed, for reference)
+      ctx.fillStyle = '#ffffff';
+      for(let i = -1; i < w/34 + 1; i++){
+        ctx.fillRect(i*34, roadY + 6, 18, 3);
       }
-      ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(w,gy); ctx.strokeStyle='#e5e5e5'; ctx.stroke();
 
+      // position ticks
+      ctx.strokeStyle = '#cfd4da'; ctx.lineWidth = 1;
+      for(let m = -20; m <= 20; m += 5){
+        const px = cx + m*pxm;
+        ctx.beginPath(); ctx.moveTo(px, roadY + 18); ctx.lineTo(px, roadY + 24); ctx.stroke();
+        txt(ctx, m+' m', px - 12, roadY + 26, '#b6bcc3', '600 10px ui-monospace,monospace');
+      }
+
+      // car
       const px = cx + x*pxm;
-      dot(ctx, px, gy, 9, C.blue);
+      const carW = Math.min(120, w * 0.22);
+      const carScale = carW / 110;
+      const carCenterY = roadY - 19 * carScale;
+      drawCar(ctx, px, carCenterY, carW, { flip: v < -0.1 });
 
+      // velocity arrow (attached to car)
       const vLen = Math.max(-140, Math.min(140, v*4));
-      arrow(ctx, px, gy, px+vLen, gy, C.blue, 'v');
-
+      if(Math.abs(vLen) > 5){
+        arrow(ctx, px, roadY - 44, px+vLen, roadY - 44, C.blue, 'v');
+      }
+      // acceleration arrow
       const aLen = Math.max(-110, Math.min(110, a*12));
-      if(Math.abs(aLen) > 4) arrow(ctx, px, gy-34, px+aLen, gy-34, C.orange, 'a');
+      if(Math.abs(aLen) > 4){
+        arrow(ctx, px, roadY - 66, px+aLen, roadY - 66, C.orange, 'a');
+      }
 
+      // HUD
       txt(ctx, `t = ${t.toFixed(2)} s`, 12, 10, '#8b9096');
       txt(ctx, `x = ${x.toFixed(2)} m`, 12, 28, C.ink);
       txt(ctx, `v = ${v.toFixed(2)} m/s`, 12, 46, C.blue);
@@ -424,7 +725,7 @@ SPRINTS.push({
   }
 });
 
-/* ---------- 2 ---------- */
+/* ---------- 2. Balistique ---------- */
 SPRINTS.push({
   short:'Balistique',
   tag:'Module 1 · Cinématique',
@@ -444,9 +745,9 @@ SPRINTS.push({
       why:"Portée = v₀²·sin(2θ)/g. g plus petit ⇒ portée plus grande." }
   ],
   mount(host){
-    const {c, ctx, stop} = mkCanvas(host, 250);
+    const {c, ctx, stop} = mkCanvas(host, 280);
     const bar = el('div','ctrls'); host.appendChild(bar);
-    let v0 = 25, ang = 45, g = 9.81, t = 0;
+    let v0 = 25, ang = 55, g = 9.81, t = 0;
 
     const sv = makeSlider(bar,{label:'Vitesse initiale v₀', min:5, max:45, step:1, value:v0, unit:' m/s', fmt:v=>v.toFixed(0)});
     const sa = makeSlider(bar,{label:'Angle de tir', min:10, max:85, step:1, value:ang, unit:'°', fmt:v=>v.toFixed(0)});
@@ -476,25 +777,35 @@ SPRINTS.push({
       const s  = Math.min(sx, sz);
       const ox = padL, oy = h - padB;
 
-      ctx.strokeStyle='#e5e5e5'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(w,oy); ctx.stroke();
+      // court floor
+      ctx.fillStyle = '#f0e8d8';
+      ctx.fillRect(0, oy, w, padB);
 
+      // hoop at start (decoration showing player's target)
+      const hoopSize = 42;
+      const hoopX = ox + 4;
+      drawHoop(ctx, hoopX, oy - 90, hoopSize);
+
+      // trajectory
       ctx.beginPath();
       for(let i=0;i<=100;i++){
         const tt = T*i/100;
         const X = ox + vx*tt*s, Z = oy - (vz*tt - 0.5*g*tt*tt)*s;
         i ? ctx.lineTo(X,Z) : ctx.moveTo(X,Z);
       }
-      ctx.strokeStyle='#c9d2ff'; ctx.setLineDash([4,4]); ctx.lineWidth=1.5; ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle='#c9d2ff'; ctx.setLineDash([5,5]); ctx.lineWidth=1.5; ctx.stroke(); ctx.setLineDash([]);
 
+      // ball
       const X = ox + vx*t*s, Z = oy - (vz*t - 0.5*g*t*t)*s;
-      dot(ctx, X, Z, 7, C.blue);
+      drawBasketball(ctx, X, Z, 13);
 
+      // velocity components
       const vyNow = vz - g*t;
       arrow(ctx, X, Z, X + vx*s*0.5, Z, C.green, 'vₓ');
       arrow(ctx, X, Z, X, Z - vyNow*s*0.5, C.orange, 'vᵣ');
       arrow(ctx, X, Z, X, Z + 26, C.red, 'g');
 
+      // HUD
       txt(ctx, `portée ${R.toFixed(1)} m`, 10, 10, C.ink);
       txt(ctx, `hauteur max ${H.toFixed(1)} m`, 10, 28, '#8b9096');
       txt(ctx, `vol ${T.toFixed(2)} s`, 10, 46, '#8b9096');
@@ -504,7 +815,7 @@ SPRINTS.push({
   }
 });
 
-/* ---------- 3 ---------- */
+/* ---------- 3. Mouvement circulaire uniforme ---------- */
 SPRINTS.push({
   short:'Mouvement circulaire',
   tag:'Module 1 · Cinématique',
@@ -516,7 +827,7 @@ SPRINTS.push({
   ],
   real:'Un virage serré en voiture. Le compteur affiche 40 km/h constant, pourtant tu es poussé vers l\'extérieur.',
   quiz:[
-    { q:"Dans un MCU, la vitesse est constante. L'accélération est-elle nulle ?",
+    { q:"Dans un MCU, la vitesse (le module) est constante. L'accélération est-elle nulle ?",
       opts:["Oui, forcément","Non, elle pointe vers le centre","Non, elle pointe vers l'extérieur"], a:1,
       why:"La direction du vecteur vitesse change en permanence ⇒ accélération dirigée vers le centre." },
     { q:"Si tu doubles la vitesse sur le même rayon, l'accélération centripète…",
@@ -524,7 +835,7 @@ SPRINTS.push({
       why:"a_c = v²/R. v ×2 ⇒ a_c ×4." }
   ],
   mount(host){
-    const {c, ctx, stop} = mkCanvas(host, 260);
+    const {c, ctx, stop} = mkCanvas(host, 290);
     const bar = el('div','ctrls'); host.appendChild(bar);
     let R = 2, v = 10, ang = 0;
 
@@ -539,26 +850,47 @@ SPRINTS.push({
 
       ctx.clearRect(0,0,w,h);
       const cx = w/2, cy = h/2 + 6;
-      const pxm = Math.min( (h-50)/(2*4), (w-60)/(2*4) );
+      const pxm = Math.min((h-60)/(2*4.2), (w-80)/(2*4.2));
       const rp = R*pxm;
 
-      ctx.beginPath(); ctx.arc(cx,cy,rp,0,Math.PI*2);
-      ctx.strokeStyle='#e5e5e5'; ctx.lineWidth=1.5; ctx.stroke();
+      // circular track (asphalt)
+      ctx.beginPath(); ctx.arc(cx, cy, rp + 16, 0, Math.PI*2);
+      ctx.fillStyle = C.road; ctx.fill();
+
+      // inner grass
+      ctx.beginPath(); ctx.arc(cx, cy, Math.max(rp - 16, 4), 0, Math.PI*2);
+      ctx.fillStyle = '#ffffff'; ctx.fill();
+
+      // track dashed center line
+      ctx.beginPath(); ctx.arc(cx, cy, rp, 0, Math.PI*2);
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5;
+      ctx.setLineDash([12, 10]); ctx.stroke(); ctx.setLineDash([]);
+
+      // center dot
       dot(ctx, cx, cy, 3, C.light);
 
+      // car position
       const x = cx + rp*Math.cos(ang), y = cy + rp*Math.sin(ang);
+
+      // radius
       ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y);
-      ctx.strokeStyle='#eef1ff'; ctx.lineWidth=3; ctx.stroke();
+      ctx.strokeStyle='#eef1ff'; ctx.lineWidth=2; ctx.stroke();
 
-      dot(ctx, x, y, 9, C.blue);
+      // car (top view, facing velocity direction)
+      const carW = Math.min(70, rp * 0.9);
+      drawCarTop(ctx, x, y, carW, ang + Math.PI/2);
 
+      // velocity arrow (tangent)
       const tx = -Math.sin(ang), ty = Math.cos(ang);
-      const vL = 20 + v*3.2;
-      arrow(ctx, x, y, x + tx*vL, y + ty*vL, C.green, 'v');
+      const vL = 20 + v*2.6;
+      arrow(ctx, x + tx*(carW*0.55), y + ty*(carW*0.55),
+              x + tx*(carW*0.55 + vL), y + ty*(carW*0.55 + vL), C.green, 'v');
 
+      // centripetal acceleration arrow
       const ux = (cx-x)/rp, uy = (cy-y)/rp;
-      const aL = Math.min(95, 14 + ac*2.6);
-      arrow(ctx, x, y, x + ux*aL, y + uy*aL, C.orange, 'a_c');
+      const aL = Math.min(85, 12 + ac*2.2);
+      arrow(ctx, x + ux*(carW*0.4), y + uy*(carW*0.4),
+              x + ux*(carW*0.4 + aL), y + uy*(carW*0.4 + aL), C.orange, 'a_c');
 
       txt(ctx, `v = ${v.toFixed(1)} m/s  (constante)`, 10, 10, C.green);
       txt(ctx, `ω = v/R = ${(v/R).toFixed(2)} rad/s`, 10, 28, '#8b9096');
@@ -569,7 +901,7 @@ SPRINTS.push({
   }
 });
 
-/* ---------- 4 ---------- */
+/* ---------- 4. Lois de Newton ---------- */
 SPRINTS.push({
   short:'Lois de Newton',
   tag:'Module 2 · Dynamique',
@@ -579,7 +911,7 @@ SPRINTS.push({
     '<b>2. Principe fondamental</b> : F = m·a, donc <b>a = F/m</b>.',
     '<b>3. Action-réaction</b> : F(A/B) = −F(B/A).'
   ],
-  real:'Pousser un caddie vide vs un caddie plein. Même force, mais le plein accélère beaucoup moins : a = F/m.',
+  real:'Pousser un caddie vide vs un caddie plein de packs d\'eau. Même force, mais le plein accélère beaucoup moins : a = F/m.',
   quiz:[
     { q:"À force égale, si la masse double, l'accélération…",
       opts:["double","est divisée par 2","ne change pas"], a:1,
@@ -589,13 +921,13 @@ SPRINTS.push({
       why:"Le mur exerce une force opposée sur toi : c'est l'action-réaction." }
   ],
   mount(host){
-    const {c, ctx, stop} = mkCanvas(host, 240);
+    const {c, ctx, stop} = mkCanvas(host, 260);
     const bar = el('div','ctrls'); host.appendChild(bar);
     let F = 30, m1 = 4, m2 = 16, t = 0;
 
     const sf = makeSlider(bar,{label:'Force F', min:5, max:60, step:1, value:F, unit:' N', fmt:x=>x.toFixed(0)});
-    const s1 = makeSlider(bar,{label:'Masse m₁', min:1, max:20, step:1, value:m1, unit:' kg', fmt:x=>x.toFixed(0)});
-    const s2 = makeSlider(bar,{label:'Masse m₂', min:1, max:20, step:1, value:m2, unit:' kg', fmt:x=>x.toFixed(0)});
+    const s1 = makeSlider(bar,{label:'Masse caddie 1', min:1, max:20, step:1, value:m1, unit:' kg', fmt:x=>x.toFixed(0)});
+    const s2 = makeSlider(bar,{label:'Masse caddie 2', min:1, max:20, step:1, value:m2, unit:' kg', fmt:x=>x.toFixed(0)});
     const row = el('div','row'); bar.appendChild(row);
     const bR = btn(row,'↺ Reset','ghost');
 
@@ -610,32 +942,38 @@ SPRINTS.push({
       if(x1 > 7.5 || x2 > 7.5) t = 0;
 
       ctx.clearRect(0,0,w,h);
-      const pxm = (w - 90) / 8.5;
-      const ox = 50;
 
-      const lane = (y, m, a, xm, label, color) => {
+      // background
+      ctx.fillStyle = '#fbfcfd';
+      ctx.fillRect(0, 0, w, h);
+
+      const pxm = (w - 110) / 8.5;
+      const ox = 60;
+
+      const lane = (y, m, a, xm, filled, label, cartColor) => {
+        // lane line
         ctx.strokeStyle='#eceef2'; ctx.lineWidth=1;
         ctx.beginPath(); ctx.moveTo(ox, y); ctx.lineTo(w-20, y); ctx.stroke();
 
-        const bw = Math.min(90, 16 + m*2.6);
-        const bx = ox + xm*pxm;
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        if(typeof ctx.roundRect === 'function'){
-          ctx.roundRect(bx, y-bw*0.55, bw, bw*0.55, 5);
-        } else {
-          ctx.rect(bx, y-bw*0.55, bw, bw*0.55);
-        }
-        ctx.fill();
+        const cartW = Math.min(85, 40 + m*2.2);
+        const cartX = ox + xm*pxm;
 
-        arrow(ctx, bx-42, y-14, bx-2, y-14, C.orange, '');
-        txt(ctx, 'F', bx-46, y-30, C.orange);
-        txt(ctx, `${label} = ${m} kg → a = ${a.toFixed(2)} m/s²`, 10, y-58, '#5b6167');
-        txt(ctx, `x = ${xm.toFixed(2)} m`, w-90, y-30, '#b6bcc3');
+        // pusher behind cart
+        drawPusher(ctx, cartX - cartW/2 - 22, y - 20, 30);
+
+        // force arrow from pusher to cart
+        arrow(ctx, cartX - cartW/2 - 8, y - 32, cartX - cartW/2 - 1, y - 32, C.orange, 'F');
+
+        // cart
+        drawCart(ctx, cartX, y - 22, cartW, { filled });
+
+        // labels
+        txt(ctx, `${label} = ${m} kg → a = ${a.toFixed(2)} m/s²`, 10, y - 62, '#5b6167');
+        txt(ctx, `x = ${xm.toFixed(2)} m`, w - 90, y - 30, '#b6bcc3');
       };
 
-      lane(h*0.42, m1, a1, x1, 'm₁', '#c9d2ff');
-      lane(h*0.85, m2, a2, x2, 'm₂', '#ffd9bd');
+      lane(h*0.42, m1, a1, x1, m1 > 10, 'm₁', '#c9d2ff');
+      lane(h*0.85, m2, a2, x2, m2 > 10, 'm₂', '#ffd9bd');
 
       txt(ctx, 'Même force F · masses différentes', 10, 10, C.ink);
     });
@@ -644,7 +982,7 @@ SPRINTS.push({
   }
 });
 
-/* ---------- 5 ---------- */
+/* ---------- 5. Différences finies ---------- */
 SPRINTS.push({
   short:'Différences finies',
   tag:'Module 2 · Dynamique',
@@ -715,9 +1053,13 @@ SPRINTS.push({
       num.forEach(([tt,zz],i)=>{ i?ctx.lineTo(X(tt),Y(zz)):ctx.moveTo(X(tt),Y(zz)); });
       ctx.strokeStyle=C.blue; ctx.lineWidth=2; ctx.stroke();
 
+      // Small balls at each numerical step (flipbook effect)
       if(num.length < 260){
-        num.forEach(([tt,zz])=>{ dot(ctx, X(tt), Y(zz), 2.2, C.blue); });
+        num.forEach(([tt,zz])=>{ drawBall(ctx, X(tt), Y(zz), 2.6, C.blue); });
       }
+      // Bigger basketball at the last step for context
+      const last = num[num.length-1];
+      drawBasketball(ctx, X(last[0]), Y(last[1]), 10);
 
       txt(ctx, `exact (gris)  vs  numérique (bleu)`, 10, 8, C.ink);
       txt(ctx, `Δt = ${dt.toFixed(3)} s · ${steps} pas`, 10, h-20, '#8b9096');
@@ -728,7 +1070,7 @@ SPRINTS.push({
   }
 });
 
-/* ---------- 6 ---------- */
+/* ---------- 6. Réflexion aux bords ---------- */
 SPRINTS.push({
   short:'Réflexion aux bords',
   tag:'Module 2 · Dynamique',
@@ -738,7 +1080,7 @@ SPRINTS.push({
     'Si l\'atome pénètre d\'une distance d dans un mur : on le remet à l\'intérieur (x\' = L/2 − d).',
     'Et on inverse la composante de vitesse perpendiculaire : <b>vₓ → −vₓ</b>.'
   ],
-  real:'Une balle de squash sur une paroi. Angle d\'incidence = angle de réflexion, et la vitesse parallèle au mur ne change pas.',
+  real:'Une balle de squash sur une paroi. L\'angle d\'incidence = l\'angle de réflexion, et la vitesse parallèle au mur ne change pas.',
   quiz:[
     { q:"Un atome touche le mur en x = +Lₓ/2. Quelle vitesse change de signe ?",
       opts:["v_y","vₓ","v_z"], a:1,
@@ -786,44 +1128,51 @@ SPRINTS.push({
         if(b.y > Ly/2){ const d = b.y - Ly/2; b.y = Ly/2 - d; b.vy = -b.vy; b.flash = 1; }
         if(b.y < -Ly/2){ const d = -Ly/2 - b.y; b.y = -Ly/2 + d; b.vy = -b.vy; b.flash = 1; }
 
-        if(i===0){
-          trails[0].push([b.x,b.y]);
-          if(trails[0].length > 140) trails[0].shift();
-        } else {
-          trails[i].push([b.x,b.y]);
-          if(trails[i].length > 60) trails[i].shift();
-        }
+        trails[i].push([b.x,b.y]);
+        if(trails[i].length > (i===0?140:60)) trails[i].shift();
       });
 
       ctx.clearRect(0,0,w,h);
 
+      // squash court
+      const rx = ox - Lx/2*s, ry = oy - Ly/2*s;
+      const rw = Lx*s, rh = Ly*s;
+
+      ctx.fillStyle = '#fbfaf6';
+      ctx.fillRect(rx, ry, rw, rh);
+
+      // court walls
       ctx.strokeStyle = balls[0].flash > 0.5 ? '#4d6bfe' : '#d1d5db';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(ox - Lx/2*s, oy - Ly/2*s, Lx*s, Ly*s);
-      ctx.strokeStyle='#f0f1f4'; ctx.lineWidth=1;
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(rx, ry, rw, rh);
+
+      // lines
+      ctx.strokeStyle = '#efeee9'; ctx.lineWidth = 1;
       for(let i=1;i<8;i++){
-        const px = ox - Lx/2*s + i*Lx*s/8;
-        ctx.beginPath(); ctx.moveTo(px, oy-Ly/2*s); ctx.lineTo(px, oy+Ly/2*s); ctx.stroke();
+        const px = rx + i*rw/8;
+        ctx.beginPath(); ctx.moveTo(px, ry); ctx.lineTo(px, ry + rh); ctx.stroke();
       }
 
+      // trails
       trails.forEach((tr,i)=>{
         if(tr.length < 2) return;
         ctx.beginPath();
         tr.forEach(([bx,by],j)=> j?ctx.lineTo(ox+bx*s, oy-by*s):ctx.moveTo(ox+bx*s, oy-by*s));
-        ctx.strokeStyle = i===0 ? 'rgba(77,107,254,.28)' : 'rgba(200,205,215,.4)';
+        ctx.strokeStyle = i===0 ? 'rgba(77,107,254,.25)' : 'rgba(200,205,215,.35)';
         ctx.lineWidth = 1.5; ctx.stroke();
       });
 
+      // balls
       balls.forEach((b,i)=>{
         const X = ox + b.x*s, Y = oy - b.y*s;
-        dot(ctx, X, Y, i===0?8:6, i===0?C.blue:'#b9c0ca');
+        drawSquashBall(ctx, X, Y, i===0?8:6);
         if(i===0){
           arrow(ctx, X, Y, X + b.vx*14, Y, C.green, 'vₓ');
           arrow(ctx, X, Y, X, Y - b.vy*14, C.orange, 'v_y');
         }
       });
 
-      txt(ctx, `Lₓ = ${Lx} m · L_y = ${Ly} m`, 10, 10, '#8b9096');
+      txt(ctx, `Court de squash · Lₓ = ${Lx} m · L_y = ${Ly} m`, 10, 10, '#8b9096');
       txt(ctx, `vₓ = ${balls[0].vx.toFixed(2)} · v_y = ${balls[0].vy.toFixed(2)}`, 10, h-20, C.ink);
     });
 
@@ -831,7 +1180,7 @@ SPRINTS.push({
   }
 });
 
-/* ---------- 7 ---------- */
+/* ---------- 7. Travail & énergie cinétique ---------- */
 SPRINTS.push({
   short:'Travail & Ec',
   tag:'Module 3 · Énergie',
@@ -851,10 +1200,66 @@ SPRINTS.push({
       why:"W = ½·2·(25 − 9) = 16 J." }
   ],
   mount(host){
-    let m = 2, v1 = 3, v2 = 5;
+    // --- Scene: car pushed at variable angle ---
+    const {c: scene, ctx: sctx, stop: stopScene} = mkCanvas(host, 190);
+    let theta = 0;
 
-    const bars = el('div','bars');
-    host.appendChild(bars);
+    function drawScene(){
+      const w = scene.clientWidth, h = scene.clientHeight;
+      sctx.clearRect(0, 0, w, h);
+
+      // ground
+      sctx.fillStyle = '#f0f1f4';
+      sctx.fillRect(0, h - 28, w, 28);
+      sctx.strokeStyle = '#e0e3e8';
+      sctx.beginPath(); sctx.moveTo(0, h - 28); sctx.lineTo(w, h - 28); sctx.stroke();
+
+      // car on the right
+      const carW = Math.min(140, w * 0.28);
+      const carScale = carW / 110;
+      const carY = h - 30 - 19 * carScale;
+      drawCar(sctx, w * 0.62, carY, carW);
+
+      // displacement arrow (horizontal, below the car)
+      const dx0 = w * 0.15, dx1 = w * 0.55;
+      const dy = h - 14;
+      arrow(sctx, dx0, dy, dx1, dy, C.green, 'Δr');
+
+      // force arrow at angle θ
+      const rad = theta * Math.PI / 180;
+      const arrowLen = 70;
+      const fx0 = w * 0.15, fy0 = h - 60;
+      const fx1 = fx0 + Math.cos(rad) * arrowLen;
+      const fy1 = fy0 - Math.sin(rad) * arrowLen;
+      arrow(sctx, fx0, fy0, fx1, fy1, C.orange, 'F');
+
+      // angle arc
+      sctx.strokeStyle = C.orange;
+      sctx.lineWidth = 1.5;
+      sctx.beginPath();
+      sctx.arc(fx0, fy0, 28, -rad, 0);
+      sctx.stroke();
+      txt(sctx, `θ = ${theta}°`, fx0 + 32, fy0 - 34, C.orange);
+
+      // HUD
+      const F = 100, d = 5;
+      const W = F * d * Math.cos(rad);
+      txt(sctx, `W = F·d·cos(θ) = ${F} × ${d} × cos(${theta}°) = ${W.toFixed(0)} J`, 10, 10, C.ink);
+      txt(sctx, theta === 0 ? '↳ Travail maximum : la force est alignée avec le mouvement'
+          : theta === 90 ? '↳ Travail nul : la force est perpendiculaire au mouvement'
+          : '↳ Une partie seulement de la force travaille', 10, 28,
+          theta === 90 ? C.red : theta === 0 ? C.green : '#8b9096');
+    }
+
+    // Angle slider
+    const barScene = el('div','ctrls'); host.appendChild(barScene);
+    const st = makeSlider(barScene,{label:'Angle de poussée θ', min:0, max:90, step:5, value:theta, unit:'°', fmt:v=>v.toFixed(0)});
+    st.on(v => { theta = v; drawScene(); });
+    drawScene();
+
+    // --- Energy bars ---
+    let m = 2, v1 = 3, v2 = 5;
+    const bars = el('div','bars'); host.appendChild(bars);
     const mkBar = (label, color) => {
       const col = el('div','barcol');
       const val = el('div','barval','0 J');
@@ -898,11 +1303,12 @@ SPRINTS.push({
     }
     sm.on(x=>{m=x;update();}); s1.on(x=>{v1=x;update();}); s2.on(x=>{v2=x;update();});
     update();
-    return ()=>{};
+
+    return ()=>{ stopScene(); };
   }
 });
 
-/* ---------- 8 ---------- */
+/* ---------- 8. Énergie mécanique ---------- */
 SPRINTS.push({
   short:'Énergie mécanique',
   tag:'Module 3 · Énergie',
@@ -981,22 +1387,29 @@ SPRINTS.push({
       bM.val.textContent = Em.toFixed(1)+' J';
 
       ctx.clearRect(0,0,w,h);
-      const ground = h-24;
-      const pxm = (h-46)/12;
-      const X = w*0.5;
+      const ground = h - 24;
+      const pxm = (h - 46) / 12;
+      const X = w * 0.5;
 
-      ctx.strokeStyle='#e5e5e5'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(20,ground); ctx.lineTo(w-20,ground); ctx.stroke();
+      // ground
+      ctx.fillStyle = '#f0f1f4';
+      ctx.fillRect(0, ground, w, 24);
+      ctx.strokeStyle = '#e0e3e8';
+      ctx.beginPath(); ctx.moveTo(0, ground); ctx.lineTo(w, ground); ctx.stroke();
 
+      // height marker
       ctx.setLineDash([4,4]);
       ctx.strokeStyle='#eef1ff';
-      ctx.beginPath(); ctx.moveTo(20, ground-h0*pxm); ctx.lineTo(w-20, ground-h0*pxm); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(20, ground - h0*pxm); ctx.lineTo(w-20, ground - h0*pxm); ctx.stroke();
       ctx.setLineDash([]);
+      txt(ctx, `h₀ = ${h0.toFixed(1)} m`, 20, ground - h0*pxm - 14, '#c3c8ce');
 
-      const Y = ground - z*pxm;
-      dot(ctx, X, Y, 10, C.blue);
+      // ball (basketball for realism)
+      const Y = ground - Math.max(z,0)*pxm;
+      drawBasketball(ctx, X, Y, 12);
 
-      arrow(ctx, X+16, Y, X+16, Y + vz*3, vz>0?C.green:C.orange, 'v');
+      // velocity arrow
+      arrow(ctx, X + 18, Y, X + 18, Y + vz*3, vz>0 ? C.green : C.orange, 'v');
 
       txt(ctx, `z = ${Math.max(z,0).toFixed(2)} m`, 10, 10, C.ink);
       txt(ctx, `chocs : ${bounces} · énergie perdue : ${lost.toFixed(1)} J`, 10, 28, '#8b9096');
@@ -1006,7 +1419,7 @@ SPRINTS.push({
   }
 });
 
-/* ---------- 9 ---------- */
+/* ---------- 9. Collisions ---------- */
 SPRINTS.push({
   short:'Collisions',
   tag:'Module 3 · Énergie',
@@ -1030,8 +1443,8 @@ SPRINTS.push({
     const bar = el('div','ctrls'); host.appendChild(bar);
     let m1 = 2, m2 = 2, v1 = 4, v2 = 0;
 
-    const s1 = makeSlider(bar,{label:'Masse m₁', min:1, max:10, step:1, value:m1, unit:' kg', fmt:x=>x.toFixed(0)});
-    const s2 = makeSlider(bar,{label:'Masse m₂', min:1, max:10, step:1, value:m2, unit:' kg', fmt:x=>x.toFixed(0)});
+    const s1 = makeSlider(bar,{label:'Masse boule 1', min:1, max:10, step:1, value:m1, unit:' kg', fmt:x=>x.toFixed(0)});
+    const s2 = makeSlider(bar,{label:'Masse boule 2', min:1, max:10, step:1, value:m2, unit:' kg', fmt:x=>x.toFixed(0)});
     const s3 = makeSlider(bar,{label:'Vitesse v₁', min:1, max:8, step:0.5, value:v1, unit:' m/s', fmt:x=>x.toFixed(1)});
     const s4 = makeSlider(bar,{label:'Vitesse v₂', min:-4, max:4, step:0.5, value:v2, unit:' m/s', fmt:x=>x.toFixed(1)});
     const row = el('div','row'); bar.appendChild(row);
@@ -1087,38 +1500,54 @@ SPRINTS.push({
 
       const w = c.clientWidth, h = c.clientHeight;
       ctx.clearRect(0,0,w,h);
-      const padL = 34, padR = 24;
+
+      // Billiard table
+      const padL = 34, padR = 24, padT = 20;
       const s = (w - padL - padR)/10;
       const Y = h*0.55;
+      const tableTop = padT, tableBot = h - 12;
+      const tableLeft = padL - 18, tableRight = w - padR + 18;
 
-      ctx.strokeStyle='#e5e5e5'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(padL, Y+26); ctx.lineTo(w-padR, Y+26); ctx.stroke();
-      for(let i=0;i<=10;i++){
-        const px = padL + i*s;
-        ctx.beginPath(); ctx.moveTo(px, Y+22); ctx.lineTo(px, Y+30); ctx.stroke();
-      }
+      // green felt
+      ctx.fillStyle = '#1a5c3a';
+      ctx.fillRect(tableLeft, tableTop, tableRight - tableLeft, tableBot - tableTop);
+
+      // cushions (lighter green border)
+      ctx.strokeStyle = '#0f3d26';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(tableLeft + 3, tableTop + 3, tableRight - tableLeft - 6, tableBot - tableTop - 6);
+
+      // center line
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(tableLeft + 10, Y + 26); ctx.lineTo(tableRight - 10, Y + 26); ctx.stroke();
 
       const R1 = rad(m1)*s, R2 = rad(m2)*s;
       const X1 = padL + x1*s, X2 = padL + x2*s;
 
-      dot(ctx, X1, Y, Math.max(10, R1), '#c9d2ff');
-      dot(ctx, X2, Y, Math.max(10, R2), C.blue);
-      txt(ctx, 'm₁', X1-8, Y-6, '#2a3ea8');
-      txt(ctx, 'm₂', X2-8, Y-6, '#fff');
+      // Ball 1 = cue ball (white) — but colored to make it visible
+      drawBilliardBall(ctx, X1, Y, Math.max(12, R1), '#f5f0e6', null);
+      // Ball 2 = red 3-ball
+      drawBilliardBall(ctx, X2, Y, Math.max(12, R2), '#c23a3a', '3');
 
+      // velocity arrows
       if(phase !== 'ready'){
-        arrow(ctx, X1, Y-34, X1 + w1*12, Y-34, C.orange, 'v₁');
-        arrow(ctx, X2, Y+44, X2 + w2*12, Y+44, C.green, 'v₂');
+        arrow(ctx, X1, Y-40, X1 + w1*12, Y-40, '#ffffff', 'v₁');
+        arrow(ctx, X2, Y+50, X2 + w2*12, Y+50, '#ffcccc', 'v₂');
+      } else {
+        // show intent arrows
+        arrow(ctx, X1, Y-40, X1 + v1*12, Y-40, '#ffffff', 'v₁');
       }
+
       txt(ctx, phase==='ready' ? 'Clique sur « Lancer la collision »' : `phase : ${phase}`,
-          10, 8, '#8b9096');
+          10, 8, '#ffffff');
     });
 
     return ()=>{ stopLoop(); stop(); };
   }
 });
 
-/* ---------- 10 ---------- */
+/* ---------- 10. Classes Python ---------- */
 SPRINTS.push({
   short:'Classes Python',
   tag:'Module 4 · Logiciel',
@@ -1208,7 +1637,7 @@ class Atome:
   }
 });
 
-/* ---------- 11 ---------- */
+/* ---------- 11. Export HDF5 ---------- */
 SPRINTS.push({
   short:'Export HDF5',
   tag:'Module 4 · Logiciel',
@@ -1292,7 +1721,7 @@ SPRINTS.push({
   }
 });
 
-/* ---------- 12 ---------- */
+/* ---------- 12. ParaView ---------- */
 SPRINTS.push({
   short:'ParaView',
   tag:'Module 4 · Visualisation',
