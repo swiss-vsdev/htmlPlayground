@@ -1,0 +1,2073 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎲 Probas Playground — Apprends les probabilités sans t'ennuyer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0b0d14;
+    --surface: #141722;
+    --surface-2: #1b1f2e;
+    --surface-3: #222738;
+    --border: #262b3d;
+    --border-2: #333a52;
+    --text: #e8ebf5;
+    --muted: #8890a8;
+    --muted-2: #5c628a;
+    --accent: #7c8cff;
+    --accent-hover: #6b7cf5;
+    --accent-2: #a78bfa;
+    --success: #4ade80;
+    --error: #f87171;
+    --xp: #fbbf24;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .app {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 14px 16px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* ============ TOP BAR ============ */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+  }
+  .logo {
+    font-size: 20px;
+    filter: drop-shadow(0 0 6px rgba(124,140,255,0.4));
+  }
+  .topbar-center {
+    flex: 1;
+    min-width: 160px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .progress-track {
+    flex: 1;
+    height: 8px;
+    background: var(--surface-3);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    transition: width .5s cubic-bezier(.4,0,.2,1);
+    border-radius: 99px;
+  }
+  .progress-label {
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    color: var(--muted);
+    min-width: 36px;
+    text-align: right;
+  }
+  .stats { display: flex; gap: 16px; }
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .stat-icon { font-size: 16px; }
+
+  /* ============ LEVEL MAP ============ */
+  .levelmap {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 2px;
+    scrollbar-width: none;
+  }
+  .levelmap::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 15px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--muted);
+    white-space: nowrap;
+    transition: all .18s ease;
+    font-family: inherit;
+  }
+  .chip:hover { border-color: var(--border-2); color: var(--text); }
+  .chip.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(124,140,255,0.12);
+  }
+  .chip.done { color: var(--success); border-color: rgba(74,222,128,.3); }
+  .chip.done.active { color: #0b0d14; }
+  .chip.locked { opacity: .45; cursor: not-allowed; }
+  .chip.locked:hover { border-color: var(--border); color: var(--muted); }
+
+  /* ============ CARD ============ */
+  main { flex: 1; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: card-in .35s cubic-bezier(.2,.7,.3,1);
+  }
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .card-head { display: flex; flex-direction: column; gap: 8px; }
+  .level-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(124,140,255,.1);
+    padding: 4px 11px;
+    border-radius: 99px;
+    width: fit-content;
+  }
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.25;
+  }
+  .lead {
+    color: #b8bdd4;
+    font-size: 15px;
+    max-width: 70ch;
+  }
+  .lead b { color: var(--text); }
+
+  .concept {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: rgba(124,140,255,0.07);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #c5cae0;
+  }
+  .concept-icon { font-size: 17px; line-height: 1.35; flex-shrink: 0; }
+  .concept b { color: var(--text); }
+
+  /* ============ CONTROLS ============ */
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .ctrl {
+    display: grid;
+    grid-template-columns: 110px 1fr 70px;
+    align-items: center;
+    gap: 14px;
+  }
+  .ctrl label {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .ctrl .val {
+    font-family: ui-monospace, 'SF Mono', monospace;
+    font-size: 13px;
+    text-align: right;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  input[type=range] {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--surface-3);
+    border-radius: 99px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 4px rgba(124,140,255,.15);
+    transition: box-shadow .15s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 8px rgba(124,140,255,.22);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 0 4px rgba(124,140,255,.15);
+  }
+
+  /* ============ FORMULA ============ */
+  .formula {
+    font-family: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 13.5px;
+    color: #c5cae0;
+    line-height: 1.9;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .formula .hl { color: var(--accent); font-weight: 700; }
+  .formula .num { color: var(--text); font-weight: 600; }
+  .formula .faint { color: var(--muted); }
+
+  /* ============ TABS ============ */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    padding: 4px;
+    background: var(--surface-2);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .tab {
+    flex: 1;
+    min-width: 90px;
+    padding: 9px 14px;
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s ease;
+    font-family: inherit;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+  }
+
+  /* ============ QUIZ ============ */
+  .quiz {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .quiz-q { font-weight: 600; font-size: 15px; }
+  .quiz-q::before {
+    content: "🎯 ";
+    margin-right: 4px;
+  }
+  .opts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .opt {
+    padding: 13px 18px;
+    text-align: left;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s ease;
+    line-height: 1.5;
+  }
+  .opt:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: rgba(124,140,255,.06);
+  }
+  .opt.correct {
+    background: rgba(74,222,128,.12);
+    border-color: var(--success);
+    color: var(--success);
+  }
+  .opt.wrong {
+    background: rgba(248,113,113,.12);
+    border-color: var(--error);
+    color: var(--error);
+    text-decoration: line-through;
+  }
+  .opt:disabled { cursor: default; }
+  .quiz-fb {
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 12px 16px;
+    border-radius: 9px;
+    background: var(--surface-2);
+    border-left: 3px solid var(--accent);
+  }
+
+  /* ============ BUTTONS ============ */
+  .btn {
+    padding: 13px 22px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-1px); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+  .btn-ghost:hover {
+    color: var(--text);
+    border-color: var(--border-2);
+    background: var(--surface-2);
+  }
+  .btn-success {
+    background: var(--success);
+    color: #0b0d14;
+  }
+  .btn-success:hover:not(:disabled) { background: #3dd175; }
+
+  .continue-wrap {
+    display: flex;
+    justify-content: center;
+    padding-top: 6px;
+    animation: pop-in .4s cubic-bezier(.2,.8,.3,1.2);
+  }
+  @keyframes pop-in {
+    from { opacity: 0; transform: scale(.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .final-msg {
+    text-align: center;
+    padding: 18px;
+    color: var(--success);
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  /* ============ FOOTER ============ */
+  .foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--muted);
+    padding: 4px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* ============ TOAST ============ */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface-3);
+    border: 1px solid var(--border-2);
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all .28s cubic-bezier(.3,.7,.4,1);
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    max-width: 90vw;
+    text-align: center;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ============ MISC ============ */
+  .hint {
+    font-size: 12.5px;
+    color: var(--muted-2);
+    font-style: italic;
+    text-align: center;
+    margin-top: -4px;
+  }
+  .stat-box {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+  }
+  .stat-box > div {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    text-align: center;
+  }
+  .stat-box .k {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .stat-box .v {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: ui-monospace, monospace;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  canvas { display: block; }
+
+  @media (max-width: 640px) {
+    .card { padding: 18px; }
+    h2 { font-size: 20px; }
+    .ctrl { grid-template-columns: 85px 1fr 58px; gap: 10px; }
+    .ctrl label { font-size: 12px; }
+    .ctrl .val { font-size: 12px; }
+    .brand { font-size: 14px; }
+    .stats { gap: 10px; }
+    .stat { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><span class="logo">🎲</span> Probas Playground</div>
+    <div class="topbar-center">
+      <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+      <span class="progress-label" id="prog-label">0/7</span>
+    </div>
+    <div class="stats">
+      <div class="stat" title="Points d'expérience"><span class="stat-icon">⭐</span><span id="xp-val">0</span></div>
+      <div class="stat" title="Bonnes réponses d'affilée"><span class="stat-icon">🔥</span><span id="streak-val">0</span></div>
+    </div>
+  </header>
+
+  <nav class="levelmap" id="levelmap"></nav>
+  <main id="stage"></main>
+
+  <footer class="foot">
+    <span>Progresse à ton rythme. Une idée clé par niveau.</span>
+    <button class="btn btn-ghost" id="reset-btn">Réinitialiser</button>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   ÉTAT GLOBAL
+============================================================ */
+const STORAGE_KEY = 'probas-playground-v1';
+
+const state = {
+  current: 0,
+  maxLevel: 0,
+  completed: [],
+  xp: 0,
+  streak: 0
+};
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+function load() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (s) {
+      const parsed = JSON.parse(s);
+      Object.assign(state, parsed);
+      if (!Array.isArray(state.completed)) state.completed = [];
+    }
+  } catch(e) {}
+}
+
+/* ============================================================
+   HELPERS
+============================================================ */
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function confetti() {
+  const colors = ['#7c8cff','#a78bfa','#4ade80','#fbbf24','#f87171','#fff'];
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight * 0.4;
+  for (let i = 0; i < 45; i++) {
+    const d = document.createElement('div');
+    const size = 6 + Math.random() * 8;
+    d.style.cssText = `
+      position:fixed; left:${cx}px; top:${cy}px;
+      width:${size}px; height:${size}px;
+      background:${colors[i % colors.length]};
+      border-radius:${Math.random() > 0.5 ? '50%' : '2px'};
+      pointer-events:none; z-index:9999;
+      transition: transform 1.3s cubic-bezier(.2,.6,.4,1), opacity 1.3s ease;
+      will-change: transform;
+    `;
+    document.body.appendChild(d);
+    requestAnimationFrame(() => {
+      const dx = (Math.random() - 0.5) * 700;
+      const dy = 250 + Math.random() * 450;
+      const rot = Math.random() * 900 - 450;
+      d.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+      d.style.opacity = '0';
+    });
+    setTimeout(() => d.remove(), 1500);
+  }
+}
+
+function setupSlider(container, {id, label, min, max, step, value, format, onInput}) {
+  const row = document.createElement('div');
+  row.className = 'ctrl';
+  row.innerHTML = `
+    <label for="${id}">${label}</label>
+    <input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${value}">
+    <span class="val" id="${id}-val">${format(value)}</span>
+  `;
+  container.appendChild(row);
+  const inp = row.querySelector('input');
+  const out = row.querySelector('.val');
+  inp.addEventListener('input', () => {
+    const v = parseFloat(inp.value);
+    out.textContent = format(v);
+    onInput(v);
+  });
+  return { input: inp, out, set(v) { inp.value = v; out.textContent = format(v); } };
+}
+
+function mkCanvas(id, W, H) {
+  const c = document.getElementById(id);
+  const dpr = 2;
+  c.width = W * dpr;
+  c.height = H * dpr;
+  c.style.width = '100%';
+  c.style.maxWidth = W + 'px';
+  c.style.aspectRatio = `${W} / ${H}`;
+  c.style.margin = '6px auto';
+  const ctx = c.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  return ctx;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function fact(n) { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; }
+function C(n, k) { if (k < 0 || k > n) return 0; return Math.round(fact(n) / (fact(k) * fact(n - k))); }
+function A(n, k) { if (k < 0 || k > n) return 0; return Math.round(fact(n) / fact(n - k)); }
+
+function phi(x) {
+  const t = 1 / (1 + 0.2316419 * Math.abs(x));
+  const d = 0.3989423 * Math.exp(-x * x / 2);
+  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+  return x > 0 ? 1 - p : p;
+}
+
+/* Dessin de barres verticales */
+function drawBars(ctx, W, H, values, labels, highlightIdx, opts = {}) {
+  const pad = { l: 44, r: 18, t: 18, b: 34 };
+  const plotW = W - pad.l - pad.r;
+  const plotH = H - pad.t - pad.b;
+  const maxV = Math.max(...values, 0.0001);
+  const n = values.length;
+  const bw = plotW / n;
+
+  // axes
+  ctx.strokeStyle = '#333a52';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.l, pad.t);
+  ctx.lineTo(pad.l, pad.t + plotH);
+  ctx.lineTo(pad.l + plotW, pad.t + plotH);
+  ctx.stroke();
+
+  // bars
+  for (let i = 0; i < n; i++) {
+    const h = (values[i] / maxV) * plotH;
+    const x = pad.l + i * bw + bw * 0.12;
+    const w = bw * 0.76;
+    const y = pad.t + plotH - h;
+    ctx.fillStyle = (i === highlightIdx) ? '#7c8cff' : 'rgba(124,140,255,0.5)';
+    ctx.fillRect(x, y, Math.max(w, 1), Math.max(h, 0.5));
+  }
+
+  // labels x
+  ctx.fillStyle = '#8890a8';
+  ctx.font = '10px ui-monospace, monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  const step = Math.max(1, Math.ceil(n / 14));
+  for (let i = 0; i < n; i += step) {
+    const x = pad.l + i * bw + bw / 2;
+    ctx.fillText(labels[i] ?? i, x, pad.t + plotH + 8);
+  }
+
+  // y axis ticks
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  for (let k = 0; k <= 4; k++) {
+    const v = (maxV * k) / 4;
+    const y = pad.t + plotH - (k / 4) * plotH;
+    ctx.fillStyle = '#5c628a';
+    ctx.fillText(v.toFixed(2), pad.l - 6, y);
+    ctx.strokeStyle = 'rgba(38,43,61,0.6)';
+    ctx.beginPath();
+    ctx.moveTo(pad.l, y);
+    ctx.lineTo(pad.l + plotW, y);
+    ctx.stroke();
+  }
+}
+
+/* Dessin d'une fonction densité + aire */
+function drawDensity(ctx, W, H, fn, xmin, xmax, shadeFrom, shadeTo, opts = {}) {
+  const pad = { l: 44, r: 18, t: 18, b: 34 };
+  const plotW = W - pad.l - pad.r;
+  const plotH = H - pad.t - pad.b;
+
+  // échantillonner pour trouver max
+  const N = 200;
+  const xs = [], ys = [];
+  let maxY = 0;
+  for (let i = 0; i <= N; i++) {
+    const x = xmin + (i / N) * (xmax - xmin);
+    const y = fn(x);
+    xs.push(x); ys.push(y);
+    if (y > maxY) maxY = y;
+  }
+  maxY = maxY * 1.15 || 1;
+
+  const X = x => pad.l + ((x - xmin) / (xmax - xmin)) * plotW;
+  const Y = y => pad.t + plotH - (y / maxY) * plotH;
+
+  // grid
+  ctx.strokeStyle = 'rgba(38,43,61,0.6)';
+  ctx.lineWidth = 1;
+  for (let k = 0; k <= 4; k++) {
+    const y = pad.t + (k / 4) * plotH;
+    ctx.beginPath();
+    ctx.moveTo(pad.l, y);
+    ctx.lineTo(pad.l + plotW, y);
+    ctx.stroke();
+  }
+
+  // aire ombrée
+  if (shadeFrom !== null) {
+    ctx.fillStyle = 'rgba(124,140,255,0.28)';
+    ctx.beginPath();
+    ctx.moveTo(X(shadeFrom), Y(0));
+    for (let i = 0; i <= N; i++) {
+      if (xs[i] >= shadeFrom && xs[i] <= shadeTo) {
+        ctx.lineTo(X(xs[i]), Y(ys[i]));
+      }
+    }
+    ctx.lineTo(X(shadeTo), Y(0));
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(124,140,255,0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  // courbe
+  ctx.strokeStyle = '#7c8cff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(X(xs[0]), Y(ys[0]));
+  for (let i = 1; i <= N; i++) ctx.lineTo(X(xs[i]), Y(ys[i]));
+  ctx.stroke();
+
+  // axes
+  ctx.strokeStyle = '#333a52';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.l, pad.t);
+  ctx.lineTo(pad.l, pad.t + plotH);
+  ctx.lineTo(pad.l + plotW, pad.t + plotH);
+  ctx.stroke();
+
+  // ticks x
+  ctx.fillStyle = '#8890a8';
+  ctx.font = '10px ui-monospace, monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  for (let k = 0; k <= 5; k++) {
+    const x = xmin + (k / 5) * (xmax - xmin);
+    ctx.fillText(x.toFixed(1), X(x), pad.t + plotH + 8);
+  }
+
+  return { X, Y, pad, plotW, plotH, maxY };
+}
+
+/* ============================================================
+   GESTION DES NIVEAUX
+============================================================ */
+function goToLevel(i) {
+  if (i > state.maxLevel) {
+    toast('🔒 Termine d\'abord le niveau précédent');
+    return;
+  }
+  state.current = i;
+  save();
+  renderLevelMap();
+  renderStage();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function completeLevel(levelId) {
+  if (state.completed.includes(levelId)) return;
+  state.completed.push(levelId);
+  state.xp += 50;
+  if (levelId + 1 > state.maxLevel && levelId + 1 < LEVELS.length) {
+    state.maxLevel = levelId + 1;
+  }
+  save();
+  confetti();
+  updateHeader();
+  renderLevelMap();
+  showContinue(levelId);
+}
+
+function showContinue(levelId) {
+  const stage = document.getElementById('stage');
+  const card = stage.querySelector('.card');
+  if (!card || card.querySelector('.continue-wrap')) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'continue-wrap';
+  const next = levelId + 1;
+  if (next < LEVELS.length) {
+    wrap.innerHTML = `<button class="btn btn-success" id="continue-btn">Niveau suivant →</button>`;
+    card.appendChild(wrap);
+    wrap.querySelector('#continue-btn').onclick = () => goToLevel(next);
+  } else {
+    wrap.innerHTML = `<div class="final-msg">🎉 Parcours terminé ! Tu as découvert tout le programme de probabilités.</div>`;
+    card.appendChild(wrap);
+  }
+}
+
+function updateHeader() {
+  document.getElementById('xp-val').textContent = state.xp;
+  document.getElementById('streak-val').textContent = state.streak;
+  const pct = (state.completed.length / LEVELS.length) * 100;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = `${state.completed.length}/${LEVELS.length}`;
+}
+
+function renderLevelMap() {
+  const map = document.getElementById('levelmap');
+  map.innerHTML = '';
+  LEVELS.forEach((lv, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'chip';
+    const done = state.completed.includes(i);
+    const locked = i > state.maxLevel;
+    if (done) btn.classList.add('done');
+    if (i === state.current) btn.classList.add('active');
+    if (locked) btn.classList.add('locked');
+    const marker = done ? '✓' : (locked ? '🔒' : String(i + 1));
+    btn.innerHTML = `<span>${marker}</span><span>${lv.short}</span>`;
+    btn.onclick = () => goToLevel(i);
+    map.appendChild(btn);
+  });
+}
+
+function renderStage() {
+  const stage = document.getElementById('stage');
+  stage.innerHTML = '';
+  const lv = LEVELS[state.current];
+  lv.render(stage);
+}
+
+/* ============================================================
+   QUIZ GÉNÉRIQUE
+============================================================ */
+function makeQuiz(root, data, { canAnswer, onCorrect }) {
+  root.innerHTML = `
+    <div class="quiz-q">${data.q}</div>
+    <div class="opts"></div>
+    <div class="quiz-fb" style="display:none"></div>
+  `;
+  const optsDiv = root.querySelector('.opts');
+  const fb = root.querySelector('.quiz-fb');
+  let solved = false;
+  let nudged = false;
+
+  data.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.onclick = () => {
+      if (solved || btn.disabled) return;
+      if (canAnswer && !canAnswer() && !nudged) {
+        nudged = true;
+        toast('💡 Explore le curseur ci-dessus d\'abord');
+        return;
+      }
+      if (i === data.correct) {
+        solved = true;
+        btn.classList.add('correct');
+        [...optsDiv.children].forEach(b => b.disabled = true);
+        state.streak++;
+        updateHeader();
+        save();
+        fb.style.display = 'block';
+        fb.innerHTML = `<b style="color:var(--success)">✓ Exact !</b> ${data.explain || ''}`;
+        onCorrect();
+      } else {
+        btn.classList.add('wrong');
+        btn.disabled = true;
+        state.streak = 0;
+        updateHeader();
+        save();
+        fb.style.display = 'block';
+        fb.innerHTML = `<b style="color:var(--error)">✗ Pas tout à fait.</b> Réessaie 🙂`;
+      }
+    };
+    optsDiv.appendChild(btn);
+  });
+}
+
+/* ============================================================
+   DÉFINITION DES NIVEAUX
+============================================================ */
+const LEVELS = [];
+
+/* ---------- NIVEAU 0 : AXIOMES & VENN ---------- */
+LEVELS.push({
+  short: 'Fondations',
+  render(container) {
+    let interacted = false;
+    let pa = 0.4, pb = 0.3, pab = 0.1;
+
+    container.innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <span class="level-badge">Niveau 1 · Fondations</span>
+          <h2>Le langage des probabilités</h2>
+        </div>
+        <p class="lead">Une probabilité est un nombre entre <b>0</b> et <b>1</b>. Tout l'univers vaut <b>1</b>. Si deux événements ne se chevauchent pas, leurs probabilités s'additionnent.</p>
+        <div class="concept">
+          <span class="concept-icon">💡</span>
+          <span><b>P(Ā) = 1 − P(A)</b> et <b>P(A∪B) = P(A) + P(B) − P(A∩B)</b>. Cette soustraction évite de compter deux fois la zone commune.</span>
+        </div>
+        <canvas id="v-canvas"></canvas>
+        <div class="controls" id="v-ctrl"></div>
+        <div class="formula" id="v-formula"></div>
+        <div class="quiz" id="quiz0"></div>
+      </div>
+    `;
+
+    const ctrl = container.querySelector('#v-ctrl');
+    const sA = setupSlider(ctrl, {
+      id: 'pa', label: 'P(A)', min: 0, max: 100, step: 1, value: 40,
+      format: v => (v / 100).toFixed(2),
+      onInput: v => { pa = v / 100; clampAndDraw(); interacted = true; }
+    });
+    const sB = setupSlider(ctrl, {
+      id: 'pb', label: 'P(B)', min: 0, max: 100, step: 1, value: 30,
+      format: v => (v / 100).toFixed(2),
+      onInput: v => { pb = v / 100; clampAndDraw(); interacted = true; }
+    });
+    const sAB = setupSlider(ctrl, {
+      id: 'pab', label: 'P(A∩B)', min: 0, max: 100, step: 1, value: 10,
+      format: v => (v / 100).toFixed(2),
+      onInput: v => { pab = v / 100; clampAndDraw(); interacted = true; }
+    });
+
+    function clampAndDraw() {
+      const lo = Math.max(0, pa + pb - 1);
+      const hi = Math.min(pa, pb);
+      if (pab < lo) pab = lo;
+      if (pab > hi) pab = hi;
+      sAB.set(Math.round(pab * 100));
+      draw();
+      updateFormula();
+    }
+
+    function draw() {
+      const W = 600, H = 320;
+      const ctx = mkCanvas('v-canvas', W, H);
+
+      // univers
+      roundRect(ctx, 12, 12, W - 24, H - 24, 16);
+      ctx.fillStyle = '#0e1119';
+      ctx.fill();
+      ctx.strokeStyle = '#262b3d';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      const cy = H / 2 + 4;
+      const r = 92;
+      const cax = W / 2 - r * 0.55;
+      const cbx = W / 2 + r * 0.55;
+
+      // cercles remplis
+      ctx.beginPath();
+      ctx.arc(cax, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(124,140,255,0.22)';
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(cbx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(167,139,250,0.22)';
+      ctx.fill();
+
+      // contours
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#7c8cff';
+      ctx.beginPath(); ctx.arc(cax, cy, r, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = '#a78bfa';
+      ctx.beginPath(); ctx.arc(cbx, cy, r, 0, Math.PI * 2); ctx.stroke();
+
+      // labels A / B
+      ctx.fillStyle = '#e8ebf5';
+      ctx.font = '700 16px system-ui';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('A', cax - r * 0.4, cy - r * 0.72);
+      ctx.fillText('B', cbx + r * 0.4, cy - r * 0.72);
+
+      // valeurs dans les régions
+      const aOnly = pa - pab;
+      const bOnly = pb - pab;
+      const neither = Math.max(0, 1 - pa - pb + pab);
+
+      ctx.font = '600 13px ui-monospace, monospace';
+      ctx.fillStyle = '#dfe3f0';
+      if (aOnly > 0.005) ctx.fillText(aOnly.toFixed(2), cax - r * 0.5, cy);
+      if (bOnly > 0.005) ctx.fillText(bOnly.toFixed(2), cbx + r * 0.5, cy);
+      if (pab > 0.005) {
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '700 13px ui-monospace, monospace';
+        ctx.fillText(pab.toFixed(2), W / 2, cy);
+      }
+      if (neither > 0.005) {
+        ctx.fillStyle = '#5c628a';
+        ctx.font = '600 12px ui-monospace, monospace';
+        ctx.fillText(neither.toFixed(2), W / 2, H - 32);
+      }
+
+      // légende
+      ctx.textAlign = 'left';
+      ctx.font = '600 11px system-ui';
+      ctx.fillStyle = '#7c8cff';
+      ctx.fillText('● A', 26, 30);
+      ctx.fillStyle = '#a78bfa';
+      ctx.fillText('● B', 62, 30);
+    }
+
+    function updateFormula() {
+      const union = pa + pb - pab;
+      const compA = 1 - pa;
+      container.querySelector('#v-formula').innerHTML = `
+        P(A∪B) = P(A) + P(B) − P(A∩B) = <span class="num">${pa.toFixed(2)}</span> + <span class="num">${pb.toFixed(2)}</span> − <span class="num">${pab.toFixed(2)}</span> = <span class="hl">${union.toFixed(2)}</span><br>
+        P(Ā) = 1 − P(A) = <span class="hl">${compA.toFixed(2)}</span>
+      `;
+    }
+
+    clampAndDraw();
+
+    makeQuiz(container.querySelector('#quiz0'), {
+      q: 'Si P(A) = 0,6, que vaut P(Ā) ?',
+      options: ['0,6', '0,4', '1,6', '0'],
+      correct: 1,
+      explain: 'P(Ā) = 1 − P(A) = 1 − 0,6 = 0,4.'
+    }, {
+      canAnswer: () => interacted,
+      onCorrect: () => completeLevel(0)
+    });
+  }
+});
+
+/* ---------- NIVEAU 1 : DÉNOMBREMENT ---------- */
+LEVELS.push({
+  short: 'Compter',
+  render(container) {
+    let interacted = false;
+    let n = 26, m = 4;
+    let mode = 'arr'; // arr, perm, comb, mult
+
+    container.innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <span class="level-badge">Niveau 2 · Dénombrement</span>
+          <h2>Compter sans se tromper</h2>
+        </div>
+        <p class="lead">Avant de calculer une probabilité, il faut souvent <b>compter</b> les cas. La bonne formule dépend de deux questions : est-ce que <b>l'ordre compte</b> ? est-ce qu'on <b>remet</b> les objets ?</p>
+        <div class="concept">
+          <span class="concept-icon">💡</span>
+          <span><b>Ordre + sans remise</b> → Arrangements &nbsp;·&nbsp; <b>Pas d'ordre + sans remise</b> → Combinaisons. Le piège classique : « choisir un comité » = combinaison, « choisir un podium » = arrangement.</span>
+        </div>
+
+        <div class="tabs" id="d-tabs">
+          <button class="tab active" data-mode="arr">Arrangement</button>
+          <button class="tab" data-mode="comb">Combinaison</button>
+          <button class="tab" data-mode="perm">Permutation</button>
+          <button class="tab" data-mode="mult">Multinomial</button>
+        </div>
+
+        <canvas id="d-canvas"></canvas>
+        <div class="controls" id="d-ctrl"></div>
+        <div class="formula" id="d-formula"></div>
+        <div class="quiz" id="quiz1"></div>
+      </div>
+    `;
+
+    const ctrl = container.querySelector('#d-ctrl');
+    const tabs = container.querySelector('#d-tabs');
+
+    function buildCtrl() {
+      ctrl.innerHTML = '';
+      if (mode === 'perm') {
+        setupSlider(ctrl, {
+          id: 'n', label: 'n objets', min: 2, max: 8, step: 1, value: 4,
+          format: v => v,
+          onInput: v => { n = v; draw(); interacted = true; }
+        });
+      } else if (mode === 'mult') {
+        setupSlider(ctrl, {
+          id: 'n', label: 'n objets', min: 2, max: 8, step: 1, value: 5,
+          format: v => v,
+          onInput: v => { n = v; draw(); interacted = true; }
+        });
+      } else {
+        setupSlider(ctrl, {
+          id: 'n', label: 'Univers n', min: 3, max: 30, step: 1, value: 26,
+          format: v => v,
+          onInput: v => { n = v; if (m > n) { m = n; } draw(); interacted = true; }
+        });
+        const mk = setupSlider(ctrl, {
+          id: 'm', label: 'Tirage m', min: 1, max: 10, step: 1, value: 4,
+          format: v => v,
+          onInput: v => { m = Math.min(v, n); draw(); interacted = true; }
+        });
+        if (m > n) { m = n; mk.set(n); }
+      }
+    }
+
+    function compute() {
+      if (mode === 'arr') return A(n, m);
+      if (mode === 'comb') return C(n, m);
+      if (mode === 'perm') return fact(n);
+      if (mode === 'mult') {
+        // répartition en 3 groupes équilibrés
+        const k1 = Math.floor(n / 3);
+        const k2 = Math.floor((n - k1) / 2);
+        const k3 = n - k1 - k2;
+        return Math.round(fact(n) / (fact(k1) * fact(k2) * fact(k3)));
+      }
+    }
+
+    function formulaText() {
+      if (mode === 'arr') return `A(n, m) = n! / (n−m)! = ${n}! / (${n}−${m})! = <span class="hl">${A(n, m)}</span>`;
+      if (mode === 'comb') return `C(n, m) = n! / (m!(n−m)!) = ${n}! / (${m}!·${n - m}!) = <span class="hl">${C(n, m)}</span>`;
+      if (mode === 'perm') return `n! = ${n}! = <span class="hl">${fact(n)}</span>`;
+      if (mode === 'mult') {
+        const k1 = Math.floor(n / 3);
+        const k2 = Math.floor((n - k1) / 2);
+        const k3 = n - k1 - k2;
+        return `n! / (k₁!·k₂!·k₃!) = ${n}! / (${k1}!·${k2}!·${k3}!) = <span class="hl">${compute()}</span>`;
+      }
+    }
+
+    function draw() {
+      const W = 600, H = 240;
+      const ctx = mkCanvas('d-canvas', W, H);
+      const val = compute();
+
+      // dessin symbolique : petits points représentant le résultat
+      ctx.fillStyle = '#5c628a';
+      ctx.font = '600 11px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('Nombre de résultats possibles', W / 2, 24);
+
+      ctx.fillStyle = '#7c8cff';
+      ctx.font = '700 42px ui-monospace, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(val.toLocaleString('fr-FR'), W / 2, H / 2 - 8);
+
+      // barre visuelle proportionnelle (log scale)
+      const barW = Math.min(W - 80, 520);
+      const barX = (W - barW) / 2;
+      const barY = H / 2 + 42;
+      ctx.fillStyle = '#1b1f2e';
+      roundRect(ctx, barX, barY, barW, 10, 5);
+      ctx.fill();
+
+      const ratio = Math.min(1, Math.log10(val + 1) / Math.log10(1e10));
+      ctx.fillStyle = '#7c8cff';
+      roundRect(ctx, barX, barY, Math.max(6, barW * ratio), 10, 5);
+      ctx.fill();
+
+      container.querySelector('#d-formula').innerHTML = formulaText();
+    }
+
+    tabs.querySelectorAll('.tab').forEach(t => {
+      t.onclick = () => {
+        tabs.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        mode = t.dataset.mode;
+        if (mode === 'arr' || mode === 'comb') { n = Math.max(n, 3); m = Math.min(m, n, 10); }
+        buildCtrl();
+        draw();
+        interacted = true;
+      };
+    });
+
+    buildCtrl();
+    draw();
+
+    makeQuiz(container.querySelector('#quiz1'), {
+      q: 'On veut former un <b>comité de 3 élèves</b> parmi 10. Combien de comités possibles ?',
+      options: ['10 × 9 × 8 = 720', 'C(10, 3) = 120', '3¹⁰ = 59049', '10³ = 1000'],
+      correct: 1,
+      explain: 'L\'ordre des membres du comité ne compte pas → combinaison : C(10,3) = 120.'
+    }, {
+      canAnswer: () => interacted,
+      onCorrect: () => completeLevel(1)
+    });
+  }
+});
+
+/* ---------- NIVEAU 2 : CONDITIONNEMENT ---------- */
+LEVELS.push({
+  short: 'Conditionner',
+  render(container) {
+    let interacted = false;
+    let pa = 0.3, pba = 0.7, pbaBar = 0.2;
+
+    container.innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <span class="level-badge">Niveau 3 · Conditionnement</span>
+          <h2>« Sachant que… »</h2>
+        </div>
+        <p class="lead">Une probabilité conditionnelle, c'est une probabilité qu'on recalcule <b>dans un monde plus petit</b> : celui où B est déjà réalisé.</p>
+        <div class="concept">
+          <span class="concept-icon">💡</span>
+          <span><b>P(A|B) = P(A∩B) / P(B)</b>. Deux événements sont <b>indépendants</b> si P(A|B) = P(A), c'est-à-dire si P(A∩B) = P(A)·P(B).</span>
+        </div>
+        <canvas id="c-canvas"></canvas>
+        <div class="controls" id="c-ctrl"></div>
+        <div class="formula" id="c-formula"></div>
+        <div class="quiz" id="quiz2"></div>
+      </div>
+    `;
+
+    const ctrl = container.querySelector('#c-ctrl');
+    setupSlider(ctrl, {
+      id: 'pa', label: 'P(A)', min: 0, max: 100, step: 1, value: 30,
+      format: v => (v / 100).toFixed(2),
+      onInput: v => { pa = v / 100; draw(); interacted = true; }
+    });
+    setupSlider(ctrl, {
+      id: 'pba', label: 'P(B|A)', min: 0, max: 100, step: 1, value: 70,
+      format: v => (v / 100).toFixed(2),
+      onInput: v => { pba = v / 100; draw(); interacted = true; }
+    });
+    setupSlider(ctrl, {
+      id: 'pbab', label: 'P(B|Ā)', min: 0, max: 100, step: 1, value: 20,
+      format: v => (v / 100).toFixed(2),
+      onInput: v => { pbaBar = v / 100; draw(); interacted = true; }
+    });
+
+    function compute() {
+      const pAB = pba * pa;
+      const pABar = pbaBar * (1 - pa);
+      const pB = pAB + pABar;
+      const pA_B = pB > 0 ? pAB / pB : 0;
+      const independent = Math.abs(pba - pbaBar) < 0.01;
+      return { pAB, pABar, pB, pA_B, independent };
+    }
+
+    function draw() {
+      const W = 600, H = 260;
+      const ctx = mkCanvas('c-canvas', W, H);
+      const { pAB, pABar, pB } = compute();
+
+      // Mosaic plot
+      const pad = 20;
+      const plotW = W - 2 * pad;
+      const plotH = H - 2 * pad - 30;
+      const x0 = pad, y0 = pad;
+      const xSplit = x0 + plotW * pa;
+
+      // colonne A (gauche)
+      const aH = plotH;
+      const aBSplit = y0 + aH * (1 - pba); // top = B∩A
+      // colonne Ā (droite)
+      const aBarBSplit = y0 + aH * (1 - pbaBar);
+
+      // A ∩ B
+      ctx.fillStyle = 'rgba(124,140,255,0.55)';
+      ctx.fillRect(x0, y0, xSplit - x0, aBSplit - y0);
+
+      // A ∩ B̄
+      ctx.fillStyle = 'rgba(124,140,255,0.18)';
+      ctx.fillRect(x0, aBSplit, xSplit - x0, y0 + aH - aBSplit);
+
+      // Ā ∩ B
+      ctx.fillStyle = 'rgba(167,139,250,0.55)';
+      ctx.fillRect(xSplit, y0, x0 + plotW - xSplit, aBarBSplit - y0);
+
+      // Ā ∩ B̄
+      ctx.fillStyle = 'rgba(167,139,250,0.18)';
+      ctx.fillRect(xSplit, aBarBSplit, x0 + plotW - xSplit, y0 + aH - aBarBSplit);
+
+      // cadre
+      ctx.strokeStyle = '#333a52';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x0, y0, plotW, plotH);
+      ctx.beginPath();
+      ctx.moveTo(xSplit, y0);
+      ctx.lineTo(xSplit, y0 + plotH);
+      ctx.stroke();
+
+      // labels
+      ctx.fillStyle = '#e8ebf5';
+      ctx.font = '700 13px system-ui';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText('A', x0 + 20, y0 + 6);
+      ctx.fillText('Ā', x0 + plotW - 20, y0 + 6);
+
+      // valeur A∩B
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 12px ui-monospace, monospace';
+      ctx.textBaseline = 'middle';
+      if (pAB > 0.01) ctx.fillText(pAB.toFixed(2), (x0 + xSplit) / 2, (y0 + aBSplit) / 2);
+      if (pABar > 0.01) ctx.fillText(pABar.toFixed(2), (xSplit + x0 + plotW) / 2, (y0 + aBarBSplit) / 2);
+
+      // légende
+      ctx.fillStyle = '#8890a8';
+      ctx.font = '11px system-ui';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('Aire = probabilité · largeur ∝ P(A) · hauteur ∝ P(B|·)', x0, y0 + plotH + 10);
+
+      // formule
+      const el = container.querySelector('#c-formula');
+      const indep = Math.abs(pba - pbaBar) < 0.01;
+      el.innerHTML = `
+        P(A∩B) = P(B|A)·P(A) = <span class="hl">${pAB.toFixed(3)}</span><br>
+        P(B) = P(B|A)·P(A) + P(B|Ā)·P(Ā) = <span class="hl">${pB.toFixed(3)}</span><br>
+        P(A|B) = P(A∩B) / P(B) = <span class="hl">${pA_BText(pAB, pB)}</span><br>
+        <span class="faint">${indep ? '✓ B et A semblent indépendants (P(B|A) = P(B|Ā))' : '✗ B dépend de A (P(B|A) ≠ P(B|Ā))'}</span>
+      `;
+    }
+
+    function pA_BText(pAB, pB) { return pB > 0 ? (pAB / pB).toFixed(3) : '—'; }
+
+    draw();
+
+    makeQuiz(container.querySelector('#quiz2'), {
+      q: 'Si P(A) = 0,5, P(B) = 0,4 et P(A∩B) = 0,2, A et B sont-ils indépendants ?',
+      options: ['Oui, car 0,5 × 0,4 = 0,2', 'Non, car P(A∩B) > P(A)', 'Impossible à savoir', 'Non, car P(A|B) ≠ P(B)'],
+      correct: 0,
+      explain: 'Indépendance ⟺ P(A∩B) = P(A)·P(B). Ici 0,5 × 0,4 = 0,2 ✓.'
+    }, {
+      canAnswer: () => interacted,
+      onCorrect: () => completeLevel(2)
+    });
+  }
+});
+
+/* ---------- NIVEAU 3 : BAYES ---------- */
+LEVELS.push({
+  short: 'Bayes',
+  render(container) {
+    let interacted = false;
+    let prev = 0.01;   // prévalence
+    let sens = 0.99;   // P(+|M)
+    let spec = 0.99;   // P(−|M̄)
+
+    container.innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <span class="level-badge">Niveau 4 · Bayes</span>
+          <h2>Bayes contre l'intuition</h2>
+        </div>
+        <p class="lead">Un test médical très fiable peut quand même donner <b>50 % de faux positifs</b> quand la maladie est rare. C'est le résultat le plus contre-intuitif des probabilités.</p>
+        <div class="concept">
+          <span class="concept-icon">💡</span>
+          <span><b>P(M|+) = P(+|M)·P(M) / P(+)</b>. Le dénominateur P(+) est la somme des chemins qui mènent à un test positif : malades positifs + bien portants positifs.</span>
+        </div>
+        <canvas id="b-canvas"></canvas>
+        <div class="controls" id="b-ctrl"></div>
+        <div class="stat-box" id="b-stats"></div>
+        <div class="formula" id="b-formula"></div>
+        <div class="quiz" id="quiz3"></div>
+      </div>
+    `;
+
+    const ctrl = container.querySelector('#b-ctrl');
+    setupSlider(ctrl, {
+      id: 'prev', label: 'Prévalence', min: 1, max: 20, step: 1, value: 1,
+      format: v => (v / 100).toFixed(2),
+      onInput: v => { prev = v / 100; draw(); interacted = true; }
+    });
+    setupSlider(ctrl, {
+      id: 'sens', label: 'Sensibilité', min: 80, max: 99, step: 1, value: 99,
+      format: v => (v / 100).toFixed(2),
+      onInput: v => { sens = v / 100; draw(); interacted = true; }
+    });
+    setupSlider(ctrl, {
+      id: 'spec', label: 'Spécificité', min: 80, max: 99, step: 1, value: 99,
+      format: v => (v / 100).toFixed(2),
+      onInput: v => { spec = v / 100; draw(); interacted = true; }
+    });
+
+    function compute() {
+      const pPlus = sens * prev + (1 - spec) * (1 - prev);
+      const pMaladeGivenPlus = (sens * prev) / pPlus;
+      return { pPlus, pMaladeGivenPlus };
+    }
+
+    function draw() {
+      const W = 600, H = 280;
+      const ctx = mkCanvas('b-canvas', W, H);
+      const { pPlus, pMaladeGivenPlus } = compute();
+
+      // Représentation : 1000 personnes
+      const N = 1000;
+      const pad = 24;
+      const barH = 34;
+      const barY = 50;
+      const barW = W - 2 * pad;
+
+      // barre population
+      ctx.fillStyle = '#1b1f2e';
+      roundRect(ctx, pad, barY, barW, barH, 8);
+      ctx.fill();
+
+      // malades
+      const sickW = barW * prev;
+      ctx.fillStyle = 'rgba(248,113,113,0.35)';
+      roundRect(ctx, pad, barY, Math.max(sickW, 2), barH, 8);
+      ctx.fill();
+
+      ctx.fillStyle = '#e8ebf5';
+      ctx.font = '600 11px system-ui';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Population', pad, barY - 12);
+
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#f87171';
+      ctx.fillText(`${Math.round(prev * N)} malades`, W - pad, barY - 12);
+
+      // Deux groupes : malades / bien portants
+      const colY = 120;
+      const colH = 110;
+      const halfW = (barW - 16) / 2;
+
+      // malades
+      ctx.fillStyle = '#1b1f2e';
+      roundRect(ctx, pad, colY, halfW, colH, 8);
+      ctx.fill();
+      ctx.strokeStyle = '#f87171';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // bien portants
+      ctx.fillStyle = '#1b1f2e';
+      roundRect(ctx, pad + halfW + 16, colY, halfW, colH, 8);
+      ctx.fill();
+      ctx.strokeStyle = '#4ade80';
+      ctx.stroke();
+
+      // contenu malades
+      const sickN = Math.round(prev * N);
+      const truePos = Math.round(sickN * sens);
+      const falseNeg = sickN - truePos;
+
+      ctx.fillStyle = '#f87171';
+      ctx.font = '600 11px system-ui';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText('Malades', pad + halfW / 2, colY + 8);
+
+      ctx.fillStyle = '#e8ebf5';
+      ctx.font = '700 22px ui-monospace, monospace';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(sickN, pad + halfW / 2, colY + 44);
+
+      ctx.font = '12px ui-monospace, monospace';
+      ctx.fillStyle = '#4ade80';
+      ctx.fillText(`+ : ${truePos}`, pad + halfW / 2, colY + 78);
+      ctx.fillStyle = '#f87171';
+      ctx.fillText(`− : ${falseNeg}`, pad + halfW / 2, colY + 96);
+
+      // bien portants
+      const healthyN = N - sickN;
+      const falsePos = Math.round(healthyN * (1 - spec));
+      const trueNeg = healthyN - falsePos;
+
+      ctx.fillStyle = '#4ade80';
+      ctx.font = '600 11px system-ui';
+      ctx.textBaseline = 'top';
+      ctx.fillText('Bien portants', pad + halfW + 16 + halfW / 2, colY + 8);
+
+      ctx.fillStyle = '#e8ebf5';
+      ctx.font = '700 22px ui-monospace, monospace';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(healthyN, pad + halfW + 16 + halfW / 2, colY + 44);
+
+      ctx.font = '12px ui-monospace, monospace';
+      ctx.fillStyle = '#f87171';
+      ctx.fillText(`+ : ${falsePos}`, pad + halfW + 16 + halfW / 2, colY + 78);
+      ctx.fillStyle = '#4ade80';
+      ctx.fillText(`− : ${trueNeg}`, pad + halfW + 16 + halfW / 2, colY + 96);
+
+      // stats
+      document.getElementById('b-stats').innerHTML = `
+        <div><div class="k">P(+)</div><div class="v">${(pPlus * 100).toFixed(1)}%</div></div>
+        <div><div class="k">P(Malade | +)</div><div class="v" style="color:${pMaladeGivenPlus > 0.5 ? 'var(--success)' : 'var(--xp)'}">${(pMaladeGivenPlus * 100).toFixed(1)}%</div></div>
+        <div><div class="k">Faux positifs</div><div class="v">${falsePos}</div></div>
+      `;
+
+      // formule
+      const fpRate = (1 - spec);
+      document.getElementById('b-formula').innerHTML = `
+        P(M|+) = <span class="num">${(sens * prev).toFixed(4)}</span> / (<span class="num">${(sens * prev).toFixed(4)}</span> + <span class="num">${(fpRate * (1 - prev)).toFixed(4)}</span>) = <span class="hl">${(pMaladeGivenPlus * 100).toFixed(1)}%</span>
+      `;
+    }
+
+    draw();
+
+    makeQuiz(container.querySelector('#quiz3'), {
+      q: 'Maladie rare (1 %). Test : 99 % sensibilité, 99 % spécificité. Test positif. Proba d\'être vraiment malade ?',
+      options: ['99 %', '50 % environ', '1 %', '10 %'],
+      correct: 1,
+      explain: 'Sur 1000 personnes : 10 malades (≈10 positifs) + 990 bien portants (≈10 faux positifs). Donc 10 vrais sur 20 positifs ≈ 50 %.'
+    }, {
+      canAnswer: () => interacted,
+      onCorrect: () => completeLevel(3)
+    });
+  }
+});
+
+/* ---------- NIVEAU 4 : VARIABLES DISCRÈTES ---------- */
+LEVELS.push({
+  short: 'Discret',
+  render(container) {
+    let interacted = false;
+    let mode = 'binom';
+    let n = 20, p = 0.3;
+    let lambda = 4;
+
+    container.innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <span class="level-badge">Niveau 5 · Variables discrètes</span>
+          <h2>Compter des succès</h2>
+        </div>
+        <p class="lead">Une variable aléatoire discrète compte des <b>résultats entiers</b> : nombre de succès, nombre d'échecs avant le premier succès, etc. La loi dépend de la situation.</p>
+        <div class="concept">
+          <span class="concept-icon">💡</span>
+          <span><b>Binomiale B(n,p)</b> : n essais indépendants, probabilité p. <b>Poisson P(λ)</b> : événements rares dans un intervalle. E(X) et Var(X) s'ajustent selon la loi.</span>
+        </div>
+        <div class="tabs" id="d4-tabs">
+          <button class="tab active" data-mode="binom">Binomiale</button>
+          <button class="tab" data-mode="pois">Poisson</button>
+          <button class="tab" data-mode="geo">Géométrique</button>
+          <button class="tab" data-mode="hyper">Hypergéométrique</button>
+        </div>
+        <canvas id="d4-canvas"></canvas>
+        <div class="controls" id="d4-ctrl"></div>
+        <div class="formula" id="d4-formula"></div>
+        <div class="quiz" id="quiz4"></div>
+      </div>
+    `;
+
+    const ctrl = container.querySelector('#d4-ctrl');
+    const tabs = container.querySelector('#d4-tabs');
+
+    function buildCtrl() {
+      ctrl.innerHTML = '';
+      if (mode === 'binom') {
+        setupSlider(ctrl, {
+          id: 'n4', label: 'n essais', min: 1, max: 40, step: 1, value: 20,
+          format: v => v,
+          onInput: v => { n = v; draw(); interacted = true; }
+        });
+        setupSlider(ctrl, {
+          id: 'p4', label: 'p succès', min: 1, max: 99, step: 1, value: 30,
+          format: v => (v / 100).toFixed(2),
+          onInput: v => { p = v / 100; draw(); interacted = true; }
+        });
+      } else if (mode === 'pois') {
+        setupSlider(ctrl, {
+          id: 'lam4', label: 'λ (moyenne)', min: 1, max: 20, step: 1, value: 4,
+          format: v => v,
+          onInput: v => { lambda = v; draw(); interacted = true; }
+        });
+      } else if (mode === 'geo') {
+        setupSlider(ctrl, {
+          id: 'pg4', label: 'p succès', min: 5, max: 95, step: 1, value: 30,
+          format: v => (v / 100).toFixed(2),
+          onInput: v => { p = v / 100; draw(); interacted = true; }
+        });
+      } else {
+        setupSlider(ctrl, {
+          id: 'N4', label: 'Population N', min: 10, max: 60, step: 1, value: 40,
+          format: v => v,
+          onInput: v => { n = v; draw(); interacted = true; }
+        });
+        setupSlider(ctrl, {
+          id: 'm4', label: 'Cibles m', min: 2, max: 30, step: 1, value: 10,
+          format: v => v,
+          onInput: v => { p = v; draw(); interacted = true; }
+        });
+        setupSlider(ctrl, {
+          id: 'k4', label: 'Tirages k', min: 2, max: 15, step: 1, value: 5,
+          format: v => v,
+          onInput: v => { lambda = v; draw(); interacted = true; }
+        });
+      }
+    }
+
+    function draw() {
+      const W = 600, H = 300;
+      const ctx = mkCanvas('d4-canvas', W, H);
+      let values = [], labels = [], mean = 0, variance = 0, formula = '';
+
+      if (mode === 'binom') {
+        const maxK = Math.min(n, 30);
+        for (let k = 0; k <= maxK; k++) {
+          values.push(C(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k));
+          labels.push(k);
+        }
+        mean = n * p;
+        variance = n * p * (1 - p);
+        formula = `P(X=k) = C(${n},k)·${p.toFixed(2)}<sup>k</sup>·${(1 - p).toFixed(2)}<sup>${n}−k</sup> &nbsp;·&nbsp; E(X)=<span class="hl">${mean.toFixed(2)}</span> · Var=<span class="hl">${variance.toFixed(2)}</span>`;
+      } else if (mode === 'pois') {
+        const maxK = Math.min(25, Math.ceil(lambda * 3));
+        for (let k = 0; k <= maxK; k++) {
+          values.push(Math.exp(-lambda) * Math.pow(lambda, k) / fact(k));
+          labels.push(k);
+        }
+        mean = lambda;
+        variance = lambda;
+        formula = `P(X=k) = e<sup>−${lambda}</sup>·${lambda}<sup>k</sup>/k! &nbsp;·&nbsp; E(X)=Var(X)=<span class="hl">${lambda}</span>`;
+      } else if (mode === 'geo') {
+        const maxK = Math.min(20, Math.ceil(5 / p));
+        for (let k = 0; k <= maxK; k++) {
+          values.push(p * Math.pow(1 - p, k));
+          labels.push(k);
+        }
+        mean = (1 - p) / p;
+        variance = (1 - p) / (p * p);
+        formula = `P(X=k) = (1−p)<sup>k</sup>·p = ${(1 - p).toFixed(2)}<sup>k</sup>·${p.toFixed(2)} &nbsp;·&nbsp; E(X)=<span class="hl">${mean.toFixed(2)}</span>`;
+      } else {
+        const N = n, m = p, k = lambda;
+        const maxK = Math.min(k, m);
+        for (let i = 0; i <= maxK; i++) {
+          values.push(C(m, i) * C(N - m, k - i) / C(N, k));
+          labels.push(i);
+        }
+        mean = k * m / N;
+        formula = `P(X=i) = C(${m},i)·C(${N - m},${k}−i) / C(${N},${k}) &nbsp;·&nbsp; E(X)=<span class="hl">${mean.toFixed(2)}</span>`;
+      }
+
+      drawBars(ctx, W, H, values, labels, -1);
+      document.getElementById('d4-formula').innerHTML = formula;
+    }
+
+    tabs.querySelectorAll('.tab').forEach(t => {
+      t.onclick = () => {
+        tabs.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        mode = t.dataset.mode;
+        buildCtrl();
+        draw();
+        interacted = true;
+      };
+    });
+
+    buildCtrl();
+    draw();
+
+    makeQuiz(container.querySelector('#quiz4'), {
+      q: 'Tu lances 10 fois une pièce équilibrée. P(exactement 5 piles) ≈ ?',
+      options: ['0,50', '0,25', '0,05', '0,10'],
+      correct: 1,
+      explain: 'C(10,5) · (0,5)¹⁰ = 252 / 1024 ≈ 0,246.'
+    }, {
+      canAnswer: () => interacted,
+      onCorrect: () => completeLevel(4)
+    });
+  }
+});
+
+/* ---------- NIVEAU 5 : VARIABLES CONTINUES ---------- */
+LEVELS.push({
+  short: 'Continu',
+  render(container) {
+    let interacted = false;
+    let mode = 'unif';
+    let a = 0, b = 4;
+    let lam = 1;
+    let mu = 0, sigma = 1;
+    let cutoff = 1;
+
+    container.innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <span class="level-badge">Niveau 6 · Variables continues</span>
+          <h2>Mesurer le continu</h2>
+        </div>
+        <p class="lead">Quand une variable mesure une <b>quantité réelle</b> (temps, taille, dosage), la probabilité devient une <b>aire sous une courbe</b>. Un point isolé a une probabilité nulle.</p>
+        <div class="concept">
+          <span class="concept-icon">💡</span>
+          <span><b>P(a ≤ X ≤ b) = ∫ₐᵇ f(x) dx</b>. L'aire totale sous f vaut 1. Chaque loi a sa forme : plateau pour uniforme, décroissance pour exponentielle, cloche pour normale.</span>
+        </div>
+        <div class="tabs" id="d5-tabs">
+          <button class="tab active" data-mode="unif">Uniforme</button>
+          <button class="tab" data-mode="exp">Exponentielle</button>
+          <button class="tab" data-mode="norm">Normale</button>
+        </div>
+        <canvas id="d5-canvas"></canvas>
+        <div class="controls" id="d5-ctrl"></div>
+        <div class="formula" id="d5-formula"></div>
+        <div class="quiz" id="quiz5"></div>
+      </div>
+    `;
+
+    const ctrl = container.querySelector('#d5-ctrl');
+    const tabs = container.querySelector('#d5-tabs');
+
+    function buildCtrl() {
+      ctrl.innerHTML = '';
+      if (mode === 'unif') {
+        setupSlider(ctrl, {
+          id: 'a5', label: 'a', min: -5, max: 5, step: 1, value: 0,
+          format: v => v,
+          onInput: v => { a = v; if (b <= a) b = a + 1; cutoff = (a + b) / 2; draw(); interacted = true; }
+        });
+        setupSlider(ctrl, {
+          id: 'b5', label: 'b', min: -5, max: 10, step: 1, value: 4,
+          format: v => v,
+          onInput: v => { b = Math.max(v, a + 1); cutoff = (a + b) / 2; draw(); interacted = true; }
+        });
+      } else if (mode === 'exp') {
+        setupSlider(ctrl, {
+          id: 'lam5', label: 'λ', min: 1, max: 30, step: 1, value: 10,
+          format: v => (v / 10).toFixed(1),
+          onInput: v => { lam = v / 10; cutoff = 1 / lam; draw(); interacted = true; }
+        });
+      } else {
+        setupSlider(ctrl, {
+          id: 'mu5', label: 'μ', min: -30, max: 30, step: 1, value: 0,
+          format: v => (v / 10).toFixed(1),
+          onInput: v => { mu = v / 10; draw(); interacted = true; }
+        });
+        setupSlider(ctrl, {
+          id: 'sig5', label: 'σ', min: 2, max: 20, step: 1, value: 10,
+          format: v => (v / 10).toFixed(1),
+          onInput: v => { sigma = v / 10; draw(); interacted = true; }
+        });
+      }
+    }
+
+    function draw() {
+      const W = 600, H = 300;
+      const ctx = mkCanvas('d5-canvas', W, H);
+      let fn, xmin, xmax, formula;
+
+      if (mode === 'unif') {
+        fn = x => (x >= a && x <= b) ? 1 / (b - a) : 0;
+        xmin = a - 2; xmax = b + 2;
+        cutoff = Math.min(Math.max(cutoff, xmin), xmax);
+        const area = Math.max(0, Math.min(cutoff, b) - Math.max(xmin, a)) / (b - a);
+        formula = `f(x) = 1/(b−a) sur [${a},${b}] &nbsp;·&nbsp; E(X)=<span class="hl">${((a + b) / 2).toFixed(2)}</span> &nbsp;·&nbsp; P(X ≤ ${cutoff.toFixed(1)}) = <span class="hl">${area.toFixed(2)}</span>`;
+      } else if (mode === 'exp') {
+        fn = x => x >= 0 ? lam * Math.exp(-lam * x) : 0;
+        xmin = 0; xmax = 4 / lam;
+        cutoff = Math.min(Math.max(cutoff, xmin), xmax);
+        const cdf = 1 - Math.exp(-lam * cutoff);
+        formula = `f(x) = ${lam.toFixed(1)}·e<sup>−${lam.toFixed(1)}x</sup> &nbsp;·&nbsp; E(X)=1/λ=<span class="hl">${(1 / lam).toFixed(2)}</span> &nbsp;·&nbsp; P(X ≤ ${cutoff.toFixed(2)}) = <span class="hl">${cdf.toFixed(2)}</span>`;
+      } else {
+        fn = x => (1 / (sigma * Math.sqrt(2 * Math.PI))) * Math.exp(-Math.pow(x - mu, 2) / (2 * sigma * sigma));
+        xmin = mu - 4 * sigma; xmax = mu + 4 * sigma;
+        const z = (cutoff - mu) / sigma;
+        const cdf = phi(z);
+        formula = `Z = (X−μ)/σ &nbsp;·&nbsp; μ=${mu.toFixed(1)}, σ=${sigma.toFixed(1)} &nbsp;·&nbsp; P(X ≤ ${cutoff.toFixed(1)}) = Φ(<span class="hl">${z.toFixed(2)}</span>) = <span class="hl">${cdf.toFixed(3)}</span>`;
+      }
+
+      drawDensity(ctx, W, H, fn, xmin, xmax, xmin, cutoff);
+
+      // marqueur cutoff
+      const pad = { l: 44, r: 18, t: 18, b: 34 };
+      const plotW = W - pad.l - pad.r;
+      const plotH = H - pad.t - pad.b;
+      const Xc = pad.l + ((cutoff - xmin) / (xmax - xmin)) * plotW;
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(Xc, pad.t);
+      ctx.lineTo(Xc, pad.t + plotH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = '600 11px ui-monospace, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('a', Xc, pad.t - 4);
+
+      document.getElementById('d5-formula').innerHTML = formula;
+    }
+
+    tabs.querySelectorAll('.tab').forEach(t => {
+      t.onclick = () => {
+        tabs.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        mode = t.dataset.mode;
+        if (mode === 'unif') cutoff = (a + b) / 2;
+        if (mode === 'exp') cutoff = 1 / lam;
+        if (mode === 'norm') cutoff = mu;
+        buildCtrl();
+        draw();
+        interacted = true;
+      };
+    });
+
+    buildCtrl();
+    draw();
+
+    makeQuiz(container.querySelector('#quiz5'), {
+      q: 'X suit une loi normale centrée réduite N(0,1). Que vaut P(X ≤ 0) ?',
+      options: ['0', '0,5', '1', 'On ne peut pas savoir'],
+      correct: 1,
+      explain: 'La cloche est symétrique autour de 0 → moitié de l\'aire à gauche : P(X ≤ 0) = 0,5.'
+    }, {
+      canAnswer: () => interacted,
+      onCorrect: () => completeLevel(5)
+    });
+  }
+});
+
+/* ---------- NIVEAU 6 : TCL ---------- */
+LEVELS.push({
+  short: 'TCL',
+  render(container) {
+    let interacted = false;
+    let n = 1;
+    let dist = 'unif';
+
+    container.innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <span class="level-badge">Niveau 7 · Le couronnement</span>
+          <h2>Le théorème central limite</h2>
+        </div>
+        <p class="lead">Peu importe la forme de la distribution de départ : dès qu'on <b>moyenne</b> n variables indépendantes, la distribution de la moyenne devient une <b>cloche</b> quand n grandit.</p>
+        <div class="concept">
+          <span class="concept-icon">💡</span>
+          <span>C'est <b>pourquoi</b> la loi normale est partout. μ<sub>moyenne</sub> = μ, σ<sub>moyenne</sub> = σ/√n. Plus n est grand, plus la cloche est étroite.</span>
+        </div>
+        <div class="tabs" id="d6-tabs">
+          <button class="tab active" data-mode="unif">Uniforme(0,1)</button>
+          <button class="tab" data-mode="exp">Exponentielle(1)</button>
+        </div>
+        <canvas id="d6-canvas"></canvas>
+        <div class="controls" id="d6-ctrl"></div>
+        <div class="formula" id="d6-formula"></div>
+        <div class="quiz" id="quiz6"></div>
+      </div>
+    `;
+
+    const ctrl = container.querySelector('#d6-ctrl');
+    setupSlider(ctrl, {
+      id: 'n6', label: 'n (échantillon)', min: 1, max: 50, step: 1, value: 1,
+      format: v => v,
+      onInput: v => { n = v; draw(); interacted = true; }
+    });
+
+    const tabs = container.querySelector('#d6-tabs');
+    tabs.querySelectorAll('.tab').forEach(t => {
+      t.onclick = () => {
+        tabs.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        dist = t.dataset.mode;
+        draw();
+        interacted = true;
+      };
+    });
+
+    function sample() {
+      if (dist === 'unif') return Math.random();
+      // exponentielle(1) : -ln(U)
+      return -Math.log(1 - Math.random());
+    }
+
+    function draw() {
+      const W = 600, H = 300;
+      const ctx = mkCanvas('d6-canvas', W, H);
+
+      const K = 2500;
+      const means = [];
+      for (let i = 0; i < K; i++) {
+        let s = 0;
+        for (let j = 0; j < n; j++) s += sample();
+        means.push(s / n);
+      }
+
+      // mu, sigma théoriques
+      let mu, sigma;
+      if (dist === 'unif') { mu = 0.5; sigma = Math.sqrt(1 / 12); }
+      else { mu = 1; sigma = 1; }
+
+      // histogramme sur une plage adaptée
+      const center = mu;
+      const spread = (sigma / Math.sqrt(n)) * 4;
+      const lo = center - Math.max(spread, 0.05);
+      const hi = center + Math.max(spread, 0.05);
+      const bins = 40;
+      const counts = new Array(bins).fill(0);
+      for (const v of means) {
+        if (v < lo || v > hi) continue;
+        const idx = Math.min(bins - 1, Math.floor(((v - lo) / (hi - lo)) * bins));
+        counts[idx]++;
+      }
+      const total = counts.reduce((a, b) => a + b, 0) || 1;
+
+      // dessiner l'histogramme
+      const pad = { l: 44, r: 18, t: 30, b: 34 };
+      const plotW = W - pad.l - pad.r;
+      const plotH = H - pad.t - pad.b;
+
+      // grid
+      ctx.strokeStyle = 'rgba(38,43,61,0.6)';
+      ctx.lineWidth = 1;
+      for (let k = 0; k <= 4; k++) {
+        const y = pad.t + (k / 4) * plotH;
+        ctx.beginPath();
+        ctx.moveTo(pad.l, y);
+        ctx.lineTo(pad.l + plotW, y);
+        ctx.stroke();
+      }
+
+      // max pour normalisation (densité)
+      const bw = (hi - lo) / bins;
+      let maxDens = 0;
+      for (const c of counts) {
+        const d = c / (total * bw);
+        if (d > maxDens) maxDens = d;
+      }
+      // densité normale théorique au pic
+      const normalPeak = 1 / (sigma / Math.sqrt(n) * Math.sqrt(2 * Math.PI));
+      maxDens = Math.max(maxDens, normalPeak) * 1.1;
+
+      // bars
+      for (let i = 0; i < bins; i++) {
+        const d = counts[i] / (total * bw);
+        const h = (d / maxDens) * plotH;
+        const x = pad.l + (i / bins) * plotW;
+        ctx.fillStyle = 'rgba(124,140,255,0.55)';
+        ctx.fillRect(x + 1, pad.t + plotH - h, plotW / bins - 2, h);
+      }
+
+      // courbe normale théorique
+      const X = x => pad.l + ((x - lo) / (hi - lo)) * plotW;
+      const Y = y => pad.t + plotH - (y / maxDens) * plotH;
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i <= 200; i++) {
+        const x = lo + (i / 200) * (hi - lo);
+        const z = (x - mu) / (sigma / Math.sqrt(n));
+        const y = (1 / (sigma / Math.sqrt(n))) * Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI);
+        if (i === 0) ctx.moveTo(X(x), Y(y));
+        else ctx.lineTo(X(x), Y(y));
+      }
+      ctx.stroke();
+
+      // axes
+      ctx.strokeStyle = '#333a52';
+      ctx.beginPath();
+      ctx.moveTo(pad.l, pad.t);
+      ctx.lineTo(pad.l, pad.t + plotH);
+      ctx.lineTo(pad.l + plotW, pad.t + plotH);
+      ctx.stroke();
+
+      // labels x
+      ctx.fillStyle = '#8890a8';
+      ctx.font = '10px ui-monospace, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      for (let k = 0; k <= 4; k++) {
+        const x = lo + (k / 4) * (hi - lo);
+        ctx.fillText(x.toFixed(2), X(x), pad.t + plotH + 8);
+      }
+
+      // légende
+      ctx.fillStyle = '#7c8cff';
+      ctx.font = '600 11px system-ui';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('■ moyenne simulée', pad.l, 8);
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillText('— normale théorique', pad.l + 140, 8);
+
+      document.getElementById('d6-formula').innerHTML = `
+        n = <span class="num">${n}</span> &nbsp;·&nbsp; μ = <span class="hl">${mu.toFixed(2)}</span> &nbsp;·&nbsp; σ<sub>moyenne</sub> = σ/√n = <span class="hl">${(sigma / Math.sqrt(n)).toFixed(3)}</span><br>
+        <span class="faint">→ la cloche se resserre autour de μ quand n augmente</span>
+      `;
+    }
+
+    draw();
+
+    makeQuiz(container.querySelector('#quiz6'), {
+      q: 'Que dit le TCL quand n devient grand ?',
+      options: [
+        'La distribution de la moyenne ressemble à une loi normale',
+        'Les données deviennent normales',
+        'La variance de la moyenne augmente',
+        'Les extrêmes deviennent plus probables'
+      ],
+      correct: 0,
+      explain: 'Le TCL concerne la distribution de la moyenne (ou de la somme), pas les données elles-mêmes. Et σ/√n diminue quand n augmente.'
+    }, {
+      canAnswer: () => interacted,
+      onCorrect: () => completeLevel(6)
+    });
+  }
+});
+
+/* ============================================================
+   INITIALISATION
+============================================================ */
+function init() {
+  load();
+
+  // sécuriser l'état
+  if (!Array.isArray(state.completed)) state.completed = [];
+  if (state.current < 0 || state.current >= LEVELS.length) state.current = 0;
+  if (state.maxLevel < 0) state.maxLevel = 0;
+  if (state.maxLevel >= LEVELS.length) state.maxLevel = LEVELS.length - 1;
+
+  renderLevelMap();
+  renderStage();
+  updateHeader();
+
+  document.getElementById('reset-btn').onclick = () => {
+    if (!confirm('Réinitialiser toute ta progression ?')) return;
+    state.current = 0;
+    state.maxLevel = 0;
+    state.completed = [];
+    state.xp = 0;
+    state.streak = 0;
+    save();
+    renderLevelMap();
+    renderStage();
+    updateHeader();
+    toast('Progression réinitialisée');
+  };
+}
+
+init();
+</script>
+</body>
+</html>
