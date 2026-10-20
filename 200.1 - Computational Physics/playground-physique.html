@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Playground Physique — 12 sprints</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font:11px/1.4 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    background:#f7f8fa;color:#0d0d0d;
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    min-height:100vh;
+    min-height:100dvh;
+  }
+
+  /* ---------- sidebar ---------- */
+  .sidebar{
+    position:sticky;top:0;
+    width:180px;flex:0 0 180px;
+    height:100vh;height:100dvh;
+    background:#fff;
+    border-right:1px solid #e5e5e5;
+    display:flex;flex-direction:column;
+    z-index:10;
+  }
+  .sidebar-head{
+    flex:0 0 auto;
+    padding:9px 11px 7px;
+    border-bottom:1px solid #f0f1f4;
+  }
+  .brand{display:flex;align-items:center;gap:6px;font-weight:650;font-size:11px;color:#0d0d0d}
+  .brand .dot{width:6px;height:6px;border-radius:50%;background:#4d6bfe;flex:0 0 auto}
+  .brand-sub{color:#8b9096;font-weight:500;font-size:9.5px;margin-top:1px;padding-left:12px}
+
+  .sidebar-list{
+    flex:1 1 auto;
+    min-height:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding:5px;
+  }
+  .sidebar-list::-webkit-scrollbar{width:4px}
+  .sidebar-list::-webkit-scrollbar-thumb{background:#e0e3e8;border-radius:99px}
+
+  .sidebar-item{
+    display:flex;align-items:center;gap:6px;
+    width:100%;padding:4px 6px;
+    background:transparent;border:none;border-radius:5px;
+    cursor:pointer;font:inherit;font-size:10px;color:#5b6167;
+    text-align:left;transition:background .15s,color .15s;
+    margin-bottom:0;
+  }
+  .sidebar-item:hover{background:#f4f5f8;color:#0d0d0d}
+  .sidebar-item.active{background:#eef1ff;color:#2a3ea8;font-weight:600}
+  .sidebar-item.active .num{color:#4d6bfe}
+  .sidebar-item.done .num{color:#2f9e6b}
+  .sidebar-item.locked{opacity:.4;cursor:not-allowed}
+  .sidebar-item.locked:hover{background:transparent;color:#5b6167}
+  .sidebar-item .num{
+    font:700 9px ui-monospace,SFMono-Regular,monospace;
+    color:#b6bcc3;flex:0 0 auto;width:13px;
+  }
+  .sidebar-item .label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .sidebar-item .check{font-size:9px;color:#2f9e6b;opacity:0;flex:0 0 auto}
+  .sidebar-item.done .check{opacity:1}
+
+  .sidebar-foot{
+    flex:0 0 auto;
+    padding:7px 11px 9px;
+    border-top:1px solid #f0f1f4;
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .sidebar-progress{display:flex;align-items:center;gap:6px}
+  .prog{flex:1;height:3px;background:#eceef2;border-radius:99px;overflow:hidden;min-width:0}
+  .prog-fill{height:100%;width:0;background:#4d6bfe;border-radius:99px;transition:width .4s ease}
+  .prog-label{font:600 9px ui-monospace,SFMono-Regular,monospace;color:#5b6167;white-space:nowrap}
+  .link{background:none;border:none;color:#8b9096;cursor:pointer;font:inherit;font-size:9px;padding:0;text-align:left}
+  .link:hover{color:#4d6bfe;text-decoration:underline}
+
+  /* ---------- main ---------- */
+  main{
+    flex:1 1 auto;
+    min-width:0;
+    padding:12px 20px 40px;
+  }
+  .card{
+    max-width:100%;
+    margin:0 auto;
+    background:#fff;
+    border:1px solid #e5e5e5;
+    border-radius:9px;
+    padding:11px 13px 11px;
+    box-shadow:0 1px 2px rgba(13,13,13,.04);
+    animation:pop .22s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes pop{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+  .eyebrow{font:600 9px ui-monospace,monospace;color:#4d6bfe;letter-spacing:.04em;text-transform:uppercase;margin-bottom:1px}
+  h2{margin:0 0 6px;font-size:14px;letter-spacing:-.01em}
+  .pill{float:right;font:600 8.5px ui-monospace,monospace;color:#5b6167;background:#f2f3f6;border-radius:99px;padding:1px 6px}
+  .theory{margin:0 0 7px;padding-left:13px;color:#2b2f33;font-size:10.5px}
+  .theory li{margin:1px 0}
+  .theory b{color:#0d0d0d}
+  .real{background:#f6f8ff;border:1px solid #e3e9ff;border-radius:6px;padding:6px 8px;font-size:10px;color:#2a3550;margin-bottom:8px}
+  .real .tag{display:inline-block;font:700 8px ui-monospace,monospace;color:#4d6bfe;background:#fff;border:1px solid #dde4ff;border-radius:3px;padding:1px 4px;margin-right:4px;vertical-align:1px}
+
+  .cv{width:100%;display:block;border:1px solid #eceef2;border-radius:6px;background:#fff}
+
+  .ctrls{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:5px 12px;margin-top:8px}
+  .ctrl{display:block;font-size:9.5px}
+  .ctrl-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1px;color:#5b6167;font-weight:550}
+  .ctrl-head .val{font:600 9px ui-monospace,monospace;color:#4d6bfe}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:3px;border-radius:99px;background:#eceef2;outline:none;margin:4px 0;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:#4d6bfe;border:2px solid #fff;box-shadow:0 1px 2px rgba(77,107,254,.45);cursor:pointer;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:9px;height:9px;border-radius:50%;background:#4d6bfe;border:2px solid #fff;cursor:pointer;
+  }
+  select,input[type=text],input[type=number]{
+    width:100%;padding:3px 6px;border:1px solid #e0e3e8;border-radius:5px;font:inherit;font-size:10px;background:#fff;color:#0d0d0d;outline:none;
+  }
+  select:focus,input:focus{border-color:#4d6bfe;box-shadow:0 0 0 2px #eef1ff}
+
+  .row{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+  .b{font:600 10px inherit;padding:4px 9px;border-radius:6px;border:1px solid #4d6bfe;background:#4d6bfe;color:#fff;cursor:pointer;transition:.15s}
+  .b:hover{background:#3a56e0;border-color:#3a56e0}
+  .b:active{transform:scale(.97)}
+  .b.ghost{background:#fff;color:#4d6bfe}
+  .b.ghost:hover{background:#f5f7ff}
+  .b:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+  .readout{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}
+  .stat{font:600 9px ui-monospace,monospace;background:#f4f5f8;border-radius:4px;padding:3px 6px;color:#3b4148}
+  .stat em{font-style:normal;color:#8b9096;font-weight:500}
+  .stat.hi{background:#eef1ff;color:#2a3ea8}
+
+  .quiz{margin-top:12px;border-top:1px solid #eef0f3;padding-top:9px}
+  .quiz-title{font:700 8.5px ui-monospace,monospace;color:#8b9096;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
+  .q{margin-bottom:7px}
+  .q-text{font-weight:600;font-size:10.5px;margin-bottom:4px}
+  .opts{display:flex;flex-direction:column;gap:3px}
+  .opt{
+    text-align:left;font:inherit;font-size:10px;padding:4px 8px;border:1px solid #e5e5e5;background:#fff;border-radius:5px;cursor:pointer;color:#2b2f33;transition:.15s;
+  }
+  .opt:hover{border-color:#c9d2ff;background:#fafbff}
+  .opt.good{border-color:#2f9e6b;background:#f2fbf6;color:#1f7a52;font-weight:600}
+  .opt.bad{border-color:#e05555;background:#fdf3f3;animation:shake .28s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  .why{font-size:9.5px;color:#1f7a52;margin-top:3px;padding-left:2px}
+  .finish{margin-top:9px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .finish .hint{font-size:9.5px;color:#8b9096}
+
+  .bars{display:flex;gap:12px;align-items:flex-end;height:110px;margin:8px 0 4px;padding:0 4px}
+  .barcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+  .barfill{width:100%;max-width:38px;border-radius:3px 3px 0 0;transition:height .09s linear}
+  .barlabel{font:600 9px ui-monospace,monospace;color:#5b6167;margin-top:3px;text-align:center}
+  .barval{font:600 9px ui-monospace,monospace;color:#0d0d0d;margin-bottom:2px}
+
+  pre.code{
+    background:#0d0d0d;color:#e8eaf0;border-radius:6px;padding:8px;overflow:auto;
+    font:9.5px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;margin:0;
+  }
+  .tree{font:9.5px/1.5 ui-monospace,monospace;color:#2b2f33;white-space:pre;overflow:auto}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:880px){.two{grid-template-columns:1fr}}
+
+  .done-badge{background:#f2fbf6;border:1px solid #c8e8d8;color:#1f7a52;border-radius:4px;padding:2px 6px;font:600 9px ui-monospace,monospace}
+  .err-card{background:#fdf3f3;border:1px solid #f5c6c6;border-radius:6px;padding:8px 10px;color:#a83131;font-size:10px}
+  .err-card b{color:#7a1f1f}
+
+  @media(max-width:720px){
+    body{flex-direction:column}
+    .sidebar{
+      position:static;
+      width:100%;flex:0 0 auto;
+      height:auto;min-height:0;
+      border-right:none;border-bottom:1px solid #e5e5e5;
+    }
+    .sidebar-head{padding:7px 9px 5px}
+    .sidebar-list{
+      flex:0 0 auto;
+      display:flex;flex-direction:row;
+      gap:2px;
+      overflow-x:auto;overflow-y:hidden;
+      padding:4px 6px;
+      min-height:0;
+    }
+    .sidebar-item{
+      flex:0 0 auto;
+      width:auto;
+      padding:4px 7px;
+      margin-bottom:0;
+    }
+    .sidebar-item .label{max-width:80px}
+    .sidebar-item .check{display:none}
+    .sidebar-foot{flex-direction:row;align-items:center;padding:5px 9px 7px;gap:8px}
+    .sidebar-progress{flex:1}
+    .link{margin-left:auto}
+    main{padding:8px 8px 24px}
+    .card{padding:8px 8px 9px}
+    h2{font-size:13px}
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-head">
+    <div class="brand"><span class="dot"></span>Playground Physique</div>
+    <div class="brand-sub">12 sprints · 20 min</div>
+  </div>
+  <nav class="sidebar-list" id="rail"></nav>
+  <div class="sidebar-foot">
+    <div class="sidebar-progress">
+      <div class="prog"><div class="prog-fill" id="progFill"></div></div>
+      <div class="prog-label" id="progLabel">0 / 12</div>
+    </div>
+    <button id="resetAll" class="link">Réinitialiser</button>
+  </div>
+</aside>
+
+<main id="stage"></main>
+
+<script>
+window.addEventListener('error', e => {
+  console.error('[playground] uncaught:', e.error || e.message);
+});
+
+const el = (t,c,h) => { const e=document.createElement(t); if(c) e.className=c; if(h!=null) e.innerHTML=h; return e; };
+const stage = document.getElementById('stage');
+const rail  = document.getElementById('rail');
+const progFill = document.getElementById('progFill');
+const progLabel = document.getElementById('progLabel');
+
+const C = { blue:'#4d6bfe', ink:'#0d0d0d', grey:'#9aa0a6', light:'#d1d5db', orange:'#e8833a', green:'#2f9e6b', red:'#e05555' };
+
+function mkCanvas(host, h=250){
+  const c = document.createElement('canvas');
+  c.className = 'cv';
+  c.style.height = h + 'px';
+  host.appendChild(c);
+  const ctx = c.getContext('2d');
+  function fit(){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = c.clientWidth || 600;
+    c.width  = Math.round(w * dpr);
+    c.height = Math.round(h * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  fit();
+  const ro = new ResizeObserver(fit); ro.observe(c);
+  return { c, ctx, fit, H:h, stop(){ ro.disconnect(); } };
+}
+
+function loop(fn){
+  let alive = true, raf = 0, last = performance.now();
+  function tick(now){
+    if(!alive) return;
+    const dt = Math.min(0.05, (now-last)/1000); last = now;
+    try{ fn(dt); }catch(e){ console.error('[playground] frame error:', e); }
+    raf = requestAnimationFrame(tick);
+  }
+  raf = requestAnimationFrame(tick);
+  return () => { alive = false; cancelAnimationFrame(raf); };
+}
+
+function btn(parent, label, cls=''){
+  const b = el('button','b '+cls, label);
+  parent.appendChild(b);
+  return b;
+}
+
+function makeSlider(parent, o){
+  const wrap = el('label','ctrl');
+  const head = el('div','ctrl-head');
+  const fmt = o.fmt || (v => String(v));
+  const out = el('span','val', fmt(o.value) + (o.unit||''));
+  head.append(el('span',null,o.label), out);
+  wrap.appendChild(head);
+  const inp = el('input'); inp.type='range';
+  inp.min=o.min; inp.max=o.max; inp.step=o.step; inp.value=o.value;
+  wrap.appendChild(inp);
+  parent.appendChild(wrap);
+  const fns = [];
+  inp.addEventListener('input', ()=>{
+    out.textContent = fmt(+inp.value) + (o.unit||'');
+    fns.forEach(f => f(+inp.value));
+  });
+  return {
+    get value(){ return +inp.value; },
+    on(f){ fns.push(f); return this; },
+    set(v){ inp.value = v; out.textContent = fmt(+inp.value)+(o.unit||''); }
+  };
+}
+
+function makeSelect(parent, o){
+  const wrap = el('label','ctrl');
+  wrap.appendChild(el('div','ctrl-head','<span>'+o.label+'</span>'));
+  const s = el('select');
+  o.options.forEach(([v,l])=>{ const op=el('option',null,l); op.value=v; s.appendChild(op); });
+  s.value = o.value;
+  wrap.appendChild(s);
+  parent.appendChild(wrap);
+  const fns = [];
+  s.addEventListener('change', ()=> fns.forEach(f => f(s.value)));
+  return { get value(){ return s.value; }, on(f){ fns.push(f); return this; } };
+}
+
+function arrow(ctx,x1,y1,x2,y2,color,label){
+  const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy);
+  if(len < 2) return;
+  ctx.save();
+  ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=1.8; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  const a = Math.atan2(dy,dx), s = 5.5;
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2 - s*Math.cos(a-0.42), y2 - s*Math.sin(a-0.42));
+  ctx.lineTo(x2 - s*Math.cos(a+0.42), y2 - s*Math.sin(a+0.42));
+  ctx.closePath(); ctx.fill();
+  if(label){
+    ctx.font='600 9px ui-monospace,monospace';
+    ctx.fillText(label, x2 + 5, y2 - 5);
+  }
+  ctx.restore();
+}
+
+function dot(ctx,x,y,r,color){
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fillStyle = color; ctx.fill();
+}
+
+function txt(ctx,s,x,y,color='#5b6167',font='600 9.5px ui-monospace,monospace'){
+  ctx.save(); ctx.fillStyle=color; ctx.font=font; ctx.textBaseline='top';
+  ctx.fillText(s,x,y); ctx.restore();
+}
+
+/* ============================================================
+   SPRINTS
+   ============================================================ */
+const SPRINTS = [];
+
+/* ---------- 1 ---------- */
+SPRINTS.push({
+  short:'Position & vitesse',
+  tag:'Module 1 · Cinématique',
+  title:'Position, vitesse, accélération',
+  theory:[
+    'La <b>position</b> r(t) = (x, y, z) localise l\'objet dans l\'espace.',
+    'La <b>vitesse</b> v = dr/dt : la pente de la position.',
+    'L\'<b>accélération</b> a = dv/dt : la pente de la vitesse.'
+  ],
+  real:'Ta voiture. Le GPS donne la <b>position</b>, le compteur la <b>vitesse</b>, et ton dos collé au siège quand tu écrases la pédale, c\'est l\'<b>accélération</b>.',
+  quiz:[
+    { q:"Vitesse constante (a = 0) : que fait la position ?",
+      opts:["Elle ne bouge pas","Elle varie linéairement","Elle accélère"], a:1,
+      why:"x(t) = x₀ + v·t : c'est une droite. Vitesse constante ⇒ position qui varie à rythme constant." },
+    { q:"L'accélération, c'est…",
+      opts:["La dérivée de la vitesse","L'intégrale de la vitesse","La même chose que la vitesse"], a:0,
+      why:"a = dv/dt. Elle mesure comment la vitesse change, pas la vitesse elle-même." }
+  ],
+  mount(host){
+    const {c, ctx, stop} = mkCanvas(host, 165);
+    const bar = el('div','ctrls'); host.appendChild(bar);
+    let v0 = 12, a = 0, t = 0, run = true;
+
+    const sv = makeSlider(bar,{label:'Vitesse initiale v₀', min:-25, max:25, step:1, value:v0, unit:' m/s', fmt:v=>v.toFixed(0)});
+    const sa = makeSlider(bar,{label:'Accélération a', min:-8, max:8, step:0.5, value:a, unit:' m/s²', fmt:v=>v.toFixed(1)});
+    const row = el('div','row'); bar.appendChild(row);
+    const bPlay = btn(row,'⏸ Pause','ghost');
+    const bReset = btn(row,'↺ Reset','ghost');
+
+    sv.on(v=>{ v0=v; t=0; });
+    sa.on(v=>{ a=v; t=0; });
+    bPlay.onclick = ()=>{ run=!run; bPlay.textContent = run?'⏸ Pause':'▶ Reprendre'; };
+    bReset.onclick = ()=>{ t=0; run=true; bPlay.textContent='⏸ Pause'; };
+
+    const stopLoop = loop(dt=>{
+      if(run) t += dt;
+      const x = v0*t + 0.5*a*t*t;
+      const v = v0 + a*t;
+      if(Math.abs(x) > 22) { t = 0; }
+
+      const w = c.clientWidth, h = c.clientHeight;
+      ctx.clearRect(0,0,w,h);
+      const pxm = w / 46;
+      const cx = w/2, gy = h*0.68;
+
+      ctx.strokeStyle='#eceef2'; ctx.lineWidth=1;
+      for(let m=-20; m<=20; m+=5){
+        const px = cx + m*pxm;
+        ctx.beginPath(); ctx.moveTo(px, gy-3); ctx.lineTo(px, gy+3); ctx.stroke();
+        txt(ctx, m+' m', px-11, gy+6, '#c3c8ce', '600 8.5px ui-monospace,monospace');
+      }
+      ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(w,gy); ctx.strokeStyle='#e5e5e5'; ctx.stroke();
+
+      const px = cx + x*pxm;
+      dot(ctx, px, gy, 7, C.blue);
+
+      const vLen = Math.max(-120, Math.min(120, v*4));
+      arrow(ctx, px, gy, px+vLen, gy, C.blue, 'v');
+
+      const aLen = Math.max(-90, Math.min(90, a*12));
+      if(Math.abs(aLen) > 3) arrow(ctx, px, gy-26, px+aLen, gy-26, C.orange, 'a');
+
+      txt(ctx, `t = ${t.toFixed(2)} s`, 8, 6, '#8b9096');
+      txt(ctx, `x = ${x.toFixed(2)} m`, 8, 20, C.ink);
+      txt(ctx, `v = ${v.toFixed(2)} m/s`, 8, 34, C.blue);
+      txt(ctx, `a = ${a.toFixed(1)} m/s²`, 8, 48, C.orange);
+    });
+
+    return ()=>{ stopLoop(); stop(); };
+  }
+});
+
+/* ---------- 2 ---------- */
+SPRINTS.push({
+  short:'Balistique',
+  tag:'Module 1 · Cinématique',
+  title:'Balistique & mouvement parabolique',
+  theory:[
+    'Sur l\'axe horizontal : <b>vitesse constante</b> → x(t) = x₀ + v₀ₓ·t.',
+    'Sur l\'axe vertical : la gravité impose <b>a = −g</b> → z(t) = z₀ + v₀ᵣ·t − ½gt².',
+    'Résultat : une <b>parabole</b>. vₓ ne change jamais, vᵣ oui.'
+  ],
+  real:'Un tir au basket. Le ballon avance à vitesse constante horizontalement, mais la gravité le fait retomber : parabole.',
+  quiz:[
+    { q:"Pendant le vol, quelle composante de vitesse reste constante ?",
+      opts:["La verticale","L'horizontale","Les deux"], a:1,
+      why:"Aucune force horizontale (on néglige l'air) ⇒ vₓ = constante." },
+    { q:"Sur la Lune (g = 1,62 m/s²), le même tir va…",
+      opts:["Beaucoup plus loin","Beaucoup moins loin","Exactement pareil"], a:0,
+      why:"Portée = v₀²·sin(2θ)/g. g plus petit ⇒ portée plus grande." }
+  ],
+  mount(host){
+    const {c, ctx, stop} = mkCanvas(host, 180);
+    const bar = el('div','ctrls'); host.appendChild(bar);
+    let v0 = 25, ang = 45, g = 9.81, t = 0;
+
+    const sv = makeSlider(bar,{label:'Vitesse initiale v₀', min:5, max:45, step:1, value:v0, unit:' m/s', fmt:v=>v.toFixed(0)});
+    const sa = makeSlider(bar,{label:'Angle de tir', min:10, max:85, step:1, value:ang, unit:'°', fmt:v=>v.toFixed(0)});
+    const sg = makeSelect(bar,{label:'Gravité', value:'9.81', options:[
+      ['1.62','Lune — 1,62 m/s²'],['3.71','Mars — 3,71 m/s²'],
+      ['9.81','Terre — 9,81 m/s²'],['24.79','Jupiter — 24,79 m/s²']
+    ]});
+    const row = el('div','row'); bar.appendChild(row);
+    const bReset = btn(row,'↺ Relancer','ghost');
+
+    sv.on(v=>{v0=v; t=0;}); sa.on(v=>{ang=v; t=0;}); sg.on(v=>{g=+v; t=0;});
+    bReset.onclick = ()=>{ t=0; };
+
+    const stopLoop = loop(dt=>{
+      const th = ang*Math.PI/180;
+      const vx = v0*Math.cos(th), vz = v0*Math.sin(th);
+      const T = 2*vz/g, R = vx*T, H = vz*vz/(2*g);
+      t += dt;
+      if(t > T) t = 0;
+
+      const w = c.clientWidth, h = c.clientHeight;
+      ctx.clearRect(0,0,w,h);
+
+      const padL = 28, padB = 22;
+      const sx = (w - padL - 16) / Math.max(R, 0.1);
+      const sz = (h - padB - 18) / Math.max(H, 0.1);
+      const s  = Math.min(sx, sz);
+      const ox = padL, oy = h - padB;
+
+      ctx.strokeStyle='#e5e5e5'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(w,oy); ctx.stroke();
+
+      ctx.beginPath();
+      for(let i=0;i<=100;i++){
+        const tt = T*i/100;
+        const X = ox + vx*tt*s, Z = oy - (vz*tt - 0.5*g*tt*tt)*s;
+        i ? ctx.lineTo(X,Z) : ctx.moveTo(X,Z);
+      }
+      ctx.strokeStyle='#c9d2ff'; ctx.setLineDash([3,3]); ctx.lineWidth=1.4; ctx.stroke(); ctx.setLineDash([]);
+
+      const X = ox + vx*t*s, Z = oy - (vz*t - 0.5*g*t*t)*s;
+      dot(ctx, X, Z, 5, C.blue);
+
+      const vyNow = vz - g*t;
+      arrow(ctx, X, Z, X + vx*s*0.5, Z, C.green, 'vₓ');
+      arrow(ctx, X, Z, X, Z - vyNow*s*0.5, C.orange, 'vᵣ');
+      arrow(ctx, X, Z, X, Z + 18, C.red, 'g');
+
+      txt(ctx, `portée ${R.toFixed(1)} m`, 6, 6, C.ink);
+      txt(ctx, `hauteur max ${H.toFixed(1)} m`, 6, 20, '#8b9096');
+      txt(ctx, `vol ${T.toFixed(2)} s`, 6, 34, '#8b9096');
+    });
+
+    return ()=>{ stopLoop(); stop(); };
+  }
+});
+
+/* ---------- 3 ---------- */
+SPRINTS.push({
+  short:'Mouvement circulaire',
+  tag:'Module 1 · Cinématique',
+  title:'Mouvement circulaire uniforme (MCU)',
+  theory:[
+    'Vitesse linéaire <b>v = R·ω</b> (ω = vitesse angulaire).',
+    'L\'accélération <b>centripète</b> a_c = v²/R = ω²R pointe toujours vers le centre.',
+    'Vitesse constante ≠ accélération nulle : la <b>direction</b> change.'
+  ],
+  real:'Un virage serré en voiture. Le compteur affiche 40 km/h constant, pourtant tu es poussé vers l\'extérieur.',
+  quiz:[
+    { q:"Dans un MCU, la vitesse est constante. L'accélération est-elle nulle ?",
+      opts:["Oui, forcément","Non, elle pointe vers le centre","Non, elle pointe vers l'extérieur"], a:1,
+      why:"La direction du vecteur vitesse change en permanence ⇒ accélération dirigée vers le centre." },
+    { q:"Si tu doubles la vitesse sur le même rayon, l'accélération centripète…",
+      opts:["double","quadruple","ne change pas"], a:1,
+      why:"a_c = v²/R. v ×2 ⇒ a_c ×4." }
+  ],
+  mount(host){
+    const {c, ctx, stop} = mkCanvas(host, 190);
+    const bar = el('div','ctrls'); host.appendChild(bar);
+    let R = 2, v = 10, ang = 0;
+
+    const sr = makeSlider(bar,{label:'Rayon R', min:0.8, max:4, step:0.1, value:R, unit:' m', fmt:x=>x.toFixed(1)});
+    const sv = makeSlider(bar,{label:'Vitesse v', min:1, max:20, step:0.5, value:v, unit:' m/s', fmt:x=>x.toFixed(1)});
+    sr.on(x=>R=x); sv.on(x=>v=x);
+
+    const stopLoop = loop(dt=>{
+      const w = c.clientWidth, h = c.clientHeight;
+      const ac = v*v/R;
+      ang += (v/R)*dt;
+
+      ctx.clearRect(0,0,w,h);
+      const cx = w/2, cy = h/2 + 2;
+      const pxm = Math.min( (h-38)/(2*4), (w-46)/(2*4) );
+      const rp = R*pxm;
+
+      ctx.beginPath(); ctx.arc(cx,cy,rp,0,Math.PI*2);
+      ctx.strokeStyle='#e5e5e5'; ctx.lineWidth=1.4; ctx.stroke();
+      dot(ctx, cx, cy, 2, C.light);
+
+      const x = cx + rp*Math.cos(ang), y = cy + rp*Math.sin(ang);
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y);
+      ctx.strokeStyle='#eef1ff'; ctx.lineWidth=2.5; ctx.stroke();
+
+      dot(ctx, x, y, 7, C.blue);
+
+      const tx = -Math.sin(ang), ty = Math.cos(ang);
+      const vL = 16 + v*2.6;
+      arrow(ctx, x, y, x + tx*vL, y + ty*vL, C.green, 'v');
+
+      const ux = (cx-x)/rp, uy = (cy-y)/rp;
+      const aL = Math.min(80, 10 + ac*2.2);
+      arrow(ctx, x, y, x + ux*aL, y + uy*aL, C.orange, 'a_c');
+
+      txt(ctx, `v = ${v.toFixed(1)} m/s  (constante)`, 6, 6, C.green);
+      txt(ctx, `ω = v/R = ${(v/R).toFixed(2)} rad/s`, 6, 20, '#8b9096');
+      txt(ctx, `a_c = v²/R = ${ac.toFixed(1)} m/s²`, 6, 34, C.orange);
+    });
+
+    return ()=>{ stopLoop(); stop(); };
+  }
+});
+
+/* ---------- 4 ---------- */
+SPRINTS.push({
+  short:'Lois de Newton',
+  tag:'Module 2 · Dynamique',
+  title:'Les 3 lois de Newton',
+  theory:[
+    '<b>1. Inertie</b> : si ΣF = 0, alors v reste constante.',
+    '<b>2. Principe fondamental</b> : F = m·a, donc <b>a = F/m</b>.',
+    '<b>3. Action-réaction</b> : F(A/B) = −F(B/A).'
+  ],
+  real:'Pousser un caddie vide vs un caddie plein. Même force, mais le plein accélère beaucoup moins : a = F/m.',
+  quiz:[
+    { q:"À force égale, si la masse double, l'accélération…",
+      opts:["double","est divisée par 2","ne change pas"], a:1,
+      why:"a = F/m. Masse ×2 ⇒ accélération ÷2." },
+    { q:"Tu es immobile sur un skate. Que fait la 3e loi si tu pousses un mur ?",
+      opts:["Rien","Le mur te pousse en arrière","Tu avances vers le mur"], a:1,
+      why:"Le mur exerce une force opposée sur toi : c'est l'action-réaction." }
+  ],
+  mount(host){
+    const {c, ctx, stop} = mkCanvas(host, 175);
+    const bar = el('div','ctrls'); host.appendChild(bar);
+    let F = 30, m1 = 4, m2 = 16, t = 0;
+
+    const sf = makeSlider(bar,{label:'Force F', min:5, max:60, step:1, value:F, unit:' N', fmt:x=>x.toFixed(0)});
+    const s1 = makeSlider(bar,{label:'Masse m₁', min:1, max:20, step:1, value:m1, unit:' kg', fmt:x=>x.toFixed(0)});
+    const s2 = makeSlider(bar,{label:'Masse m₂', min:1, max:20, step:1, value:m2, unit:' kg', fmt:x=>x.toFixed(0)});
+    const row = el('div','row'); bar.appendChild(row);
+    const bR = btn(row,'↺ Reset','ghost');
+
+    sf.on(x=>{F=x;t=0;}); s1.on(x=>{m1=x;t=0;}); s2.on(x=>{m2=x;t=0;});
+    bR.onclick = ()=>{ t=0; };
+
+    const stopLoop = loop(dt=>{
+      const w = c.clientWidth, h = c.clientHeight;
+      t += dt*0.32;
+      const a1 = F/m1, a2 = F/m2;
+      const x1 = 0.5*a1*t*t, x2 = 0.5*a2*t*t;
+      if(x1 > 7.5 || x2 > 7.5) t = 0;
+
+      ctx.clearRect(0,0,w,h);
+      const pxm = (w - 70) / 8.5;
+      const ox = 38;
+
+      const lane = (y, m, a, xm, label, color) => {
+        ctx.strokeStyle='#eceef2'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(ox, y); ctx.lineTo(w-14, y); ctx.stroke();
+
+        const bw = Math.min(70, 12 + m*2.2);
+        const bx = ox + xm*pxm;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        if(typeof ctx.roundRect === 'function'){
+          ctx.roundRect(bx, y-bw*0.55, bw, bw*0.55, 4);
+        } else {
+          ctx.rect(bx, y-bw*0.55, bw, bw*0.55);
+        }
+        ctx.fill();
+
+        arrow(ctx, bx-32, y-10, bx-2, y-10, C.orange, '');
+        txt(ctx, 'F', bx-36, y-22, C.orange);
+        txt(ctx, `${label} = ${m} kg → a = ${a.toFixed(2)} m/s²`, 6, y-42, '#5b6167');
+        txt(ctx, `x = ${xm.toFixed(2)} m`, w-70, y-22, '#b6bcc3');
+      };
+
+      lane(h*0.42, m1, a1, x1, 'm₁', '#c9d2ff');
+      lane(h*0.85, m2, a2, x2, 'm₂', '#ffd9bd');
+
+      txt(ctx, 'Même force F · masses différentes', 6, 6, C.ink);
+    });
+
+    return ()=>{ stopLoop(); stop(); };
+  }
+});
+
+/* ---------- 5 ---------- */
+SPRINTS.push({
+  short:'Différences finies',
+  tag:'Module 2 · Dynamique',
+  title:'Discrétisation par différences finies',
+  theory:[
+    'L\'ordinateur n\'a pas le temps continu : on avance par pas <b>Δt</b>.',
+    'v(t+Δt) = v(t) + a(t)·Δt  puis  r(t+Δt) = r(t) + v(t+Δt)·Δt.',
+    'Plus Δt est <b>petit</b>, plus on s\'approche de la vraie trajectoire.'
+  ],
+  real:'Un flipbook : des images fixes séparées de Δt = 1/24 s.',
+  quiz:[
+    { q:"Tu doubles le pas de temps Δt. L'erreur d'intégration…",
+      opts:["diminue","augmente","reste identique"], a:1,
+      why:"Plus tu fais de grands sauts, plus tu t'éloignes de la courbe exacte." },
+    { q:"Combien de pas pour simuler 5 s avec Δt = 0,01 s ?",
+      opts:["50","500","5000"], a:1,
+      why:"N = T/Δt = 5 / 0,01 = 500 pas." }
+  ],
+  mount(host){
+    const {c, ctx, stop} = mkCanvas(host, 195);
+    const bar = el('div','ctrls'); host.appendChild(bar);
+    const DTS = [0.25, 0.1, 0.05, 0.02, 0.01, 0.005];
+    let dti = 2, mode = 'semi';
+
+    const sd = makeSlider(bar,{label:'Pas de temps Δt', min:0, max:DTS.length-1, step:1, value:dti, unit:'', fmt:i=>DTS[i].toFixed(3)+' s'});
+    const sm = makeSelect(bar,{label:'Schéma', value:'semi', options:[
+      ['semi','Semi-implicite (v puis r)'],['explicit','Explicite (r puis v)']
+    ]});
+    sd.on(i=>{ dti=i; }); sm.on(v=>{ mode=v; });
+
+    const g = 9.81, v0 = 25, T = 2*v0/g;
+
+    const stopLoop = loop(()=>{
+      const dt = DTS[dti];
+      const w = c.clientWidth, h = c.clientHeight;
+
+      const ana = [];
+      for(let i=0;i<=200;i++){
+        const tt = T*i/200;
+        ana.push([tt, v0*tt - 0.5*g*tt*tt]);
+      }
+      const num = [[0,0]];
+      let z = 0, v = v0, t = 0, steps = 0;
+      while(t < T - 1e-9 && steps < 20000){
+        if(mode === 'semi'){ v -= g*dt; z += v*dt; }
+        else { z += v*dt; v -= g*dt; }
+        t += dt; steps++;
+        num.push([t, z]);
+      }
+      const err = num[num.length-1][1] - (v0*T - 0.5*g*T*T);
+
+      ctx.clearRect(0,0,w,h);
+      const padL=34, padB=22, padT=18;
+      const Zmax = 34;
+      const X = tt => padL + (tt/T)*(w-padL-16);
+      const Y = zz => h-padB - (zz/Zmax)*(h-padB-padT);
+
+      ctx.strokeStyle='#e5e5e5'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(padL,padT-6); ctx.lineTo(padL,h-padB); ctx.lineTo(w-12,h-padB); ctx.stroke();
+      txt(ctx,'z (m)',4,padT-14,'#b6bcc3','600 8.5px ui-monospace,monospace');
+      txt(ctx,'t (s)',w-30,h-padB+4,'#b6bcc3','600 8.5px ui-monospace,monospace');
+
+      ctx.beginPath();
+      ana.forEach(([tt,zz],i)=>{ i?ctx.lineTo(X(tt),Y(zz)):ctx.moveTo(X(tt),Y(zz)); });
+      ctx.strokeStyle='#c3c8ce'; ctx.lineWidth=1.8; ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+
+      ctx.beginPath();
+      num.forEach(([tt,zz],i)=>{ i?ctx.lineTo(X(tt),Y(zz)):ctx.moveTo(X(tt),Y(zz)); });
+      ctx.strokeStyle=C.blue; ctx.lineWidth=1.8; ctx.stroke();
+
+      if(num.length < 260){
+        num.forEach(([tt,zz])=>{ dot(ctx, X(tt), Y(zz), 1.8, C.blue); });
+      }
+
+      txt(ctx, `exact (gris)  vs  numérique (bleu)`, 6, 4, C.ink);
+      txt(ctx, `Δt = ${dt.toFixed(3)} s · ${steps} pas`, 6, h-14, '#8b9096');
+      txt(ctx, `erreur finale = ${err.toFixed(2)} m`, w-160, 4, Math.abs(err)>1?C.red:C.green);
+    });
+
+    return ()=>{ stopLoop(); stop(); };
+  }
+});
+
+/* ---------- 6 ---------- */
+SPRINTS.push({
+  short:'Réflexion aux bords',
+  tag:'Module 2 · Dynamique',
+  title:'Conditions aux limites — réflexion spéculaire',
+  theory:[
+    'Domaine = pavé Lₓ × L_y × L_z centré en (0,0,0).',
+    'Si l\'atome pénètre d\'une distance d dans un mur : on le remet à l\'intérieur (x\' = L/2 − d).',
+    'Et on inverse la composante de vitesse perpendiculaire : <b>vₓ → −vₓ</b>.'
+  ],
+  real:'Une balle de squash sur une paroi. Angle d\'incidence = angle de réflexion, et la vitesse parallèle au mur ne change pas.',
+  quiz:[
+    { q:"Un atome touche le mur en x = +Lₓ/2. Quelle vitesse change de signe ?",
+      opts:["v_y","vₓ","v_z"], a:1,
+      why:"Le mur est perpendiculaire à l'axe x : seule vₓ s'inverse." },
+    { q:"Pourquoi remettre l'atome à l'intérieur (x' = L/2 − d) ?",
+      opts:["Pour faire joli","Parce qu'il a dépassé la limite pendant le pas de temps","Pour changer sa masse"], a:1,
+      why:"Le pas de temps est fini : l'atome peut sortir légèrement. On corrige la position." }
+  ],
+  mount(host){
+    const {c, ctx, stop} = mkCanvas(host, 190);
+    const bar = el('div','ctrls'); host.appendChild(bar);
+    let speed = 3.5;
+
+    const Lx = 8, Ly = 4;
+    const balls = [];
+    for(let i=0;i<5;i++){
+      balls.push({
+        x: (Math.random()-0.5)*Lx*0.8,
+        y: (Math.random()-0.5)*Ly*0.8,
+        vx: (Math.random()<0.5?-1:1)*(1+Math.random()*1.5),
+        vy: (Math.random()<0.5?-1:1)*(1+Math.random()*1.5),
+        flash: 0
+      });
+    }
+    const trails = balls.map(()=>[]);
+
+    const ss = makeSlider(bar,{label:'Vitesse', min:0.5, max:8, step:0.1, value:speed, unit:' ×', fmt:x=>x.toFixed(1)});
+    const row = el('div','row'); bar.appendChild(row);
+    const bt = btn(row,'Effacer les traces','ghost');
+    ss.on(v=>speed=v);
+    bt.onclick = ()=>{ trails.forEach(t=>t.length=0); };
+
+    const stopLoop = loop(dt=>{
+      const w = c.clientWidth, h = c.clientHeight;
+      const s = Math.min((w-30)/Lx, (h-30)/Ly);
+      const ox = w/2, oy = h/2;
+
+      balls.forEach((b,i)=>{
+        b.x += b.vx*dt*speed;
+        b.y += b.vy*dt*speed;
+        b.flash = Math.max(0, b.flash - dt*3);
+
+        if(b.x > Lx/2){ const d = b.x - Lx/2; b.x = Lx/2 - d; b.vx = -b.vx; b.flash = 1; }
+        if(b.x < -Lx/2){ const d = -Lx/2 - b.x; b.x = -Lx/2 + d; b.vx = -b.vx; b.flash = 1; }
+        if(b.y > Ly/2){ const d = b.y - Ly/2; b.y = Ly/2 - d; b.vy = -b.vy; b.flash = 1; }
+        if(b.y < -Ly/2){ const d = -Ly/2 - b.y; b.y = -Ly/2 + d; b.vy = -b.vy; b.flash = 1; }
+
+        if(i===0){
+          trails[0].push([b.x,b.y]);
+          if(trails[0].length > 140) trails[0].shift();
+        } else {
+          trails[i].push([b.x,b.y]);
+          if(trails[i].length > 60) trails[i].shift();
+        }
+      });
+
+      ctx.clearRect(0,0,w,h);
+
+      ctx.strokeStyle = balls[0].flash > 0.5 ? '#4d6bfe' : '#d1d5db';
+      ctx.lineWidth = 1.8;
+      ctx.strokeRect(ox - Lx/2*s, oy - Ly/2*s, Lx*s, Ly*s);
+      ctx.strokeStyle='#f0f1f4'; ctx.lineWidth=1;
+      for(let i=1;i<8;i++){
+        const px = ox - Lx/2*s + i*Lx*s/8;
+        ctx.beginPath(); ctx.moveTo(px, oy-Ly/2*s); ctx.lineTo(px, oy+Ly/2*s); ctx.stroke();
+      }
+
+      trails.forEach((tr,i)=>{
+        if(tr.length < 2) return;
+        ctx.beginPath();
+        tr.forEach(([bx,by],j)=> j?ctx.lineTo(ox+bx*s, oy-by*s):ctx.moveTo(ox+bx*s, oy-by*s));
+        ctx.strokeStyle = i===0 ? 'rgba(77,107,254,.28)' : 'rgba(200,205,215,.4)';
+        ctx.lineWidth = 1.4; ctx.stroke();
+      });
+
+      balls.forEach((b,i)=>{
+        const X = ox + b.x*s, Y = oy - b.y*s;
+        dot(ctx, X, Y, i===0?6:4.5, i===0?C.blue:'#b9c0ca');
+        if(i===0){
+          arrow(ctx, X, Y, X + b.vx*10, Y, C.green, 'vₓ');
+          arrow(ctx, X, Y, X, Y - b.vy*10, C.orange, 'v_y');
+        }
+      });
+
+      txt(ctx, `Lₓ = ${Lx} m · L_y = ${Ly} m`, 6, 6, '#8b9096');
+      txt(ctx, `vₓ = ${balls[0].vx.toFixed(2)} · v_y = ${balls[0].vy.toFixed(2)}`, 6, h-14, C.ink);
+    });
+
+    return ()=>{ stopLoop(); stop(); };
+  }
+});
+
+/* ---------- 7 ---------- */
+SPRINTS.push({
+  short:'Travail & Ec',
+  tag:'Module 3 · Énergie',
+  title:'Travail d\'une force & énergie cinétique',
+  theory:[
+    'Travail : W = F·Δr·cos θ (seule la composante <b>dans le sens du mouvement</b> compte).',
+    'Énergie cinétique : E_c = ½·m·v².',
+    'Théorème : <b>W = ΔE_c</b> = ½m(v₂² − v₁²).'
+  ],
+  real:'Pousser une voiture en panne. De face (θ = 0°) → W > 0. Sur le côté (θ = 90°) → W = 0.',
+  quiz:[
+    { q:"Une force perpendiculaire au mouvement fournit un travail…",
+      opts:["maximal","nul","négatif"], a:1,
+      why:"cos 90° = 0. Une force perpendiculaire ne transfère aucune énergie." },
+    { q:"m = 2 kg passe de 3 à 5 m/s. Le travail reçu vaut…",
+      opts:["4 J","16 J","32 J"], a:1,
+      why:"W = ½·2·(25 − 9) = 16 J." }
+  ],
+  mount(host){
+    let m = 2, v1 = 3, v2 = 5;
+
+    const bars = el('div','bars');
+    host.appendChild(bars);
+    const mkBar = (label, color) => {
+      const col = el('div','barcol');
+      const val = el('div','barval','0 J');
+      const fill = el('div','barfill');
+      fill.style.background = color; fill.style.height = '0%';
+      const lab = el('div','barlabel',label);
+      col.append(val, fill, lab);
+      bars.appendChild(col);
+      return { fill, val };
+    };
+    const b1 = mkBar('Ec avant', '#c9d2ff');
+    const b2 = mkBar('Ec après', C.blue);
+    const b3 = mkBar('Travail W', C.orange);
+
+    const res = el('div','readout'); host.appendChild(res);
+    const verdict = el('div','real'); verdict.style.marginTop='6px'; host.appendChild(verdict);
+
+    const bar = el('div','ctrls'); host.appendChild(bar);
+    const sm = makeSlider(bar,{label:'Masse m', min:0.5, max:10, step:0.5, value:m, unit:' kg', fmt:x=>x.toFixed(1)});
+    const s1 = makeSlider(bar,{label:'Vitesse initiale v₁', min:0, max:10, step:0.1, value:v1, unit:' m/s', fmt:x=>x.toFixed(1)});
+    const s2 = makeSlider(bar,{label:'Vitesse finale v₂', min:0, max:10, step:0.1, value:v2, unit:' m/s', fmt:x=>x.toFixed(1)});
+
+    function update(){
+      const Ec1 = 0.5*m*v1*v1, Ec2 = 0.5*m*v2*v2, W = Ec2 - Ec1;
+      const max = Math.max(Ec1, Ec2, Math.abs(W), 0.001);
+      b1.fill.style.height = (Ec1/max*100)+'%';
+      b2.fill.style.height = (Ec2/max*100)+'%';
+      b3.fill.style.height = (Math.abs(W)/max*100)+'%';
+      b3.fill.style.background = W >= 0 ? C.orange : C.red;
+      b1.val.textContent = Ec1.toFixed(1)+' J';
+      b2.val.textContent = Ec2.toFixed(1)+' J';
+      b3.val.textContent = W.toFixed(1)+' J';
+      res.innerHTML =
+        `<span class="stat"><em>W</em> = ½·${m.toFixed(1)}·(${v2.toFixed(1)}² − ${v1.toFixed(1)}²) = <b>${W.toFixed(2)} J</b></span>` +
+        `<span class="stat">ΔE_c = ${(Ec2-Ec1).toFixed(2)} J</span>`;
+      verdict.innerHTML = W > 0.01
+        ? `<span class="tag">moteur</span> La force travaille <b>dans le sens</b> du mouvement : l'atome gagne de l'énergie cinétique.`
+        : W < -0.01
+        ? `<span class="tag">résistant</span> La force s'oppose au mouvement : l'atome perd de l'énergie cinétique.`
+        : `<span class="tag">nul</span> Aucun travail : l'énergie cinétique ne change pas.`;
+    }
+    sm.on(x=>{m=x;update();}); s1.on(x=>{v1=x;update();}); s2.on(x=>{v2=x;update();});
+    update();
+    return ()=>{};
+  }
+});
+
+/* ---------- 8 ---------- */
+SPRINTS.push({
+  short:'Énergie mécanique',
+  tag:'Module 3 · Énergie',
+  title:'Forces conservatives & énergie mécanique',
+  theory:[
+    'Énergie potentielle de pesanteur : U = m·g·z.',
+    'Énergie mécanique : <b>E_m = E_c + U</b>.',
+    'Sans frottement, <b>E_m = constante</b>. Avec chocs inélastiques, elle diminue.'
+  ],
+  real:'Les montagnes russes. En haut : vitesse nulle mais U maximale. En bas : toute la hauteur s\'est transformée en vitesse.',
+  quiz:[
+    { q:"Un ballon rebondit de plus en plus bas. Que devient son énergie mécanique ?",
+      opts:["Elle augmente","Elle diminue (chocs inélastiques)","Elle reste constante"], a:1,
+      why:"Chaque rebond perd de l'énergie en déformation et en chaleur." },
+    { q:"Au sommet d'une chute libre, quelle énergie est maximale ?",
+      opts:["Cinétique","Potentielle","Les deux"], a:1,
+      why:"U = mgz est maximale quand z est maximal, et E_c = 0 puisque v = 0 au départ." }
+  ],
+  mount(host){
+    const {c, ctx, stop} = mkCanvas(host, 175);
+    const bars = el('div','bars'); host.appendChild(bars);
+    const mkBar = (label,color)=>{
+      const col = el('div','barcol');
+      const val = el('div','barval','0 %');
+      const fill = el('div','barfill'); fill.style.background=color; fill.style.height='0%';
+      const lab = el('div','barlabel',label);
+      col.append(val,fill,lab); bars.appendChild(col);
+      return {fill,val};
+    };
+    const bC = mkBar('E_c','#c9d2ff');
+    const bU = mkBar('U','#c8e8d8');
+    const bM = mkBar('E_m',C.blue);
+
+    const bar = el('div','ctrls'); host.appendChild(bar);
+    const g = 9.81, m = 1;
+    let h0 = 8, e = 0.75;
+    let z = h0, vz = 0, lost = 0, bounces = 0, restTimer = 0;
+
+    const sh = makeSlider(bar,{label:'Hauteur de départ', min:2, max:12, step:0.5, value:h0, unit:' m', fmt:x=>x.toFixed(1)});
+    const se = makeSlider(bar,{label:'Coefficient de rebond e', min:0.2, max:1, step:0.05, value:e, fmt:x=>x.toFixed(2)});
+    const row = el('div','row'); bar.appendChild(row);
+    const bR = btn(row,'↺ Relancer','ghost');
+    sh.on(x=>{ h0=x; reset(); }); se.on(x=>{ e=x; reset(); });
+    bR.onclick = reset;
+    function reset(){ z=h0; vz=0; lost=0; bounces=0; restTimer=0; }
+
+    const E0 = () => m*g*h0;
+
+    const stopLoop = loop(dt=>{
+      const w = c.clientWidth, h = c.clientHeight;
+      vz -= g*dt;
+      z += vz*dt;
+      if(z < 0){
+        const impact = Math.abs(vz);
+        lost += 0.5*m*impact*impact*(1-e*e);
+        z = 0;
+        vz = -vz*e;
+        bounces++;
+        if(Math.abs(vz) < 0.8){ vz = 0; }
+      }
+      if(z <= 0.001 && Math.abs(vz) < 0.01){
+        restTimer += dt;
+        if(restTimer > 1.4) reset();
+      }
+
+      const Ec = 0.5*m*vz*vz;
+      const U  = m*g*Math.max(z,0);
+      const Em = Ec + U;
+      const den = Math.max(E0(), 0.001);
+
+      bC.fill.style.height = Math.min(100, Ec/den*100)+'%';
+      bU.fill.style.height = Math.min(100, U/den*100)+'%';
+      bM.fill.style.height = Math.min(100, Em/den*100)+'%';
+      bC.val.textContent = Ec.toFixed(1)+' J';
+      bU.val.textContent = U.toFixed(1)+' J';
+      bM.val.textContent = Em.toFixed(1)+' J';
+
+      ctx.clearRect(0,0,w,h);
+      const ground = h-18;
+      const pxm = (h-32)/12;
+      const X = w*0.5;
+
+      ctx.strokeStyle='#e5e5e5'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(14,ground); ctx.lineTo(w-14,ground); ctx.stroke();
+
+      ctx.setLineDash([3,3]);
+      ctx.strokeStyle='#eef1ff';
+      ctx.beginPath(); ctx.moveTo(14, ground-h0*pxm); ctx.lineTo(w-14, ground-h0*pxm); ctx.stroke();
+      ctx.setLineDash([]);
+
+      const Y = ground - z*pxm;
+      dot(ctx, X, Y, 8, C.blue);
+
+      arrow(ctx, X+12, Y, X+12, Y + vz*3, vz>0?C.green:C.orange, 'v');
+
+      txt(ctx, `z = ${Math.max(z,0).toFixed(2)} m`, 6, 6, C.ink);
+      txt(ctx, `chocs : ${bounces} · énergie perdue : ${lost.toFixed(1)} J`, 6, 20, '#8b9096');
+    });
+
+    return ()=>{ stopLoop(); stop(); };
+  }
+});
+
+/* ---------- 9 ---------- */
+SPRINTS.push({
+  short:'Collisions',
+  tag:'Module 3 · Énergie',
+  title:'Quantité de mouvement & chocs élastiques',
+  theory:[
+    'Quantité de mouvement : p = m·v. Impulsion : J = Δp.',
+    'Système isolé : <b>p_totale = constante</b>.',
+    'Choc élastique : p <b>et</b> E_c conservées. Masses égales, une immobile → échange complet des vitesses.'
+  ],
+  real:'Au billard, la blanche percute de plein fouet une rouge immobile de même masse : la blanche s\'arrête net, la rouge part avec toute la vitesse.',
+  quiz:[
+    { q:"Deux masses égales, choc élastique, la 2e immobile. Après le choc…",
+      opts:["les deux avancent à v/2","la 1re s'arrête, la 2e part à v","la 1re repart en arrière"], a:1,
+      why:"v₁' = 0 et v₂' = v₁. C'est l'échange complet des vitesses." },
+    { q:"Dans un choc entre deux atomes isolés, quelle grandeur est TOUJOURS conservée ?",
+      opts:["L'énergie cinétique","La quantité de mouvement totale","La vitesse de chaque atome"], a:1,
+      why:"p_totale est conservée dès qu'il n'y a pas de force extérieure." }
+  ],
+  mount(host){
+    const {c, ctx, stop} = mkCanvas(host, 165);
+    const bar = el('div','ctrls'); host.appendChild(bar);
+    let m1 = 2, m2 = 2, v1 = 4, v2 = 0;
+
+    const s1 = makeSlider(bar,{label:'Masse m₁', min:1, max:10, step:1, value:m1, unit:' kg', fmt:x=>x.toFixed(0)});
+    const s2 = makeSlider(bar,{label:'Masse m₂', min:1, max:10, step:1, value:m2, unit:' kg', fmt:x=>x.toFixed(0)});
+    const s3 = makeSlider(bar,{label:'Vitesse v₁', min:1, max:8, step:0.5, value:v1, unit:' m/s', fmt:x=>x.toFixed(1)});
+    const s4 = makeSlider(bar,{label:'Vitesse v₂', min:-4, max:4, step:0.5, value:v2, unit:' m/s', fmt:x=>x.toFixed(1)});
+    const row = el('div','row'); bar.appendChild(row);
+    const bGo = btn(row,'⚡ Lancer la collision');
+    const bR = btn(row,'↺ Reset','ghost');
+
+    const res = el('div','readout'); host.appendChild(res);
+
+    let phase = 'ready', x1 = 2, x2 = 7.5, w1 = 0, w2 = 0, t = 0;
+
+    const rad = m => 0.18 + 0.11*Math.cbrt(m);
+
+    function reset(){
+      phase='ready'; x1=2; x2=7.5; w1=0; w2=0; t=0;
+      render();
+    }
+    function go(){
+      reset();
+      w1 = v1; w2 = v2; phase='run';
+    }
+    s1.on(x=>{m1=x; reset();}); s2.on(x=>{m2=x; reset();});
+    s3.on(x=>{v1=x; reset();}); s4.on(x=>{v2=x; reset();});
+    bGo.onclick = go; bR.onclick = reset;
+
+    function render(){
+      const p0 = m1*v1 + m2*v2;
+      const ec0 = 0.5*m1*v1*v1 + 0.5*m2*v2*v2;
+      const pA = m1*w1 + m2*w2;
+      const ecA = 0.5*m1*w1*w1 + 0.5*m2*w2*w2;
+      const after = phase === 'after' || phase === 'out';
+      res.innerHTML =
+        `<span class="stat"><em>avant</em> p = ${p0.toFixed(2)} · E_c = ${ec0.toFixed(2)}</span>` +
+        `<span class="stat hi"><em>après</em> p = ${(after?pA:p0).toFixed(2)} · E_c = ${(after?ecA:ec0).toFixed(2)}</span>` +
+        `<span class="stat">v₁' = ${after?w1.toFixed(2):'?'} · v₂' = ${after?w2.toFixed(2):'?'}</span>`;
+    }
+    render();
+
+    const stopLoop = loop(dt=>{
+      if(phase === 'run' || phase === 'after'){
+        const ts = 0.6;
+        x1 += w1*dt*ts; x2 += w2*dt*ts;
+        const r1 = rad(m1), r2 = rad(m2);
+        if(phase === 'run' && x2 - x1 <= r1 + r2 && (w1 - w2) > 0){
+          const nv1 = ((m1-m2)*w1 + 2*m2*w2)/(m1+m2);
+          const nv2 = ((m2-m1)*w2 + 2*m1*w1)/(m1+m2);
+          w1 = nv1; w2 = nv2;
+          x1 = x2 - (r1 + r2);
+          phase = 'after';
+          render();
+        }
+        if(x1 < 0.5 || x1 > 9.5 || x2 < 0.5 || x2 > 9.5){ phase = 'out'; }
+      }
+
+      const w = c.clientWidth, h = c.clientHeight;
+      ctx.clearRect(0,0,w,h);
+      const padL = 26, padR = 18;
+      const s = (w - padL - padR)/10;
+      const Y = h*0.55;
+
+      ctx.strokeStyle='#e5e5e5'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(padL, Y+18); ctx.lineTo(w-padR, Y+18); ctx.stroke();
+      for(let i=0;i<=10;i++){
+        const px = padL + i*s;
+        ctx.beginPath(); ctx.moveTo(px, Y+15); ctx.lineTo(px, Y+21); ctx.stroke();
+      }
+
+      const R1 = rad(m1)*s, R2 = rad(m2)*s;
+      const X1 = padL + x1*s, X2 = padL + x2*s;
+
+      dot(ctx, X1, Y, Math.max(8, R1), '#c9d2ff');
+      dot(ctx, X2, Y, Math.max(8, R2), C.blue);
+      txt(ctx, 'm₁', X1-6, Y-5, '#2a3ea8');
+      txt(ctx, 'm₂', X2-6, Y-5, '#fff');
+
+      if(phase !== 'ready'){
+        arrow(ctx, X1, Y-26, X1 + w1*10, Y-26, C.orange, 'v₁');
+        arrow(ctx, X2, Y+32, X2 + w2*10, Y+32, C.green, 'v₂');
+      }
+      txt(ctx, phase==='ready' ? 'Clique sur « Lancer la collision »' : `phase : ${phase}`,
+          6, 4, '#8b9096');
+    });
+
+    return ()=>{ stopLoop(); stop(); };
+  }
+});
+
+/* ---------- 10 ---------- */
+SPRINTS.push({
+  short:'Classes Python',
+  tag:'Module 4 · Logiciel',
+  title:'Structure des classes Atome / Domaine / Simulation',
+  theory:[
+    '<b>Atome</b> : masse, rayon, formule, position et vitesse en numpy.ndarray.',
+    '<b>Domaine</b> : Lₓ, L_y, L_z et une méthode qui calcule le volume.',
+    '<b>Simulation</b> : un tableau d\'atomes + un domaine.'
+  ],
+  real:'Pense à Minecraft : chaque bloc a ses propres coordonnées X, Y, Z et évolue dans une carte bordée de murs.',
+  quiz:[
+    { q:"Pourquoi stocker position et vitesse dans un np.array plutôt que 6 variables ?",
+      opts:["C'est plus joli","Les opérations vectorielles deviennent une seule ligne","Ça prend moins de RAM"], a:1,
+      why:"r += v*dt fonctionne directement sur un tableau NumPy, au lieu d'écrire x, y et z séparément." },
+    { q:"Le volume du domaine vaut Lx=10, Ly=5, Lz=4. Résultat ?",
+      opts:["19 m³","200 m³","50 m³"], a:1,
+      why:"V = 10 × 5 × 4 = 200 m³." }
+  ],
+  mount(host){
+    const grid = el('div','two');
+    host.appendChild(grid);
+
+    const left = el('div'); grid.appendChild(left);
+    const right = el('div'); grid.appendChild(right);
+
+    left.appendChild(el('div','quiz-title','Atome — constructeur'));
+    const form = el('div','ctrls'); left.appendChild(form);
+    const inName = el('label','ctrl');
+    inName.appendChild(el('div','ctrl-head','<span>Formule</span>'));
+    const nameI = el('input'); nameI.type='text'; nameI.value='He'; inName.appendChild(nameI); form.appendChild(inName);
+
+    const sm  = makeSlider(form,{label:'Masse', min:1, max:40, step:0.5, value:4, unit:' u', fmt:x=>x.toFixed(1)});
+    const sr  = makeSlider(form,{label:'Rayon', min:0.1, max:2, step:0.05, value:0.5, unit:' Å', fmt:x=>x.toFixed(2)});
+    const spx = makeSlider(form,{label:'position x', min:-5, max:5, step:0.1, value:1, fmt:x=>x.toFixed(1)});
+    const spy = makeSlider(form,{label:'position y', min:-5, max:5, step:0.1, value:2, fmt:x=>x.toFixed(1)});
+    const spz = makeSlider(form,{label:'position z', min:-5, max:5, step:0.1, value:0, fmt:x=>x.toFixed(1)});
+    const svx = makeSlider(form,{label:'vitesse vₓ', min:-5, max:5, step:0.1, value:0.5, fmt:x=>x.toFixed(1)});
+    const svy = makeSlider(form,{label:'vitesse v_y', min:-5, max:5, step:0.1, value:-0.3, fmt:x=>x.toFixed(1)});
+    const svz = makeSlider(form,{label:'vitesse v_z', min:-5, max:5, step:0.1, value:0, fmt:x=>x.toFixed(1)});
+
+    const codeBox = el('pre','code');
+    left.appendChild(codeBox);
+
+    function refresh(){
+      const nm = (nameI.value || 'X').replace(/"/g,'');
+      codeBox.textContent =
+`import numpy as np
+
+class Atome:
+    def __init__(self):
+        self.formule  = "${nm}"
+        self.masse    = ${sm.value.toFixed(1)}
+        self.rayon    = ${sr.value.toFixed(2)}
+        self.position = np.array([${spx.value.toFixed(1)}, ${spy.value.toFixed(1)}, ${spz.value.toFixed(1)}])
+        self.vitesse  = np.array([${svx.value.toFixed(1)}, ${svy.value.toFixed(1)}, ${svz.value.toFixed(1)}])`;
+    }
+    nameI.addEventListener('input', refresh);
+    [sm, sr, spx, spy, spz, svx, svy, svz].forEach(o => o.on(refresh));
+    refresh();
+
+    right.appendChild(el('div','quiz-title','Domaine — volume'));
+    const form2 = el('div','ctrls'); right.appendChild(form2);
+    const slx = makeSlider(form2,{label:'Lₓ', min:1, max:20, step:0.5, value:10, unit:' m', fmt:x=>x.toFixed(1)});
+    const sly = makeSlider(form2,{label:'L_y', min:1, max:20, step:0.5, value:5, unit:' m', fmt:x=>x.toFixed(1)});
+    const slz = makeSlider(form2,{label:'L_z', min:1, max:20, step:0.5, value:4, unit:' m', fmt:x=>x.toFixed(1)});
+
+    const volOut = el('div','readout'); right.appendChild(volOut);
+    const code2 = el('pre','code'); right.appendChild(code2);
+
+    function refresh2(){
+      const V = slx.value * sly.value * slz.value;
+      volOut.innerHTML = `<span class="stat hi"><em>V</em> = ${slx.value.toFixed(1)} × ${sly.value.toFixed(1)} × ${slz.value.toFixed(1)} = <b>${V.toFixed(1)} m³</b></span>`;
+      code2.textContent =
+`class Domaine:
+    def __init__(self, Lx, Ly, Lz):
+        self.Lx = ${slx.value.toFixed(1)}
+        self.Ly = ${sly.value.toFixed(1)}
+        self.Lz = ${slz.value.toFixed(1)}
+
+    def volume(self):
+        return self.Lx * self.Ly * self.Lz   # ${V.toFixed(1)}`;
+    }
+    [slx,sly,slz].forEach(o=>o.on(refresh2));
+    refresh2();
+
+    return ()=>{};
+  }
+});
+
+/* ---------- 11 ---------- */
+SPRINTS.push({
+  short:'Export HDF5',
+  tag:'Module 4 · Logiciel',
+  title:'Export scientifique HDF5 / XDMF',
+  theory:[
+    '<b>.h5</b> : conteneur binaire haute performance (les données brutes).',
+    '<b>.xdmf</b> : fichier XML léger qui décrit la grille et la série temporelle à ParaView.',
+    'Trois appels : open_export → write_step_into_export → close_export.'
+  ],
+  real:'Le .h5 est un conteneur maritime fermé. Le .xdmf est le manifeste de douane que l\'inspecteur (ParaView) lit sans ouvrir les caisses.',
+  quiz:[
+    { q:"À quoi sert le fichier .xdmf ?",
+      opts:["Stocker les positions des atomes","Décrire en XML ce que contient le .h5","Remplacer NumPy"], a:1,
+      why:"Le .xdmf ne contient pas les données : il indique à ParaView où et comment les lire dans le .h5." },
+    { q:"Tu oublies close_export(). Que se passe-t-il ?",
+      opts:["Le fichier reste incomplet / corrompu","Rien du tout","Les données sont doublées"], a:0,
+      why:"Il faut fermer le fichier HDF5 pour que l'en-tête et les index soient écrits correctement." }
+  ],
+  mount(host){
+    const grid = el('div','two'); host.appendChild(grid);
+    const left = el('div'); grid.appendChild(left);
+    const right = el('div'); grid.appendChild(right);
+
+    left.appendChild(el('div','quiz-title','Structure du fichier'));
+    const tree = el('div','tree'); left.appendChild(tree);
+
+    const row = el('div','row'); left.appendChild(row);
+    const bOpen = btn(row,'open_export()');
+    const bStep = btn(row,'write_step_into_export()','ghost');
+    const bClose = btn(row,'close_export()','ghost');
+    bStep.disabled = true; bClose.disabled = true;
+
+    right.appendChild(el('div','quiz-title','simulation.xdmf'));
+    const xml = el('pre','code'); right.appendChild(xml);
+
+    let opened = false, steps = 0, closed = false;
+
+    function draw(){
+      let t = `<span style="color:#4d6bfe">simulation.h5</span>\n`;
+      if(!opened){
+        t += `  <span style="color:#a2a8ae">(fichier inexistant — clique sur open_export)</span>`;
+      } else {
+        t += `├── /atomes/masse      <span style="color:#2f9e6b">float64[1000]</span>\n`;
+        t += `├── /atomes/rayon      <span style="color:#2f9e6b">float64[1000]</span>\n`;
+        t += `├── /atomes/position   <span style="color:#2f9e6b">float64[${steps||1},1000,3]</span>\n`;
+        t += `├── /atomes/vitesse    <span style="color:#2f9e6b">float64[${steps||1},1000,3]</span>\n`;
+        t += `└── /boundary/L        <span style="color:#2f9e6b">float64[3]</span>`;
+        if(closed) t += `\n<span style="color:#2f9e6b">✓ fichier fermé proprement</span>`;
+      }
+      tree.innerHTML = t;
+
+      let x = `<span style="color:#4d6bfe">&lt;Xdmf&gt;</span>
+  <span style="color:#4d6bfe">&lt;Domain&gt;</span>
+    <span style="color:#4d6bfe">&lt;Grid</span> Name="boundary" <span style="color:#4d6bfe">/&gt;</span>`;
+      if(steps > 0){
+        x += `
+    <span style="color:#4d6bfe">&lt;Grid</span> CollectionType="Temporal"<span style="color:#4d6bfe">&gt;</span>`;
+        for(let i=0;i<steps;i++){
+          x += `
+      <span style="color:#4d6bfe">&lt;Grid</span> Name="step_${i}"<span style="color:#4d6bfe">&gt;</span>
+        <span style="color:#4d6bfe">&lt;Geometry</span> GeometryType="XYZ"<span style="color:#4d6bfe">&gt;&lt;DataItem&gt;</span>
+          atomes/position[${i}]
+        <span style="color:#4d6bfe">&lt;/DataItem&gt;&lt;/Geometry&gt;</span>
+      <span style="color:#4d6bfe">&lt;/Grid&gt;</span>`;
+        }
+        x += `
+    <span style="color:#4d6bfe">&lt;/Grid&gt;</span>`;
+      }
+      x += `
+  <span style="color:#4d6bfe">&lt;/Domain&gt;</span>
+<span style="color:#4d6bfe">&lt;/Xdmf&gt;</span>`;
+      xml.innerHTML = x;
+    }
+    draw();
+
+    bOpen.onclick = ()=>{ opened = true; steps = 0; closed = false; bStep.disabled=false; bClose.disabled=false; draw(); };
+    bStep.onclick = ()=>{ if(opened && !closed){ steps++; draw(); } };
+    bClose.onclick = ()=>{ closed = true; bStep.disabled = true; bClose.disabled = true; draw(); };
+
+    return ()=>{};
+  }
+});
+
+/* ---------- 12 ---------- */
+SPRINTS.push({
+  short:'ParaView',
+  tag:'Module 4 · Visualisation',
+  title:'Visualisation 3D avec ParaView',
+  theory:[
+    'ParaView sépare le calcul brut de la représentation visuelle.',
+    'Pipeline : XDMF Reader → Extract Block → Glyph (Sphere) → Play.',
+    'Le <b>Glyph</b> transforme chaque point en sphère de rayon = radius.'
+  ],
+  real:'C\'est le moteur de rendu d\'un studio d\'animation : les trajectoires sont calculées en amont, ParaView s\'occupe de la lumière et de la caméra.',
+  quiz:[
+    { q:"À quoi sert le filtre Glyph ?",
+      opts:["À calculer les collisions","À remplacer chaque point par une sphère de rayon donné","À compresser les données"], a:1,
+      why:"Glyph dessine une forme à la position de chaque point. Scale Array = radius rend la taille physique visible." },
+    { q:"Dans quel ordre ouvre-t-on les données ?",
+      opts:["Glyph puis XDMF Reader","XDMF Reader puis Extract Block puis Glyph","Play puis Glyph"], a:1,
+      why:"On charge d'abord le fichier, on extrait les blocs voulus, puis on applique les filtres d'affichage." }
+  ],
+  mount(host){
+    const {c, ctx, stop} = mkCanvas(host, 190);
+    const wrap = el('div'); host.appendChild(wrap);
+
+    const STEPS = [
+      {id:'reader', label:'XDMF Reader'},
+      {id:'block',  label:'Extract Block — boundary'},
+      {id:'ts',     label:'Extract Block — TimeSeries'},
+      {id:'glyph',  label:'Glyph — Sphere (radius)'},
+      {id:'play',   label:'▶ Play'}
+    ];
+    const shuffled = [STEPS[3], STEPS[0], STEPS[4], STEPS[2], STEPS[1]];
+    let progress = 0;
+    const row = el('div','row'); wrap.appendChild(row);
+    const msg = el('div','real'); msg.style.marginTop='6px'; wrap.appendChild(msg);
+    msg.innerHTML = '<span class="tag">pipeline</span> Clique les étapes dans le bon ordre pour construire le rendu.';
+
+    shuffled.forEach(s => {
+      const b = btn(row, s.label, 'ghost');
+      b.onclick = ()=>{
+        if(progress >= STEPS.length) return;
+        if(s.id === STEPS[progress].id){
+          b.style.borderColor = '#2f9e6b';
+          b.style.color = '#1f7a52';
+          b.style.background = '#f2fbf6';
+          b.disabled = true;
+          progress++;
+          msg.innerHTML = progress === STEPS.length
+            ? '<span class="tag">terminé</span> Rendu complet. Les sphères sont dimensionnées par <b>radius</b>.'
+            : `<span class="tag">étape ${progress}/5</span> ${STEPS[progress].label} — à toi.`;
+        } else {
+          b.style.animation = 'shake .28s';
+          setTimeout(()=>b.style.animation='', 300);
+          msg.innerHTML = `<span class="tag" style="color:#e05555;border-color:#f5c6c6">erreur</span> Il faut d'abord « ${STEPS[progress].label} ».`;
+        }
+      };
+    });
+
+    const parts = [];
+    for(let i=0;i<60;i++){
+      parts.push({ x:Math.random(), y:Math.random(), r:0.4+Math.random()*1.2, ph:Math.random()*6.28 });
+    }
+
+    const stopLoop = loop(()=>{
+      const w = c.clientWidth, h = c.clientHeight;
+      ctx.clearRect(0,0,w,h);
+
+      if(progress === 0){
+        txt(ctx,'Aucune donnée chargée', w/2-50, h/2-5, '#c3c8ce');
+        return;
+      }
+
+      const cx = w/2, cy = h/2;
+      const S = Math.min(w,h)*0.62;
+
+      ctx.strokeStyle='#f3f4f7'; ctx.lineWidth=1;
+      for(let i=-2;i<=2;i++){
+        ctx.beginPath(); ctx.moveTo(cx-S*0.55, cy+i*S*0.22); ctx.lineTo(cx+S*0.55, cy+i*S*0.22); ctx.stroke();
+      }
+
+      const bx = S*0.5, by = S*0.34, skew = S*0.18;
+      ctx.strokeStyle = progress >= 2 ? C.blue : '#d1d5db';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(cx-bx, cy-by); ctx.lineTo(cx+bx, cy-by);
+      ctx.lineTo(cx+bx, cy+by); ctx.lineTo(cx-bx, cy+by); ctx.closePath();
+      ctx.stroke();
+      if(progress >= 2){
+        ctx.beginPath();
+        ctx.moveTo(cx-bx, cy-by); ctx.lineTo(cx-bx+skew, cy-by-skew*0.6);
+        ctx.lineTo(cx+bx+skew, cy-by-skew*0.6); ctx.lineTo(cx+bx, cy-by);
+        ctx.stroke();
+      }
+
+      if(progress >= 3){
+        const t = performance.now()/1000;
+        parts.forEach(p=>{
+          const moved = progress >= 5;
+          const px = moved ? (p.x + Math.sin(t*0.6 + p.ph)*0.06) : p.x;
+          const py = moved ? (p.y + Math.cos(t*0.5 + p.ph)*0.06) : p.y;
+          const X = cx - bx + px*2*bx;
+          const Y = cy - by + py*2*by;
+          const R = progress >= 4 ? p.r*2.6 : 2;
+          ctx.beginPath(); ctx.arc(X, Y, R, 0, Math.PI*2);
+          if(progress >= 4){
+            const k = Math.min(1, p.r/1.6);
+            ctx.fillStyle = `rgba(${77 + 60*k}, ${107 + 40*k}, 254, ${0.35 + 0.5*k})`;
+          } else {
+            ctx.fillStyle = 'rgba(150,158,170,.75)';
+          }
+          ctx.fill();
+        });
+      }
+
+      if(progress >= 5){
+        txt(ctx,'▶ animation en cours', 6, 6, C.blue);
+      }
+      txt(ctx,`pipeline : ${progress}/5`, 6, h-14, '#8b9096');
+    });
+
+    return ()=>{ stopLoop(); stop(); };
+  }
+});
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const KEY = 'playground_physique_v2';
+let state = { done: [] };
+try{
+  const raw = localStorage.getItem(KEY) || localStorage.getItem('playground_physique_v1');
+  if(raw){
+    const p = JSON.parse(raw);
+    if(p && Array.isArray(p.done)) state = { done: p.done.filter(x => Number.isInteger(x) && x >= 0 && x < SPRINTS.length) };
+  }
+}catch(e){ console.warn('[playground] state parse failed', e); }
+
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+const isUnlocked = i => i === 0 || state.done.includes(i-1);
+
+let current = 0;
+let cleanup = null;
+
+function renderRail(){
+  rail.innerHTML = '';
+  SPRINTS.forEach((s,i)=>{
+    const b = el('button','sidebar-item');
+    const done = state.done.includes(i);
+    const locked = !isUnlocked(i);
+    b.innerHTML =
+      `<span class="num">${String(i+1).padStart(2,'0')}</span>` +
+      `<span class="label">${s.short}</span>` +
+      `<span class="check">✓</span>`;
+    if(done) b.classList.add('done');
+    if(i === current) b.classList.add('active');
+    if(locked) b.classList.add('locked');
+    b.onclick = ()=>{ if(isUnlocked(i)) open(i); };
+    rail.appendChild(b);
+  });
+  const p = SPRINTS.length ? (state.done.length / SPRINTS.length * 100) : 0;
+  progFill.style.width = p + '%';
+  progLabel.textContent = `${state.done.length} / ${SPRINTS.length}`;
+}
+
+function renderBilan(){
+  current = SPRINTS.length;
+  stage.innerHTML = '';
+  const card = el('div','card');
+  card.innerHTML = `
+    <div class="eyebrow">Parcours terminé<span class="pill">12 / 12</span></div>
+    <h2>🎉 Les 12 sprints sont validés</h2>
+    <ul class="theory">
+      <li>Cinématique : position, vitesse, accélération, balistique, MCU.</li>
+      <li>Dynamique : 3 lois de Newton, différences finies, réflexion aux bords.</li>
+      <li>Énergie : travail, énergie mécanique, collisions élastiques.</li>
+      <li>Logiciel : classes Python, export HDF5/XDMF, ParaView.</li>
+    </ul>
+    <div class="real"><span class="tag">prochaine étape</span>Ouvre ton vrai projet Python et écris la classe <b>Atome</b> avec <code>np.array</code> pour position et vitesse.</div>`;
+  stage.appendChild(card);
+  renderRail();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function open(i){
+  if(i === SPRINTS.length){
+    if(cleanup){ try{ cleanup(); }catch(e){} cleanup = null; }
+    renderBilan();
+    return;
+  }
+  if(!SPRINTS[i]) return;
+
+  if(cleanup){ try{ cleanup(); }catch(e){} cleanup = null; }
+  current = i;
+  const s = SPRINTS[i];
+  stage.innerHTML = '';
+
+  const card = el('div','card');
+  const eyebrow = el('div','eyebrow', s.tag);
+  eyebrow.innerHTML += `<span class="pill">20 min</span>`;
+  card.appendChild(eyebrow);
+  card.appendChild(el('h2', null, s.title));
+
+  const theory = el('ul','theory');
+  s.theory.forEach(t => theory.appendChild(el('li', null, t)));
+  card.appendChild(theory);
+
+  card.appendChild(el('div','real', `<span class="tag">Monde réel</span>${s.real}`));
+
+  const play = el('div','play');
+  card.appendChild(play);
+
+  const qz = el('div','quiz');
+  qz.appendChild(el('div','quiz-title','Vérifie que c\'est ancré'));
+  const answered = new Array(s.quiz.length).fill(false);
+
+  const finishRow = el('div','finish');
+  const finishBtn = el('button','b','Terminer le sprint ✓');
+  finishBtn.disabled = true;
+  const hint = el('div','hint','Réponds juste aux questions pour valider.');
+
+  s.quiz.forEach((q, qi)=>{
+    const box = el('div','q');
+    box.appendChild(el('div','q-text', `${qi+1}. ${q.q}`));
+    const opts = el('div','opts');
+    q.opts.forEach((o, oi)=>{
+      const b = el('button','opt', o);
+      b.onclick = ()=>{
+        if(box.classList.contains('ok')) return;
+        if(oi === q.a){
+          b.classList.add('good');
+          box.classList.add('ok');
+          box.appendChild(el('div','why', '✓ ' + q.why));
+          answered[qi] = true;
+          if(answered.every(Boolean)){
+            finishBtn.disabled = false;
+            hint.textContent = 'Tout est bon — valide le sprint.';
+          }
+        } else {
+          b.classList.add('bad');
+          setTimeout(()=>b.classList.remove('bad'), 380);
+        }
+      };
+      opts.appendChild(b);
+    });
+    box.appendChild(opts);
+    qz.appendChild(box);
+  });
+
+  finishBtn.onclick = ()=>{
+    if(!state.done.includes(i)) state.done.push(i);
+    save();
+    finishBtn.textContent = '✓ Sprint validé';
+    finishBtn.disabled = true;
+    hint.innerHTML = '<span class="done-badge">+1 sprint</span> Prochain débloqué…';
+    renderRail();
+    setTimeout(()=>{
+      if(i+1 < SPRINTS.length) open(i+1);
+      else open(SPRINTS.length);
+    }, 800);
+  };
+
+  finishRow.append(finishBtn, hint);
+  qz.appendChild(finishRow);
+  card.appendChild(qz);
+  stage.appendChild(card);
+
+  try {
+    cleanup = s.mount(play) || null;
+  } catch(e){
+    console.error('[playground] mount failed for sprint', i+1, e);
+    const errBox = el('div','err-card');
+    errBox.innerHTML = `<b>Ce playground n'a pas pu s'initialiser.</b><br>Le reste fonctionne : tu peux répondre au quiz et valider. Détail en console : <code>${(e && e.message) || e}</code>`;
+    play.appendChild(errBox);
+    cleanup = null;
+  }
+
+  renderRail();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.getElementById('resetAll').onclick = ()=>{
+  if(!confirm('Effacer toute la progression ?')) return;
+  state = { done: [] };
+  save();
+  open(0);
+};
+
+renderRail();
+let startAt = 0;
+for(let i=0;i<SPRINTS.length;i++){ if(!state.done.includes(i)){ startAt = i; break; } }
+if(state.done.length >= SPRINTS.length) startAt = SPRINTS.length;
+open(startAt);
+</script>
+</body>
+</html>
