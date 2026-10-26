@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open Source License Selector</title>
+<meta name="description" content="Answer a few questions and get an open source license recommendation. Built from the ChooseALicense.com catalog and the SPDX License List.">
+<style>
+:root{
+  --bg:#f7f8fa;--card:#fff;--ink:#0d0d0d;--muted:#5b6472;--line:#e5e7eb;--line2:#d1d5db;
+  --accent:#4d6bfe;--accent-soft:#eef2ff;--good:#0f7b4f;--good-soft:#e7f6ee;
+  --warn:#8a5a00;--warn-soft:#fdf3e0;--bad:#a3251d;--bad-soft:#fdeceb;
+  --r:14px;--sh:0 1px 2px rgba(16,24,40,.04),0 8px 24px rgba(16,24,40,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 20px 80px}
+header.top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+h1{font-size:26px;line-height:1.2;margin:0 0 6px;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:14.5px;margin:0;max-width:640px}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{appearance:none;border:1px solid transparent;background:var(--accent);color:#fff;font:inherit;font-size:14px;font-weight:600;padding:10px 16px;border-radius:10px;cursor:pointer;transition:.15s ease;text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+.btn:hover{filter:brightness(.96)}
+.btn:focus-visible{outline:3px solid #c7d2fe;outline-offset:2px}
+.btn.ghost{background:#fff;color:var(--ink);border-color:var(--line2)}
+.btn.ghost:hover{background:#fafafa;filter:none}
+.btn.small{padding:7px 12px;font-size:13px;border-radius:9px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:24px}
+.card+.card{margin-top:18px}
+.progress-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+.progress-label{font-size:12.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.progress-count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{height:6px;background:#eef0f4;border-radius:999px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .3s ease}
+.q-title{font-size:21px;line-height:1.3;margin:20px 0 4px;letter-spacing:-.01em}
+.q-help{color:var(--muted);font-size:14px;margin:0 0 18px}
+.options{display:grid;gap:10px}
+.option{text-align:left;width:100%;background:#fff;border:1px solid var(--line2);border-radius:12px;padding:14px 16px;cursor:pointer;font:inherit;color:inherit;transition:.15s ease;display:flex;gap:12px;align-items:flex-start}
+.option:hover{border-color:var(--accent);background:#fbfcff}
+.option:focus-visible{outline:3px solid #c7d2fe;outline-offset:2px}
+.option .dot{flex:0 0 18px;height:18px;border-radius:50%;border:2px solid var(--line2);margin-top:2px;transition:.15s ease}
+.option.selected{border-color:var(--accent);background:var(--accent-soft)}
+.option.selected .dot{border-color:var(--accent);background:var(--accent);box-shadow:inset 0 0 0 3px #fff}
+.option .lbl{font-weight:600;font-size:15px;display:block}
+.option .hint{font-size:13px;color:var(--muted);display:block;margin-top:2px}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:22px}
+.badges{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px}
+.badge{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:#f1f3f7;color:#3b4252;border:1px solid var(--line)}
+.badge.osi{background:var(--good-soft);color:var(--good);border-color:#c9e9d8}
+.badge.no{background:var(--bad-soft);color:var(--bad);border-color:#f6cfcc}
+.badge.patent{background:var(--accent-soft);color:#2f45c9;border-color:#d5ddff}
+.badge.warn{background:var(--warn-soft);color:var(--warn);border-color:#f3e0bb}
+.result-name{font-size:30px;line-height:1.15;margin:0 0 6px;letter-spacing:-.02em}
+.result-id{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;color:var(--muted)}
+.result-desc{margin:14px 0 0;font-size:15px;color:#2b313b}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
+@media (max-width:720px){.grid2{grid-template-columns:1fr}}
+.panel{border:1px solid var(--line);border-radius:12px;padding:16px;background:#fcfcfd}
+.panel h3{margin:0 0 10px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+ul.tight{margin:0;padding-left:18px}
+ul.tight li{margin:4px 0;font-size:14px}
+.none{color:var(--muted);font-size:14px;margin:0}
+.alt{display:flex;gap:14px;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--line)}
+.alt:first-child{border-top:0}
+.alt .meta strong{display:block;font-size:15px}
+.alt .meta span{font-size:12.5px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.note{margin-top:18px;padding:14px 16px;border-radius:12px;background:#fbfcff;border:1px solid #dfe5ff;font-size:13.5px;color:#33405e}
+.note strong{color:#1f2a44}
+.catalog-controls{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 14px}
+input[type="search"]{flex:1 1 260px;min-width:220px;padding:11px 14px;border-radius:10px;border:1px solid var(--line2);font:inherit;font-size:14.5px;background:#fff;color:var(--ink)}
+input[type="search"]:focus{outline:3px solid #c7d2fe;outline-offset:1px;border-color:var(--accent)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line2);background:#fff;color:var(--muted);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.15s ease}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:14px}
+thead th{text-align:left;padding:11px 14px;background:#fafbfc;border-bottom:1px solid var(--line);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+tbody td{padding:11px 14px;border-bottom:1px solid #f1f2f5;vertical-align:top}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#fbfcff}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;color:var(--muted)}
+.yes{color:var(--good);font-weight:700}
+.dash{color:#c3c8d2}
+.count{font-size:13px;color:var(--muted);margin:12px 0 10px}
+footer.foot{margin-top:26px;font-size:12.5px;color:var(--muted);line-height:1.6}
+footer.foot a{color:var(--accent);text-decoration:none}
+footer.foot a:hover{text-decoration:underline}
+.hidden{display:none !important}
+#fatal{display:none;margin-bottom:18px;padding:14px 16px;border-radius:12px;background:#fdeceb;border:1px solid #f6cfcc;color:#7a1b15;font-size:14px}
+#fatal code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+@media (max-width:560px){
+  .wrap{padding:20px 14px 60px}
+  .card{padding:18px}
+  .result-name{font-size:24px}
+  h1{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <h1>Open Source License Selector</h1>
+      <p class="sub">Answer a few questions and get a license recommendation. Names and identifiers come from the ChooseALicense.com catalog and the SPDX License List.</p>
+    </div>
+    <div class="top-actions">
+      <button class="btn ghost small" id="navCatalog" type="button">Browse all licenses</button>
+      <button class="btn ghost small hidden" id="navStart" type="button">Start over</button>
+    </div>
+  </header>
+
+  <div id="fatal"></div>
+
+  <noscript>
+    <div class="card"><p class="none">This tool needs JavaScript to run the questionnaire. Enable JavaScript and reload the page.</p></div>
+  </noscript>
+
+  <!-- QUESTIONNAIRE -->
+  <section id="quizView" class="card">
+    <div class="progress-head">
+      <span class="progress-label" id="progressLabel">Question 1</span>
+      <span class="progress-count" id="progressCount">0%</span>
+    </div>
+    <div class="bar"><i id="progressBar" style="width:0%"></i></div>
+
+    <h2 class="q-title" id="qTitle">Loading the questions</h2>
+    <p class="q-help" id="qHelp"></p>
+
+    <div class="options" id="options" role="group" aria-labelledby="qTitle"></div>
+
+    <div class="nav">
+      <button class="btn ghost" id="backBtn" type="button" disabled>Back</button>
+      <button class="btn" id="nextBtn" type="button" disabled>Next</button>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section id="resultView" class="hidden">
+    <div class="card">
+      <div class="badges" id="resultBadges"></div>
+      <h2 class="result-name" id="resultName"></h2>
+      <div class="result-id" id="resultId"></div>
+      <p class="result-desc" id="resultDesc"></p>
+
+      <div class="grid2">
+        <div class="panel">
+          <h3>You must</h3>
+          <ul class="tight" id="resultConditions"></ul>
+        </div>
+        <div class="panel">
+          <h3>You may</h3>
+          <ul class="tight" id="resultPermissions"></ul>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:18px">
+        <h3>Limitations</h3>
+        <ul class="tight" id="resultLimitations"></ul>
+      </div>
+
+      <div class="note" id="resultNote"></div>
+
+      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn" id="copyBtn" type="button">Copy license identifier</button>
+        <a class="btn ghost" id="learnBtn" href="#" target="_blank" rel="noopener">Read the license</a>
+        <button class="btn ghost" id="restartBtn" type="button">Start over</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 6px;font-size:16px">Other licenses that fit</h3>
+      <p class="sub" style="font-size:13.5px;margin:0 0 8px">Ranked by how well they match your answers.</p>
+      <div id="alternatives"></div>
+    </div>
+  </section>
+
+  <!-- CATALOG -->
+  <section id="catalogView" class="hidden">
+    <div class="card">
+      <h2 style="margin:0 0 4px;font-size:20px">All licenses in this tool</h2>
+      <p class="sub" style="font-size:13.5px;margin:0">Names and identifiers follow the ChooseALicense.com catalog and the SPDX License List. Approval flags are shown where the sources state them.</p>
+
+      <div class="catalog-controls">
+        <input type="search" id="searchInput" placeholder="Search by name or SPDX identifier" aria-label="Search licenses">
+      </div>
+      <div class="chips" id="categoryChips"></div>
+      <p class="count" id="catalogCount"></p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>License</th>
+              <th>SPDX</th>
+              <th>Category</th>
+              <th>OSI</th>
+              <th>Patent grant</th>
+            </tr>
+          </thead>
+          <tbody id="catalogBody"></tbody>
+        </table>
+      </div>
+
+      <div class="nav">
+        <button class="btn ghost" id="catalogBack" type="button">Back to the questions</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p><strong>Sources.</strong> License names, identifiers and rule flags come from <a href="https://choosealicense.com/appendix/" target="_blank" rel="noopener">the ChooseALicense.com appendix</a> (the catalog GitHub uses for its repository license picker) and <a href="https://spdx.org/licenses/" target="_blank" rel="noopener">the SPDX License List</a>. Where a source does not state a property, this tool does not assert it.</p>
+    <p><strong>Not legal advice.</strong> Licenses interact with patents, trademarks, employment contracts and local law. Read the license text and talk to a lawyer before you rely on a choice.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* Show any crash instead of a blank page. */
+  window.addEventListener("error", function(e){
+    var box = document.getElementById("fatal");
+    if (!box) return;
+    box.style.display = "block";
+    box.innerHTML = "<strong>The page hit a script error.</strong><br><code>" +
+      String((e && e.message) || "unknown error") + "</code>";
+  });
+
+  /* ---------------- LICENSE DATA ----------------
+     One string per license, pipe separated:
+     name | spdx | choosealicense-slug | category | osi | fsf | perms | conds | lims | note
+     perms: c commercial, d distribute, m modify, p patent grant, r private use
+     conds: n notice, s disclose source, t state changes, l same license,
+            f same license at file level, y same license at library level,
+            w network use counts as distribution
+     lims:  l no liability, t no trademark, w no warranty
+     An empty field means the source does not assert that rule.
+  ------------------------------------------------ */
+  var DATA = [
+  /* permissive */
+  "MIT License|MIT|mit|permissive|1|1|cdmr|n|lw|Short and simple. Keep the copyright and permission notice.",
+  "MIT No Attribution|MIT-0|mit-0|permissive|1|0|cdmr||lw|MIT without the attribution requirement.",
+  "Apache License 2.0|Apache-2.0|apache-2.0|permissive|1|1|cdmpr|nt|ltw|Permissive, with an express patent grant and a duty to state changes.",
+  "BSD 2-Clause Simplified License|BSD-2-Clause|bsd-2-clause|permissive|1|1|cdmr|n|lw|Two-clause BSD. Keep the notice.",
+  "BSD 3-Clause New or Revised License|BSD-3-Clause|bsd-3-clause|permissive|1|1|cdmr|n|lw|Three-clause BSD. No endorsement by contributors.",
+  "BSD 3-Clause Clear License|BSD-3-Clause-Clear|bsd-3-clause-clear|permissive|1|1|cdmr|n|lw|BSD-3-Clause with an explicit patent statement.",
+  "BSD 2-Clause Plus Patent License|BSD-2-Clause-Patent|bsd-2-clause-patent|permissive|1|0|cdmpr|n|lw|BSD-2-Clause plus an express patent grant.",
+  "BSD 1-Clause License|BSD-1-Clause||permissive|1|0|cdmr|n|lw|Minimal BSD variant.",
+  "BSD 4-Clause Original or Old License|BSD-4-Clause|bsd-4-clause|permissive|0|1|cdmr|n|lw|Old BSD license with an advertising clause. Not GPL-compatible.",
+  "ISC License|ISC|isc|permissive|1|1|cdmr|n|lw|Functionally equivalent to MIT in shorter wording.",
+  "Boost Software License 1.0|BSL-1.0|bsl-1.0|permissive|1|1|cdmr|n|lw|Notice required for source distribution, not for binaries.",
+  "Blue Oak Model License 1.0.0|BlueOak-1.0.0|blueoak-1.0.0|permissive|1|0|cdmpr|n|lw|Modern permissive license with a patent grant, in plain language.",
+  "Universal Permissive License v1.0|UPL-1.0|upl-1.0|permissive|1|1|cdmpr|n|lw|Permissive with a patent grant; short enough for file headers.",
+  "University of Illinois NCSA Open Source License|NCSA|ncsa|permissive|1|1|cdmr|n|lw|BSD and MIT style permissive license.",
+  "PostgreSQL License|PostgreSQL|postgresql|permissive|1|0|cdmr|n|lw|MIT-style permissive license.",
+  "zlib License|Zlib|zlib|permissive|1|1|cdmr|n|lw|Permissive; do not misrepresent the origin of the software.",
+  "Academic Free License v3.0|AFL-3.0|afl-3.0|permissive|1|1|cdmpr|n|ltw|Permissive with a patent grant and a trademark disclaimer.",
+  "Artistic License 2.0|Artistic-2.0|artistic-2.0|permissive|1|1|cdmpr|n|ltw|Perl-style permissive license with some attribution terms.",
+  "Educational Community License v2.0|ECL-2.0|ecl-2.0|permissive|1|1|cdmpr|n|lw|Apache-2.0-like license written for education.",
+  "Microsoft Public License|MS-PL|ms-pl|permissive|1|1|cdmpr|n|lw|Permissive license with a patent grant.",
+  "Mulan Permissive Software License v2|MulanPSL-2.0|mulanpsl-2.0|permissive|1|0|cdmpr|n|ltw|Permissive with a patent grant; widely used in China.",
+  "X11 License|X11||permissive|0|1|cdmr|n|lw|MIT-style license used by the X11 distribution.",
+  "NTP License|NTP||permissive|1|0|cdmr|n|lw|MIT-style permissive license.",
+  "OpenSSL License|OpenSSL||permissive|0|1|cdmr|n|lw|BSD-style license with an advertising clause.",
+  "PHP License v3.01|PHP-3.01||permissive|1|1|cdmr|n|lw|Permissive license written for PHP.",
+  "Python License 2.0|Python-2.0||permissive|1|1|cdmr|n|lw|A stack of permissive licenses covering Python.",
+  "Python Software Foundation License 2.0|PSF-2.0||permissive|1|0|cdmr|n|lw|PSF permissive license.",
+  "Ruby License|Ruby||permissive|0|1|cdmr|n|lw|Ruby permissive terms.",
+  "Zope Public License 2.1|ZPL-2.1||permissive|1|1|cdmr|n|lw|BSD-style permissive license.",
+  "Zend License v2.0|Zend-2.0||permissive|1|1|cdmr|n|lw|BSD-style license from Zend.",
+  "Unicode License v3|Unicode-3.0||permissive|1|0|cdmr|n|lw|Permissive license for Unicode data and software.",
+  "FSF All Permissive License|FSFAP||permissive|0|1|cdmr|n|lw|Permissive license from the Free Software Foundation.",
+  "The MirOS Licence|MirOS||permissive|0|1|cdmr|n|lw|BSD-style permissive license.",
+  "JSON License|JSON||permissive|0|0|cdmr|n|lw|MIT plus the clause that the software shall be used for Good, not Evil.",
+  "Beerware License|Beerware||permissive|0|0|cdmr|n||If we meet some day, and you think this stuff is worth it, buy me a beer.",
+  /* public domain */
+  "BSD Zero Clause License|0BSD|0bsd|public|1|0|cdmr||lw|No conditions at all, only a warranty and liability disclaimer.",
+  "The Unlicense|Unlicense|unlicense|public|1|1|cdmr||lw|Public-domain dedication with a warranty and liability disclaimer.",
+  "Creative Commons Zero v1.0 Universal|CC0-1.0|cc0-1.0|public|0|1|cdmr|||Public-domain dedication. Silent on patents, so avoid it for software.",
+  "Do What The F*ck You Want To Public License|WTFPL|wtfpl|public|0|1|cdmr|||No conditions, and no warranty disclaimer either.",
+  /* weak copyleft */
+  "GNU Lesser General Public License v3.0|LGPL-3.0|lgpl-3.0|weak|1|1|cdmpr|nsty|lw|Library-scoped copyleft. Larger works may use other terms.",
+  "GNU Lesser General Public License v2.1|LGPL-2.1|lgpl-2.1|weak|1|1|cdmr|nsty|lw|Library-scoped copyleft, older version.",
+  "Mozilla Public License 2.0|MPL-2.0|mpl-2.0|weak|1|1|cdmpr|nsf|ltw|File-level copyleft with an explicit patent grant.",
+  "Eclipse Public License 2.0|EPL-2.0|epl-2.0|weak|1|1|cdmpr|nsl|lw|Weak copyleft with a patent grant. Common in Java projects.",
+  "Eclipse Public License 1.0|EPL-1.0|epl-1.0|weak|1|1|cdmr|nsl|lw|Older Eclipse weak copyleft.",
+  "Common Development and Distribution License 1.0|CDDL-1.0||weak|1|1|cdmpr|nsl|lw|File-level copyleft used by Java and OpenSolaris.",
+  "Common Development and Distribution License 1.1|CDDL-1.1||weak|1|1|cdmpr|nsl|lw|CDDL version 1.1.",
+  "Common Public License 1.0|CPL-1.0||weak|1|1|cdmr|nsl|lw|Weak copyleft. Predecessor of the Eclipse Public License.",
+  "Microsoft Reciprocal License|MS-RL|ms-rl|weak|1|1|cdmpr|nsl|lw|File-level reciprocal license with a patent grant.",
+  "IBM Public License v1.0|IPL-1.0||weak|1|1|cdmr|nsl|lw|Weak copyleft from IBM.",
+  "Vim License|Vim|vim|weak|0|1|cdmr|nstl||Charity-ware style copyleft used by Vim.",
+  "LaTeX Project Public License v1.3c|LPPL-1.3c|lppl-1.3c|weak|1|1|cdmr|nsl||Copyleft designed for LaTeX packages.",
+  "Sleepycat License|Sleepycat||weak|1|1|cdmr|nsl||Reciprocal license used by Berkeley DB.",
+  "Q Public License 1.0|QPL-1.0||weak|1|1|cdmr|nsl||Weak copyleft originally from Trolltech.",
+  "Apple Public Source License 2.0|APSL-2.0||weak|1|1|cdmr|nsl||Weak copyleft from Apple.",
+  "CUA Office Public License v1.0|CUA-OPL-1.0||weak|1|0|cdmr|nsl||Weak copyleft.",
+  /* strong copyleft */
+  "GNU General Public License v3.0|GPL-3.0|gpl-3.0|strong|1|1|cdmpr|nstl|lw|Strong copyleft with a patent grant and anti-tivoization terms.",
+  "GNU General Public License v2.0|GPL-2.0|gpl-2.0|strong|1|1|cdmr|nstl|lw|Classic strong copyleft. No express patent grant.",
+  "European Union Public License 1.2|EUPL-1.2|eupl-1.2|strong|1|1|cdmpr|nstlw|ltw|EU strong copyleft, published in many languages.",
+  "CeCILL Free Software License Agreement v2.1|CECILL-2.1|cecill-2.1|strong|1|1|cdmpr|nstl|lw|French strong copyleft, written to be GPL-compatible.",
+  /* network copyleft */
+  "GNU Affero General Public License v3.0|AGPL-3.0|agpl-3.0|network|1|1|cdmpr|nstlw|lw|Strong copyleft that also triggers when users reach the software over a network.",
+  "Open Software License 3.0|OSL-3.0|osl-3.0|network|1|1|cdmpr|nstlw|ltw|Strong copyleft with a network-use clause and a patent grant.",
+  "Reciprocal Public License 1.5|RPL-1.5||network|1|0|cdmr|nstlw|lw|Reciprocal license with a network clause.",
+  "Cryptographic Autonomy License 1.0|CAL-1.0||network|1|0|cdmr|nstlw|lw|Network copyleft aimed at distributed systems.",
+  /* content */
+  "Creative Commons Attribution 4.0 International|CC-BY-4.0|cc-by-4.0|content|0|1|cdmr|n|ltw|Attribution required. The standard choice for docs, images and media.",
+  "Creative Commons Attribution Share Alike 4.0 International|CC-BY-SA-4.0|cc-by-sa-4.0|content|0|1|cdmr|nl|ltw|Attribution plus share-alike for adaptations.",
+  "Creative Commons Attribution Non Commercial 4.0 International|CC-BY-NC-4.0||content|0|0|dmr|n|ltw|Noncommercial use only. Not an open source license.",
+  "Creative Commons Attribution Non Commercial Share Alike 4.0 International|CC-BY-NC-SA-4.0||content|0|0|dmr|nl|ltw|Noncommercial plus share-alike.",
+  "Creative Commons Attribution No Derivatives 4.0 International|CC-BY-ND-4.0||content|0|0|cdr|n|ltw|Sharing allowed, adapted works not allowed.",
+  "Creative Commons Attribution Non Commercial No Derivatives 4.0 International|CC-BY-NC-ND-4.0||content|0|0|dr|n|ltw|The most restrictive Creative Commons license.",
+  "GNU Free Documentation License v1.3|GFDL-1.3|gfdl-1.3|content|0|1|cdmr|nsl|lw|Copyleft documentation license. Awkward for software manuals.",
+  "Licence Art Libre 1.3|LAL-1.3||content|0|0|cdmr|nl|lw|French free art license.",
+  /* data */
+  "Open Data Commons Open Database License v1.0|ODbL-1.0|odbl-1.0|data|1|1|cdmr|nsl|ltw|Share-alike for databases and their contents.",
+  "Open Data Commons Attribution License v1.0|ODC-By-1.0||data|0|0|cdmr|n|ltw|Attribution for databases.",
+  "Open Data Commons Public Domain Dedication and License v1.0|PDDL-1.0||data|0|0|cdmr|||Public-domain dedication for databases.",
+  "Community Data License Agreement Permissive 2.0|CDLA-Permissive-2.0||data|0|0|cdmr|n|lw|Permissive data license from the Linux Foundation.",
+  "Community Data License Agreement Sharing 1.0|CDLA-Sharing-1.0||data|0|0|cdmr|nl|lw|Share-alike data license.",
+  "Computational Use of Data Agreement v1.0|C-UDA-1.0||data|0|0|cdmr|n|lw|For computational use of data. Restricts redistribution of the data.",
+  "Open Use of Data Agreement v1.0|O-UDA-1.0||data|0|0|cdmr|n|lw|Permissive data agreement.",
+  "Open Government Licence v3.0|OGL-UK-3.0||data|0|0|cdmr|n|lw|UK government open data license.",
+  "Open Government Licence Canada 2.0|OGL-Canada-2.0||data|0|0|cdmr|n|lw|Canadian government open data license.",
+  "Norwegian Licence for Open Government Data 2.0|NLOD-2.0||data|0|0|cdmr|n|lw|Norwegian government open data license.",
+  /* hardware */
+  "CERN Open Hardware Licence v2 Permissive|CERN-OHL-P-2.0|cern-ohl-p-2.0|hardware|1|0|cdmr|n|lw|Permissive open hardware license.",
+  "CERN Open Hardware Licence v2 Weakly Reciprocal|CERN-OHL-W-2.0|cern-ohl-w-2.0|hardware|1|0|cdmr|nsl|lw|Weakly reciprocal open hardware license.",
+  "CERN Open Hardware Licence v2 Strongly Reciprocal|CERN-OHL-S-2.0|cern-ohl-s-2.0|hardware|1|0|cdmr|nsl|lw|Strongly reciprocal open hardware license.",
+  "Solderpad Hardware License v0.51|SHL-0.51||hardware|0|0|cdmr|n|lw|Apache-2.0-style permissive hardware license.",
+  "TAPR Open Hardware License v1.0|TAPR-OHL-1.0||hardware|0|0|cdmr|nsl|lw|Reciprocal open hardware license.",
+  /* fonts */
+  "SIL Open Font License 1.1|OFL-1.1|ofl-1.1|font|1|1|cdmr|nl|lw|Free font license. Derivatives must stay under the OFL.",
+  "Ubuntu Font Licence v1.0|Ubuntu-font-1.0||font|0|0|cdmr|nl|lw|Permissive font license with naming rules.",
+  /* source available */
+  "Business Source License 1.1|BUSL-1.1||source-available|0|0|dmr|n|lw|Source-available. Production use is restricted until the change date, then converts.",
+  "Elastic License 2.0|Elastic-2.0||source-available|0|0|dmr|n|lw|Source-available. You may not offer the software as a managed service.",
+  "Server Side Public License v1|SSPL-1.0||source-available|0|0|cdmr|nstlw|lw|Source-available network copyleft. Not OSI-approved.",
+  "Functional Source License 1.1 MIT Future|FSL-1.1-MIT||source-available|0|0|dmr|n|lw|Source-available, converts to MIT after two years.",
+  /* noncommercial */
+  "PolyForm Noncommercial License 1.0.0|PolyForm-Noncommercial-1.0.0||noncommercial|0|0|dmr|n|lw|Noncommercial use only.",
+  "PolyForm Small Business License 1.0.0|PolyForm-Small-Business-1.0.0||noncommercial|0|0|dmr|n|lw|Free for small businesses, paid license for larger ones.",
+  /* ethical source */
+  "Hippocratic License 2.1|Hippocratic-2.1||ethical|0|0|cdmr|n|lw|MIT plus an ethical-use restriction. Not OSI-approved.",
+  "Hippocratic License 3.0|Hippocratic-3.0-core||ethical|0|0|cdmr|n|lw|Ethical source license with human-rights conditions."
+  ];
+
+  var CATEGORY_META = {
+    permissive:{label:"Permissive",blurb:"Do almost anything, keep the notice."},
+    public:{label:"Public domain",blurb:"No conditions, or as close as a license can get."},
+    weak:{label:"Weak copyleft",blurb:"Copyleft applies to files or libraries, not your whole program."},
+    strong:{label:"Strong copyleft",blurb:"The whole derivative must stay under the same license."},
+    network:{label:"Network copyleft",blurb:"The copyleft also triggers when users reach the software over a network."},
+    content:{label:"Content",blurb:"Written for text, images, media and documentation."},
+    data:{label:"Data",blurb:"Written for datasets and databases."},
+    hardware:{label:"Hardware",blurb:"Written for open hardware designs."},
+    font:{label:"Fonts",blurb:"Written for typefaces."},
+    "source-available":{label:"Source-available",blurb:"You can read the source, but it is not open source."},
+    noncommercial:{label:"Noncommercial",blurb:"Commercial use is restricted."},
+    ethical:{label:"Ethical source",blurb:"Adds conduct restrictions on top of a permissive base."}
+  };
+
+  var USE_BY_CATEGORY = {
+    permissive:["software","docs"],
+    public:["software","docs","content","data"],
+    weak:["software"],
+    strong:["software"],
+    network:["software"],
+    content:["content","docs"],
+    data:["data"],
+    hardware:["hardware"],
+    font:["font"],
+    "source-available":["software"],
+    noncommercial:["software","content"],
+    ethical:["software"]
+  };
+
+  var PERMISSION_TEXT = {
+    c:"Use it commercially", d:"Distribute it", m:"Modify it",
+    p:"Rely on an express patent grant from contributors",
+    r:"Use and modify it privately"
+  };
+  var CONDITION_TEXT = {
+    n:"Include the license and copyright notice",
+    s:"Make the source available when you distribute it",
+    t:"Document the changes you make",
+    l:"Release modifications under the same license",
+    f:"Release modified files under the same license",
+    y:"Release modifications to the library under the same license",
+    w:"Offer the source to users who interact with it over a network"
+  };
+  var LIMITATION_TEXT = {
+    l:"No liability", t:"No trademark rights", w:"No warranty"
+  };
+
+  var LICENSES = DATA.map(function(row){
+    var p = row.split("|");
+    var o = {
+      name:p[0], spdx:p[1], slug:p[2], cat:p[3],
+      osi:p[4] === "1", fsf:p[5] === "1",
+      perms:p[6] || "", conds:p[7] || "", lims:p[8] || "",
+      note:p[9] || ""
+    };
+    o.use = USE_BY_CATEGORY[o.cat] || ["software"];
+    o.url = o.slug
+      ? "https://choosealicense.com/licenses/" + o.slug + "/"
+      : "https://spdx.org/licenses/" + o.spdx + ".html";
+    return o;
+  });
+
+  function hasPerm(l,ch){ return l.perms.indexOf(ch) !== -1; }
+  function hasCond(l,ch){ return l.conds.indexOf(ch) !== -1; }
+
+  /* ---------------- QUESTIONS ---------------- */
+  var QUESTIONS = [
+    {
+      id:"work",
+      title:"What are you licensing?",
+      help:"This narrows the field before anything else. Software licenses and content licenses are not interchangeable.",
+      options:[
+        {v:"software",label:"Software or source code",hint:"Applications, libraries, scripts, firmware"},
+        {v:"docs",label:"Documentation",hint:"READMEs, manuals, guides"},
+        {v:"content",label:"Creative content",hint:"Text, images, audio, video, artwork"},
+        {v:"data",label:"Data or a database",hint:"Datasets, collections, tables"},
+        {v:"hardware",label:"Open hardware",hint:"Schematics, board layouts, mechanical designs"},
+        {v:"font",label:"Fonts or typefaces",hint:"Typeface files and font families"}
+      ]
+    },
+    {
+      id:"commercial",
+      title:"Must commercial use be allowed?",
+      help:"If you say yes, every license that restricts commercial use is removed from the results.",
+      options:[
+        {v:"yes",label:"Yes, allow commercial use",hint:"Anyone may use it to make money"},
+        {v:"no",label:"Not required",hint:"Noncommercial licenses may appear"}
+      ]
+    },
+    {
+      id:"copyleft",
+      title:"Should derivative works have to stay open?",
+      help:"This is the copyleft question, the single biggest fork in open source licensing.",
+      options:[
+        {v:"none",label:"No, keep it permissive",hint:"Others may relicense their derivative works"},
+        {v:"weak",label:"Yes, but only modified files or the library",hint:"Weak copyleft: MPL, LGPL, EPL"},
+        {v:"strong",label:"Yes, the whole derivative must stay open",hint:"Strong copyleft: GPL, EUPL, CeCILL"},
+        {v:"network",label:"Yes, including when it runs as a service",hint:"Network copyleft: AGPL, OSL"},
+        {v:"any",label:"No preference",hint:"Show me everything that fits"}
+      ]
+    },
+    {
+      id:"patent",
+      title:"Do you want an explicit patent grant?",
+      help:"A patent grant is a promise from contributors not to assert patents against users. Only some licenses contain one.",
+      options:[
+        {v:"yes",label:"Yes, require a patent grant",hint:"Narrows results to Apache-2.0, GPL-3.0, MPL-2.0 and similar"},
+        {v:"any",label:"Nice to have, not required",hint:"Ranked higher but not mandatory"},
+        {v:"no",label:"Doesn't matter",hint:"No effect on the ranking"}
+      ]
+    },
+    {
+      id:"osi",
+      title:"Must it be OSI-approved?",
+      help:"The Open Source Initiative maintains the definition of open source. Some licenses here are not approved.",
+      options:[
+        {v:"yes",label:"Yes, OSI-approved only",hint:"Removes source-available, noncommercial and ethical licenses"},
+        {v:"no",label:"No, show me everything",hint:"Includes restricted licenses, clearly labelled"}
+      ]
+    },
+    {
+      id:"simple",
+      title:"Do you prefer a short, simple license?",
+      help:"Short licenses are easier for contributors to read and comply with. Long licenses often add patent protections.",
+      options:[
+        {v:"yes",label:"Yes, keep it short",hint:"Favours MIT, ISC, BSD, 0BSD"},
+        {v:"no",label:"No, completeness matters more",hint:"Favours Apache-2.0, GPL-3.0 and similar"}
+      ]
+    },
+    {
+      id:"publicDomain",
+      title:"Do you want to drop attribution entirely?",
+      help:"Public-domain dedications give up the attribution requirement. That is convenient, but weak on patents and warranties.",
+      options:[
+        {v:"yes",label:"Yes, no attribution required",hint:"0BSD, Unlicense, CC0"},
+        {v:"no",label:"No, keep attribution",hint:"Standard licenses"}
+      ]
+    }
+  ];
+
+  /* ---------------- STATE ---------------- */
+  var state = {step:0, answers:{}, lastResults:[]};
+
+  function el(id){ return document.getElementById(id); }
+
+  /* ---------------- MATCHING ---------------- */
+  function candidatesFor(a, relax){
+    return LICENSES.filter(function(l){
+      if (l.use.indexOf(a.work) === -1) return false;
+
+      if (relax < 1 && a.commercial === "yes" && !hasPerm(l,"c")) return false;
+      if (relax < 1 && a.osi === "yes" && !l.osi) return false;
+      if (relax < 2 && a.patent === "yes" && !hasPerm(l,"p")) return false;
+      if (relax < 1 && a.publicDomain === "yes" && l.cat !== "public") return false;
+
+      if (relax < 3 && a.copyleft !== "any"){
+        if (a.copyleft === "none"){
+          if (hasCond(l,"l") || hasCond(l,"f") || hasCond(l,"y") || hasCond(l,"w")) return false;
+        } else if (a.copyleft === "weak"){
+          if (l.cat !== "weak") return false;
+        } else if (a.copyleft === "strong"){
+          if (l.cat !== "strong" && l.cat !== "network") return false;
+        } else if (a.copyleft === "network"){
+          if (!hasCond(l,"w")) return false;
+        }
+      }
+      return true;
+    });
+  }
+
+  function scoreFor(l, a){
+    var score = 50;
+    var condCount = l.conds.length;
+
+    score -= condCount * (a.simple === "yes" ? 7 : 3);
+    if (a.simple === "yes" && condCount === 0) score += 18;
+    if (a.simple === "no" && hasPerm(l,"p")) score += 8;
+
+    if (a.patent === "any" && hasPerm(l,"p")) score += 10;
+    if (a.patent === "no" && hasPerm(l,"p")) score += 3;
+
+    if (a.osi === "yes" && l.osi) score += 8;
+    if (a.osi === "no" && !l.osi) score -= 4;
+
+    if (a.copyleft === "any" && (l.cat === "permissive" || l.cat === "public")) score += 2;
+    if (a.publicDomain === "yes" && l.cat === "public") score += 12;
+
+    var popular = ["MIT","Apache-2.0","GPL-3.0","AGPL-3.0","MPL-2.0","BSD-3-Clause","LGPL-3.0","Unlicense","CC-BY-4.0","OFL-1.1"];
+    if (popular.indexOf(l.spdx) !== -1) score += 9;
+
+    if (l.cat === "source-available" || l.cat === "noncommercial" || l.cat === "ethical") score -= 14;
+
+    return score;
+  }
+
+  function computeResults(){
+    var a = state.answers;
+    var list = [];
+    for (var relax = 0; relax <= 3; relax++){
+      list = candidatesFor(a, relax);
+      if (list.length) break;
+    }
+    list.sort(function(x,y){
+      var d = scoreFor(y,a) - scoreFor(x,a);
+      return d !== 0 ? d : x.name.localeCompare(y.name);
+    });
+    return list.slice(0, 6);
+  }
+
+  /* ---------------- VIEWS ---------------- */
+  function showView(view){
+    el("quizView").classList.toggle("hidden", view !== "quiz");
+    el("resultView").classList.toggle("hidden", view !== "result");
+    el("catalogView").classList.toggle("hidden", view !== "catalog");
+    el("navCatalog").classList.toggle("hidden", view === "catalog");
+    el("navStart").classList.toggle("hidden", view !== "catalog");
+    window.scrollTo(0,0);
+  }
+
+  /* ---------------- QUIZ ---------------- */
+  function renderQuestion(){
+    var q = QUESTIONS[state.step];
+    var total = QUESTIONS.length;
+    var pct = Math.round(state.step / total * 100);
+
+    el("progressLabel").textContent = "Question " + (state.step + 1) + " of " + total;
+    el("progressCount").textContent = pct + "%";
+    el("progressBar").style.width = pct + "%";
+
+    el("qTitle").textContent = q.title;
+    el("qHelp").textContent = q.help;
+
+    var box = el("options");
+    box.innerHTML = "";
+
+    q.options.forEach(function(opt){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "option";
+      b.setAttribute("role","radio");
+      var selected = state.answers[q.id] === opt.v;
+      b.setAttribute("aria-checked", selected ? "true" : "false");
+      if (selected) b.classList.add("selected");
+
+      var dot = document.createElement("span");
+      dot.className = "dot";
+
+      var text = document.createElement("span");
+      var lbl = document.createElement("span");
+      lbl.className = "lbl";
+      lbl.textContent = opt.label;
+      text.appendChild(lbl);
+      if (opt.hint){
+        var hint = document.createElement("span");
+        hint.className = "hint";
+        hint.textContent = opt.hint;
+        text.appendChild(hint);
+      }
+
+      b.appendChild(dot);
+      b.appendChild(text);
+      b.addEventListener("click", function(){
+        state.answers[q.id] = opt.v;
+        renderQuestion();
+      });
+      box.appendChild(b);
+    });
+
+    el("backBtn").disabled = state.step === 0;
+    el("nextBtn").disabled = !state.answers[q.id];
+    el("nextBtn").textContent = state.step === total - 1 ? "See my license" : "Next";
+  }
+
+  function resetQuiz(){
+    state.step = 0;
+    state.answers = {};
+    renderQuestion();
+    showView("quiz");
+  }
+
+  /* ---------------- RESULT ---------------- */
+  function badge(text, cls){
+    var s = document.createElement("span");
+    s.className = "badge" + (cls ? " " + cls : "");
+    s.textContent = text;
+    return s;
+  }
+
+  function fillList(node, keys, map, emptyText){
+    node.innerHTML = "";
+    if (!keys.length){
+      var li = document.createElement("li");
+      li.className = "none";
+      li.textContent = emptyText;
+      node.appendChild(li);
+      return;
+    }
+    keys.forEach(function(k){
+      var item = document.createElement("li");
+      item.textContent = map[k] || k;
+      node.appendChild(item);
+    });
+  }
+
+  function renderResult(){
+    var results = computeResults();
+    state.lastResults = results;
+
+    if (!results.length){
+      el("resultBadges").innerHTML = "";
+      el("resultName").textContent = "No license fits every answer";
+      el("resultId").textContent = "";
+      el("resultDesc").textContent = "Your answers rule out every license in this catalog. Loosen the patent-grant or copyleft requirement and try again.";
+      el("resultConditions").innerHTML = "";
+      el("resultPermissions").innerHTML = "";
+      el("resultLimitations").innerHTML = "";
+      el("resultNote").textContent = "";
+      el("alternatives").innerHTML = "";
+      showView("result");
+      return;
+    }
+
+    var best = results[0];
+    var meta = CATEGORY_META[best.cat];
+
+    var badges = el("resultBadges");
+    badges.innerHTML = "";
+    badges.appendChild(badge(meta.label));
+    badges.appendChild(best.osi ? badge("OSI approved","osi") : badge("Not OSI approved","no"));
+    if (hasPerm(best,"p")) badges.appendChild(badge("Patent grant","patent"));
+    if (hasCond(best,"w")) badges.appendChild(badge("Network clause","warn"));
+    if (best.fsf) badges.appendChild(badge("FSF libre"));
+
+    el("resultName").textContent = best.name;
+    el("resultId").textContent = "SPDX identifier: " + best.spdx;
+    el("resultDesc").textContent = best.note || meta.blurb;
+
+    fillList(el("resultConditions"), best.conds.split(""), CONDITION_TEXT,
+      "Nothing beyond the disclaimer. This license has no conditions.");
+    fillList(el("resultPermissions"), best.perms.split(""), PERMISSION_TEXT,
+      "The source data does not list permissions for this license.");
+    fillList(el("resultLimitations"), best.lims.split(""), LIMITATION_TEXT,
+      "The source data does not state any limitation for this license.");
+
+    var note = el("resultNote");
+    note.innerHTML = "";
+    var strong = document.createElement("strong");
+    strong.textContent = "Why this one. ";
+    note.appendChild(strong);
+    note.appendChild(document.createTextNode(
+      meta.blurb + " " +
+      (best.osi ? "It is OSI-approved. " : "It is not OSI-approved, which matters if you call the project open source. ") +
+      (hasPerm(best,"p") ? "Contributors grant patent rights. " : "") +
+      (hasCond(best,"w") ? "It has a network-use clause, so running it as a service triggers the copyleft. " : "") +
+      "Always read the license text before you publish."
+    ));
+
+    el("learnBtn").href = best.url;
+
+    var altBox = el("alternatives");
+    altBox.innerHTML = "";
+    var rest = results.slice(1);
+    if (!rest.length){
+      var p = document.createElement("p");
+      p.className = "none";
+      p.textContent = "No other license matched closely enough.";
+      altBox.appendChild(p);
+    } else {
+      rest.forEach(function(l){
+        var row = document.createElement("div");
+        row.className = "alt";
+
+        var metaDiv = document.createElement("div");
+        metaDiv.className = "meta";
+        var nameEl = document.createElement("strong");
+        nameEl.textContent = l.name;
+        var idEl = document.createElement("span");
+        idEl.textContent = l.spdx + " · " + CATEGORY_META[l.cat].label + (l.osi ? " · OSI" : "");
+        metaDiv.appendChild(nameEl);
+        metaDiv.appendChild(idEl);
+
+        var a = document.createElement("a");
+        a.className = "btn ghost small";
+        a.href = l.url;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.textContent = "Read";
+
+        row.appendChild(metaDiv);
+        row.appendChild(a);
+        altBox.appendChild(row);
+      });
+    }
+
+    showView("result");
+  }
+
+  /* ---------------- CATALOG ---------------- */
+  var catalogFilter = "all";
+  var catalogQuery = "";
+
+  function buildCategoryChips(){
+    var box = el("categoryChips");
+    box.innerHTML = "";
+    var cats = ["all"].concat(Object.keys(CATEGORY_META));
+    cats.forEach(function(c){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip";
+      b.textContent = c === "all" ? "All" : CATEGORY_META[c].label;
+      b.setAttribute("aria-pressed", catalogFilter === c ? "true" : "false");
+      b.addEventListener("click", function(){
+        catalogFilter = c;
+        buildCategoryChips();
+        renderCatalog();
+      });
+      box.appendChild(b);
+    });
+  }
+
+  function renderCatalog(){
+    var body = el("catalogBody");
+    body.innerHTML = "";
+
+    var q = catalogQuery.trim().toLowerCase();
+    var rows = LICENSES.filter(function(l){
+      if (catalogFilter !== "all" && l.cat !== catalogFilter) return false;
+      if (!q) return true;
+      return l.name.toLowerCase().indexOf(q) !== -1 || l.spdx.toLowerCase().indexOf(q) !== -1;
+    }).sort(function(x,y){ return x.name.localeCompare(y.name); });
+
+    rows.forEach(function(l){
+      var tr = document.createElement("tr");
+
+      var tdName = document.createElement("td");
+      var a = document.createElement("a");
+      a.href = l.url;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.textContent = l.name;
+      a.style.color = "inherit";
+      a.style.textDecoration = "none";
+      a.style.fontWeight = "600";
+      tdName.appendChild(a);
+
+      var tdId = document.createElement("td");
+      tdId.className = "mono";
+      tdId.textContent = l.spdx;
+
+      var tdCat = document.createElement("td");
+      tdCat.textContent = CATEGORY_META[l.cat].label;
+
+      var tdOsi = document.createElement("td");
+      if (l.osi){ tdOsi.className = "yes"; tdOsi.textContent = "Yes"; }
+      else { tdOsi.className = "dash"; tdOsi.textContent = "—"; }
+
+      var tdPatent = document.createElement("td");
+      if (hasPerm(l,"p")){ tdPatent.className = "yes"; tdPatent.textContent = "Yes"; }
+      else { tdPatent.className = "dash"; tdPatent.textContent = "—"; }
+
+      tr.appendChild(tdName);
+      tr.appendChild(tdId);
+      tr.appendChild(tdCat);
+      tr.appendChild(tdOsi);
+      tr.appendChild(tdPatent);
+      body.appendChild(tr);
+    });
+
+    el("catalogCount").textContent = rows.length + (rows.length === 1 ? " license" : " licenses") + " shown";
+  }
+
+  /* ---------------- EVENTS ---------------- */
+  el("nextBtn").addEventListener("click", function(){
+    if (state.step < QUESTIONS.length - 1){
+      state.step += 1;
+      renderQuestion();
+    } else {
+      renderResult();
+    }
+  });
+
+  el("backBtn").addEventListener("click", function(){
+    if (state.step > 0){
+      state.step -= 1;
+      renderQuestion();
+    }
+  });
+
+  el("restartBtn").addEventListener("click", resetQuiz);
+  el("navStart").addEventListener("click", resetQuiz);
+
+  el("navCatalog").addEventListener("click", function(){
+    buildCategoryChips();
+    renderCatalog();
+    showView("catalog");
+  });
+
+  el("catalogBack").addEventListener("click", function(){
+    showView(state.lastResults.length ? "result" : "quiz");
+  });
+
+  el("searchInput").addEventListener("input", function(e){
+    catalogQuery = e.target.value;
+    renderCatalog();
+  });
+
+  el("copyBtn").addEventListener("click", function(){
+    if (!state.lastResults.length) return;
+    var id = state.lastResults[0].spdx;
+    var btn = el("copyBtn");
+    var done = function(){
+      btn.textContent = "Copied " + id;
+      setTimeout(function(){ btn.textContent = "Copy license identifier"; }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(id).then(done, function(){
+        btn.textContent = "Copy failed, select it manually";
+      });
+    } else {
+      btn.textContent = id;
+    }
+  });
+
+  /* ---------------- BOOT ---------------- */
+  renderQuestion();
+  buildCategoryChips();
+  renderCatalog();
+})();
+</script>
+</body>
+</html>
