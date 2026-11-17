@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Playground Physique — 12 sprints</title>
+<title>Playground Physique — 17 sprints</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <style>
   *{box-sizing:border-box}
@@ -142,7 +142,7 @@
 <aside class="sidebar">
   <div class="sidebar-head">
     <div class="brand"><span class="dot"></span>Playground Physique</div>
-    <div class="brand-sub">12 sprints · 20 min</div>
+    <div class="brand-sub">17 sprints · 20 min</div>
   </div>
   <nav class="sidebar-list" id="rail"></nav>
   <div class="sidebar-foot">
@@ -571,6 +571,7 @@ const SPRINTS = [];
 
 /* ---------- 1 ---------- */
 SPRINTS.push({
+  id:'pos',
   short:'Position & vitesse',
   tag:'Module 1 · Cinématique',
   title:'Position, vitesse, accélération',
@@ -681,34 +682,40 @@ SPRINTS.push({
 
 /* ---------- 2 ---------- */
 SPRINTS.push({
+  id:'ball',
   short:'Balistique',
   tag:'Module 1 · Cinématique',
   title:'Balistique & mouvement parabolique',
   theory:[
-    'Sur l\'axe horizontal : <b>vitesse constante</b> $x(t) = x_0 + v_{0x}\\,t$.',
+    'Sur l\'axe horizontal : <b>vitesse constante</b> $x(t) = v_{0}\\cos\\theta\\,t$.',
     'Sur l\'axe vertical : la gravité impose $a_z = -g$ avec $g \\approx 9{,}81\\ \\text{m/s}^2$.',
-    'Équations : $z(t) = z_0 + v_{0z}\\,t - \\tfrac{1}{2}g\\,t^2$ ; la trajectoire est une <b>parabole</b>.'
+    'Lancé d\'une hauteur $h$ (canon sur une falaise, rempart) : la trajectoire reste une <b>parabole</b>, mais elle part de $z_0 = h$.'
   ],
   formulas:[
-    { label:'Trajectoire', tex:'\\begin{cases} x(t) = x_0 + v_{0x}\\,t \\\\[2pt] z(t) = z_0 + v_{0z}\\,t - \\tfrac{1}{2}g\\,t^2 \\end{cases}' },
-    { label:'Portée · hauteur', tex:'R = \\frac{v_0^2 \\sin(2\\theta)}{g} \\qquad H = \\frac{v_0^2 \\sin^2\\theta}{2g}' }
+    { label:'Trajectoire (origine au pied de la falaise)', tex:'\\begin{cases} x(t) = v_{0}\\cos\\theta\\,t \\\\[2pt] z(t) = h + v_{0}\\sin\\theta\\,t - \\tfrac{1}{2}g\\,t^2 \\end{cases}' },
+    { label:'Temps de vol · portée', tex:'t_{\\text{vol}} = \\frac{v_0\\sin\\theta + \\sqrt{v_0^2\\sin^2\\theta + 2gh}}{g} \\qquad R = v_0\\cos\\theta\\;t_{\\text{vol}}' },
+    { label:'Hauteur maximale', tex:'H = h + \\frac{v_0^2\\sin^2\\theta}{2g}' }
   ],
-  real:'Un tir au basket. Le ballon avance à vitesse constante horizontalement, mais la gravité le fait retomber : parabole.',
+  real:'Un tir au basket. Le ballon avance à vitesse constante horizontalement, mais la gravité le fait retomber : parabole. Un boulet tiré depuis une falaise suit la même courbe, mais part plus haut.',
   quiz:[
     { q:'Pendant le vol, quelle composante de vitesse reste constante ?',
       opts:['La verticale','L\'horizontale','Les deux'], a:1,
       why:'Aucune force horizontale (on néglige l\'air) $\\Rightarrow v_x = \\text{cste}$.' },
     { q:'Sur la Lune ($g = 1{,}62\\ \\text{m/s}^2$), le même tir va…',
       opts:['Beaucoup plus loin','Beaucoup moins loin','Exactement pareil'], a:0,
-      why:'$R = v_0^2 \\sin(2\\theta)/g$ : $g$ plus petit $\\Rightarrow$ portée plus grande.' }
+      why:'$R = v_0^2 \\sin(2\\theta)/g$ : $g$ plus petit $\\Rightarrow$ portée plus grande.' },
+    { q:'Un canon sur une falaise tire à l\'horizontale. Par rapport au pied de la falaise, le boulet…',
+      opts:['tombe au pied de la falaise','va plus loin que sans falaise','ne touche jamais le sol'], a:1,
+      why:'La hauteur $h > 0$ allonge le temps de chute $\\Rightarrow$ le boulet parcourt plus de distance horizontale.' }
   ],
   mount(host){
     const {c, ctx, stop} = mkCanvas(host, 280);
     const bar = el('div','ctrls'); host.appendChild(bar);
-    let v0 = 25, ang = 55, g = 9.81, t = 0;
+    let v0 = 25, ang = 55, g = 9.81, h0 = 0, t = 0;
 
-    const sv = makeSlider(bar,{label:'Vitesse initiale v₀', min:5, max:45, step:1, value:v0, unit:' m/s', fmt:v=>v.toFixed(0)});
+    const sv = makeSlider(bar,{label:'Vitesse initiale v₀', min:5, max:60, step:1, value:v0, unit:' m/s', fmt:v=>v.toFixed(0)});
     const sa = makeSlider(bar,{label:'Angle de tir', min:10, max:85, step:1, value:ang, unit:'°', fmt:v=>v.toFixed(0)});
+    const sh = makeSlider(bar,{label:'Hauteur de tir h', min:0, max:40, step:1, value:h0, unit:' m', fmt:v=>v.toFixed(0)});
     const sg = makeSelect(bar,{label:'Gravité', value:'9.81', options:[
       ['1.62','Lune — 1,62 m/s²'],['3.71','Mars — 3,71 m/s²'],
       ['9.81','Terre — 9,81 m/s²'],['24.79','Jupiter — 24,79 m/s²']
@@ -716,39 +723,39 @@ SPRINTS.push({
     const row = el('div','row'); bar.appendChild(row);
     const bReset = btn(row,'↺ Relancer','ghost');
 
-    sv.on(v=>{v0=v; t=0;}); sa.on(v=>{ang=v; t=0;}); sg.on(v=>{g=+v; t=0;});
+    sv.on(v=>{v0=v; t=0;}); sa.on(v=>{ang=v; t=0;}); sh.on(v=>{h0=v; t=0;}); sg.on(v=>{g=+v; t=0;});
     bReset.onclick = ()=>{ t=0; };
 
-    const readout = el('div','readout'); host.appendChild(readout);
-    const st1 = katexStat(readout, '');
-    const st2 = katexStat(readout, '');
-    const st3 = katexStat(readout, '');
-
-    function refreshReadout(){
+    function kin(){
       const th = ang*Math.PI/180;
       const vx = v0*Math.cos(th), vz = v0*Math.sin(th);
-      const T = 2*vz/g, R = vx*T, H = vz*vz/(2*g);
-      st1.update('R = ' + R.toFixed(1) + '\\ \\text{m}');
-      st2.update('H = ' + H.toFixed(1) + '\\ \\text{m}');
-      st3.update('T_{\\text{vol}} = ' + T.toFixed(2) + '\\ \\text{s}');
+      const T = (vz + Math.sqrt(vz*vz + 2*g*h0))/g;
+      const R = vx*T, H = h0 + vz*vz/(2*g);
+      return {vx, vz, T, R, H};
     }
-    sv.on(refreshReadout); sa.on(refreshReadout); sg.on(refreshReadout);
+
+    const readout = el('div','readout'); host.appendChild(readout);
+    const st1 = katexStat(readout,''), st2 = katexStat(readout,''), st3 = katexStat(readout,'');
+    function refreshReadout(){
+      const k = kin();
+      st1.update('R = ' + k.R.toFixed(1) + '\\ \\text{m}');
+      st2.update('H = ' + k.H.toFixed(1) + '\\ \\text{m}');
+      st3.update('T_{\\text{vol}} = ' + k.T.toFixed(2) + '\\ \\text{s}');
+    }
+    sv.on(refreshReadout); sa.on(refreshReadout); sh.on(refreshReadout); sg.on(refreshReadout);
     refreshReadout();
 
     const strip = el('div','readout'); host.appendChild(strip);
     const liveSlot = el('span','stat'); strip.appendChild(liveSlot);
     function refreshLive(){
       const th = ang*Math.PI/180;
-      const vx = v0*Math.cos(th), vz = v0*Math.sin(th);
-      renderTeX(liveSlot, 'v_{0x} = ' + vx.toFixed(1) + '\\ \\text{m/s}, \\quad v_{0z} = ' + vz.toFixed(1) + '\\ \\text{m/s}', false);
+      renderTeX(liveSlot, 'v_{0x} = ' + (v0*Math.cos(th)).toFixed(1) + '\\ \\text{m/s}, \\quad v_{0z} = ' + (v0*Math.sin(th)).toFixed(1) + '\\ \\text{m/s}', false);
     }
-    sv.on(refreshLive); sa.on(refreshLive);
-    refreshLive();
+    sv.on(refreshLive); sa.on(refreshLive); refreshLive();
 
     const stopLoop = loop(dt=>{
-      const th = ang*Math.PI/180;
-      const vx = v0*Math.cos(th), vz = v0*Math.sin(th);
-      const T = 2*vz/g, R = vx*T, H = vz*vz/(2*g);
+      const k = kin();
+      const vx = k.vx, vz = k.vz, T = k.T, R = k.R, H = k.H;
       t += dt;
       if(t > T) t = 0;
 
@@ -764,22 +771,27 @@ SPRINTS.push({
       ctx.fillStyle = '#f0e8d8';
       ctx.fillRect(0, oy, w, padB);
 
+      if(h0 > 0){
+        ctx.fillStyle = '#e4dccb';
+        ctx.fillRect(ox - 14, oy - h0*s, 14, h0*s);
+      }
+
       drawHoop(ctx, ox + 4, oy - 90, 42);
 
       ctx.beginPath();
       for(let i=0;i<=100;i++){
         const tt = T*i/100;
-        const X = ox + vx*tt*s, Z = oy - (vz*tt - 0.5*g*tt*tt)*s;
+        const X = ox + vx*tt*s, Z = oy - (h0 + vz*tt - 0.5*g*tt*tt)*s;
         i ? ctx.lineTo(X,Z) : ctx.moveTo(X,Z);
       }
       ctx.strokeStyle='#c9d2ff'; ctx.setLineDash([5,5]); ctx.lineWidth=1.5; ctx.stroke(); ctx.setLineDash([]);
 
-      const X = ox + vx*t*s, Z = oy - (vz*t - 0.5*g*t*t)*s;
+      const X = ox + vx*t*s, Z = oy - (h0 + vz*t - 0.5*g*t*t)*s;
       drawBasketball(ctx, X, Z, 13);
 
       const vyNow = vz - g*t;
       arrow(ctx, X, Z, X + vx*s*0.5, Z, C.green, 'vₓ');
-      arrow(ctx, X, Z, X, Z - vyNow*s*0.5, C.orange, 'vᵣ');
+      arrow(ctx, X, Z, X, Z - vyNow*s*0.5, C.orange, 'v_z');
       arrow(ctx, X, Z, X, Z + 26, C.red, 'g');
 
       txt(ctx, 'portée ' + R.toFixed(1) + ' m', 10, 10, C.ink);
@@ -793,6 +805,7 @@ SPRINTS.push({
 
 /* ---------- 3 ---------- */
 SPRINTS.push({
+  id:'mcu',
   short:'Mouvement circulaire',
   tag:'Module 1 · Cinématique',
   title:'Mouvement circulaire uniforme (MCU)',
@@ -885,6 +898,7 @@ SPRINTS.push({
 
 /* ---------- 4 ---------- */
 SPRINTS.push({
+  id:'newton',
   short:'Lois de Newton',
   tag:'Module 2 · Dynamique',
   title:'Les 3 lois de Newton',
@@ -972,6 +986,7 @@ SPRINTS.push({
 
 /* ---------- 5 ---------- */
 SPRINTS.push({
+  id:'fd',
   short:'Différences finies',
   tag:'Module 2 · Dynamique',
   title:'Discrétisation par différences finies',
@@ -1064,6 +1079,7 @@ SPRINTS.push({
 
 /* ---------- 6 ---------- */
 SPRINTS.push({
+  id:'reflect',
   short:'Réflexion aux bords',
   tag:'Module 2 · Dynamique',
   title:'Conditions aux limites — réflexion spéculaire',
@@ -1171,6 +1187,7 @@ SPRINTS.push({
 
 /* ---------- 7 ---------- */
 SPRINTS.push({
+  id:'work',
   short:'Travail & Ec',
   tag:'Module 3 · Énergie',
   title:'Travail d\'une force & énergie cinétique',
@@ -1297,6 +1314,7 @@ SPRINTS.push({
 
 /* ---------- 8 ---------- */
 SPRINTS.push({
+  id:'mech',
   short:'Énergie mécanique',
   tag:'Module 3 · Énergie',
   title:'Forces conservatives & énergie mécanique',
@@ -1409,70 +1427,67 @@ SPRINTS.push({
 
 /* ---------- 9 ---------- */
 SPRINTS.push({
+  id:'coll',
   short:'Collisions',
-  tag:'Module 3 · Énergie',
-  title:'Quantité de mouvement & chocs élastiques',
+  tag:'Module 4 · Quantité de mouvement',
+  title:'Quantité de mouvement, chocs & centre de masse',
   theory:[
     'Quantité de mouvement : $\\vec{p} = m\\vec{v}$. Impulsion : $\\vec{J} = \\int \\vec{F}\\,dt = \\Delta\\vec{p}$.',
-    'Système isolé : $\\vec{p}_{\\text{tot}} = \\text{cste}$.',
-    'Choc élastique : $\\vec{p}$ <b>et</b> $E_c$ conservés. Masses égales, une immobile → échange complet.'
+    'Système isolé : $\\vec{p}_{\\text{tot}} = \\text{cste}$. Le <b>centre de masse</b> $G$ garde une vitesse constante $\\vec{v}_G$.',
+    'Choc <b>élastique</b> : $\\vec{p}$ et $E_c$ conservées. Choc <b>parfaitement inélastique</b> : $\\vec{p}$ conservée, les deux mobiles restent ensemble à $\\vec{v}_G$, et $E_c$ diminue.'
   ],
   formulas:[
-    { label:'Formule 1D · $m_1 = m_2$, $v_2 = 0$', tex:"v'_1 = 0 \\qquad v'_2 = v_1" }
+    { label:'Choc élastique 1D (cas général)', tex:"v'_1 = \\frac{m_1-m_2}{m_1+m_2}\\,v_1 + \\frac{2m_2}{m_1+m_2}\\,v_2 \\qquad v'_2 = \\frac{2m_1}{m_1+m_2}\\,v_1 + \\frac{m_2-m_1}{m_1+m_2}\\,v_2" },
+    { label:'Parfaitement inélastique · centre de masse', tex:"v'_1 = v'_2 = v_G = \\frac{m_1v_1+m_2v_2}{m_1+m_2} \\qquad \\vec{r}_G = \\frac{m_1\\vec{r}_1+m_2\\vec{r}_2}{m_1+m_2}" }
   ],
-  real:'Au billard, la blanche percute de plein fouet une rouge immobile de même masse : la blanche s\'arrête net, la rouge part avec toute la vitesse.',
+  real:'Au billard, la blanche percute de plein fouet une rouge immobile de même masse : la blanche s\'arrête net, la rouge part avec toute la vitesse. Deux voitures qui se carambolent et restent collées : c\'est un choc inélastique.',
   quiz:[
     { q:'Deux masses égales, choc élastique, la 2ᵉ immobile. Après le choc…',
       opts:['les deux avancent à $v/2$','la 1ʳᵉ s\'arrête, la 2ᵉ part à $v$','la 1ʳᵉ repart en arrière'], a:1,
       why:"$v'_1 = 0$ et $v'_2 = v_1$ : échange complet." },
     { q:'Dans un choc entre deux atomes isolés, quelle grandeur est TOUJOURS conservée ?',
       opts:['$E_c$','$\\vec{p}_{\\text{tot}}$','$v$ de chaque atome'], a:1,
-      why:'$\\vec{p}_{\\text{tot}}$ est conservée dès qu\'il n\'y a pas de force extérieure.' }
+      why:'$\\vec{p}_{\\text{tot}}$ est conservée dès qu\'il n\'y a pas de force extérieure.' },
+    { q:'Choc parfaitement inélastique : quelle est la vitesse commune après le choc ?',
+      opts:['$v_G = (m_1v_1+m_2v_2)/(m_1+m_2)$','$(v_1+v_2)/2$','$v_1$ pour la masse 1 seulement'], a:0,
+      why:'Conservation de $\\vec{p}$ : $(m_1+m_2)\\,v\' = m_1v_1+m_2v_2$.' }
   ],
   mount(host){
     const {c, ctx, stop} = mkCanvas(host, 220);
     const bar = el('div','ctrls'); host.appendChild(bar);
-    let m1 = 2, m2 = 2, v1 = 4, v2 = 0;
+    let m1 = 2, m2 = 2, v1 = 4, v2 = 0, type = 'el';
 
     const s1 = makeSlider(bar,{label:'Masse boule 1', min:1, max:10, step:1, value:m1, unit:' kg', fmt:x=>x.toFixed(0)});
     const s2 = makeSlider(bar,{label:'Masse boule 2', min:1, max:10, step:1, value:m2, unit:' kg', fmt:x=>x.toFixed(0)});
     const s3 = makeSlider(bar,{label:'Vitesse v₁', min:1, max:8, step:0.5, value:v1, unit:' m/s', fmt:x=>x.toFixed(1)});
     const s4 = makeSlider(bar,{label:'Vitesse v₂', min:-4, max:4, step:0.5, value:v2, unit:' m/s', fmt:x=>x.toFixed(1)});
+    const sTy = makeSelect(bar,{label:'Type de choc', value:'el', options:[['el','Élastique'],['inel','Parfaitement inélastique']]});
     const row = el('div','row'); bar.appendChild(row);
     const bGo = btn(row,'⚡ Lancer la collision');
     const bR = btn(row,'↺ Reset','ghost');
 
     const res = el('div','readout'); host.appendChild(res);
-    const statBefore = katexStat(res, '');
-    const statAfter  = katexStat(res, '', 'hi');
-    const statVp     = katexStat(res, '');
+    const statBefore = katexStat(res,''), statAfter = katexStat(res,'hi'), statVp = katexStat(res,''), statG = katexStat(res,'');
 
-    let phase = 'ready', x1 = 2, x2 = 7.5, w1 = 0, w2 = 0, t = 0;
-
+    let phase = 'ready', x1 = 2, x2 = 7.5, w1 = 0, w2 = 0;
     const rad = m => 0.18 + 0.11*Math.cbrt(m);
-
-    function reset(){
-      phase='ready'; x1=2; x2=7.5; w1=0; w2=0; t=0;
-      render();
-    }
-    function go(){
-      reset();
-      w1 = v1; w2 = v2; phase='run';
-    }
-    s1.on(x=>{m1=x; reset();}); s2.on(x=>{m2=x; reset();});
-    s3.on(x=>{v1=x; reset();}); s4.on(x=>{v2=x; reset();});
-    bGo.onclick = go; bR.onclick = reset;
+    const vG = () => (m1*v1 + m2*v2)/(m1+m2);
 
     function render(){
-      const p0 = m1*v1 + m2*v2;
-      const ec0 = 0.5*m1*v1*v1 + 0.5*m2*v2*v2;
-      const pA = m1*w1 + m2*w2;
-      const ecA = 0.5*m1*w1*w1 + 0.5*m2*w2*w2;
       const after = phase === 'after' || phase === 'out';
-      statBefore.update('\\text{avant}: \\; p = ' + p0.toFixed(2) + ', \\; E_c = ' + ec0.toFixed(2));
-      statAfter.update('\\text{après}: \\; p = ' + (after?pA:p0).toFixed(2) + ', \\; E_c = ' + (after?ecA:ec0).toFixed(2));
+      const p0 = m1*v1 + m2*v2, ec0 = 0.5*m1*v1*v1 + 0.5*m2*v2*v2;
+      const pA = m1*w1 + m2*w2, ecA = 0.5*m1*w1*w1 + 0.5*m2*w2*w2;
+      statBefore.update('\\text{avant}: \\; p = ' + p0.toFixed(2) + ',\\; E_c = ' + ec0.toFixed(2));
+      statAfter.update('\\text{après}: \\; p = ' + (after?pA:p0).toFixed(2) + ',\\; E_c = ' + (after?ecA:ec0).toFixed(2));
       statVp.update("v'_1 = " + (after?w1.toFixed(2):'?') + ",\\quad v'_2 = " + (after?w2.toFixed(2):'?'));
+      statG.update('v_G = ' + vG().toFixed(2) + '\\ \\text{m/s}');
     }
+    function reset(){ phase='ready'; x1=2; x2=7.5; w1=0; w2=0; render(); }
+    function go(){ reset(); w1 = v1; w2 = v2; phase = 'run'; }
+    s1.on(x=>{m1=x; reset();}); s2.on(x=>{m2=x; reset();});
+    s3.on(x=>{v1=x; reset();}); s4.on(x=>{v2=x; reset();});
+    sTy.on(x=>{type=x; reset();});
+    bGo.onclick = go; bR.onclick = reset;
     render();
 
     const stopLoop = loop(dt=>{
@@ -1481,14 +1496,18 @@ SPRINTS.push({
         x1 += w1*dt*ts; x2 += w2*dt*ts;
         const r1 = rad(m1), r2 = rad(m2);
         if(phase === 'run' && x2 - x1 <= r1 + r2 && (w1 - w2) > 0){
-          const nv1 = ((m1-m2)*w1 + 2*m2*w2)/(m1+m2);
-          const nv2 = ((m2-m1)*w2 + 2*m1*w1)/(m1+m2);
-          w1 = nv1; w2 = nv2;
+          if(type === 'el'){
+            const nv1 = ((m1-m2)*w1 + 2*m2*w2)/(m1+m2);
+            const nv2 = ((m2-m1)*w2 + 2*m1*w1)/(m1+m2);
+            w1 = nv1; w2 = nv2;
+          } else {
+            const gv = (m1*w1 + m2*w2)/(m1+m2);
+            w1 = gv; w2 = gv;
+          }
           x1 = x2 - (r1 + r2);
-          phase = 'after';
-          render();
+          phase = 'after'; render();
         }
-        if(x1 < 0.5 || x1 > 9.5 || x2 < 0.5 || x2 > 9.5){ phase = 'out'; }
+        if(phase !== 'out' && (x1 < 0.5 || x1 > 9.5 || x2 < 0.5 || x2 > 9.5)){ phase = 'out'; render(); }
       }
 
       const w = c.clientWidth, h = c.clientHeight;
@@ -1502,30 +1521,29 @@ SPRINTS.push({
 
       ctx.fillStyle = '#1a5c3a';
       ctx.fillRect(tableLeft, tableTop, tableRight - tableLeft, tableBot - tableTop);
-
-      ctx.strokeStyle = '#0f3d26';
-      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#0f3d26'; ctx.lineWidth = 6;
       ctx.strokeRect(tableLeft + 3, tableTop + 3, tableRight - tableLeft - 6, tableBot - tableTop - 6);
-
-      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(tableLeft + 10, Y + 26); ctx.lineTo(tableRight - 10, Y + 26); ctx.stroke();
 
       const R1 = rad(m1)*s, R2 = rad(m2)*s;
       const X1 = padL + x1*s, X2 = padL + x2*s;
-
       drawBilliardBall(ctx, X1, Y, Math.max(12, R1), '#f5f0e6', null);
       drawBilliardBall(ctx, X2, Y, Math.max(12, R2), '#c23a3a', '3');
 
+      // centre de masse G : position = (m1 x1 + m2 x2)/(m1+m2)
+      const XG = padL + ((m1*x1 + m2*x2)/(m1+m2))*s;
+      ctx.beginPath(); ctx.arc(XG, Y + 46, 4, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill();
+      txt(ctx, 'G', XG + 7, Y + 40, '#ffffff');
+
       if(phase !== 'ready'){
         arrow(ctx, X1, Y-40, X1 + w1*12, Y-40, '#ffffff', 'v₁');
-        arrow(ctx, X2, Y+50, X2 + w2*12, Y+50, '#ffcccc', 'v₂');
+        arrow(ctx, X2, Y+60, X2 + w2*12, Y+60, '#ffcccc', 'v₂');
       } else {
         arrow(ctx, X1, Y-40, X1 + v1*12, Y-40, '#ffffff', 'v₁');
       }
 
-      txt(ctx, phase==='ready' ? 'Clique sur « Lancer la collision »' : 'phase : ' + phase,
-          10, 8, '#ffffff');
+      txt(ctx, phase === 'ready' ? 'Clique sur « Lancer la collision »' : 'phase : ' + phase, 10, 8, '#ffffff');
     });
 
     return ()=>{ stopLoop(); stop(); };
@@ -1534,8 +1552,9 @@ SPRINTS.push({
 
 /* ---------- 10 ---------- */
 SPRINTS.push({
+  id:'py',
   short:'Classes Python',
-  tag:'Module 4 · Logiciel',
+  tag:'Module 6 · Logiciel',
   title:'Structure des classes Atome / Domaine / Simulation',
   theory:[
     '<b>Atome</b> : masse, rayon, formule, $\\vec{r}$ et $\\vec{v}$ en <code>numpy.ndarray</code>.',
@@ -1613,8 +1632,9 @@ SPRINTS.push({
 
 /* ---------- 11 ---------- */
 SPRINTS.push({
+  id:'hdf5',
   short:'Export HDF5',
-  tag:'Module 4 · Logiciel',
+  tag:'Module 6 · Logiciel',
   title:'Export scientifique HDF5 / XDMF',
   theory:[
     '<b>.h5</b> : conteneur binaire haute performance (données brutes).',
@@ -1689,8 +1709,9 @@ SPRINTS.push({
 
 /* ---------- 12 ---------- */
 SPRINTS.push({
+  id:'pv',
   short:'ParaView',
-  tag:'Module 4 · Visualisation',
+  tag:'Module 6 · Visualisation',
   title:'Visualisation 3D avec ParaView',
   theory:[
     'ParaView sépare le calcul brut de la représentation visuelle.',
@@ -1810,21 +1831,466 @@ SPRINTS.push({
   }
 });
 
+/* ---------- Tir ballistique par différences finies (labo 02) ---------- */
+SPRINTS.push({
+  id:'fdball',
+  short:'Tir — diff. finies',
+  tag:'Module 2 · Dynamique',
+  title:'Tir ballistique par différences finies (labo 02)',
+  theory:[
+    'Solution <b>analytique</b> : $\\vec{r}(t) = \\vec{r}_0 + \\vec{v}_0 t - \\tfrac12 g t^2\\,\\hat{z}$, on connaît le résultat exact.',
+    'Schéma <b>Euler explicite</b> : on remplace $\\dfrac{d\\vec v}{dt}=-\\vec g$ et $\\dfrac{d\\vec r}{dt}=\\vec v$ par des différences : $\\vec v_{i+1} = \\vec v_i - \\vec g\\,\\Delta t$, $\\vec r_{i+1} = \\vec r_i + \\vec v_i\\,\\Delta t$.',
+    'Question clé : quel $\\Delta t$ faut-il pour observer la trajectoire ? Le temps de vol analytique donne l\'ordre de grandeur.'
+  ],
+  formulas:[
+    { label:'Analytique', tex:'t_{\\text{vol}} = \\frac{2 v_0\\sin\\theta}{g} \\qquad D = \\frac{v_0^2\\sin 2\\theta}{g}' },
+    { label:'Euler explicite', tex:'\\begin{cases} x_{i+1} = x_i + v_{x}\\,\\Delta t \\\\[2pt] z_{i+1} = z_i + v_{z,i}\\,\\Delta t \\\\[2pt] v_{z,i+1} = v_{z,i} - g\\,\\Delta t \\end{cases}' }
+  ],
+  real:'Le moteur d\'un jeu vidéo ne connaît pas la courbe : à chaque image, il recalcule la position à partir de la vitesse. Plus l\'image est espacée, plus la balle « téléporte ».',
+  quiz:[
+    { q:'Avec un grand $\\Delta t$, la trajectoire numérique…',
+      opts:['est parfaite','s\'écarte de la parabole exacte','ne bouge plus'], a:1,
+      why:'Plus le pas est grand, plus l\'erreur d\'Euler explicite est visible.' },
+    { q:'Pour $v_0 = 1\\ \\text{m/s}$ et $\\theta = 60^\\circ$, le temps de vol vaut environ…',
+      opts:['0,18 s','1,8 s','0,01 s'], a:0,
+      why:'$t = 2 v_0 \\sin\\theta / g = 2\\cdot 0{,}866 / 9{,}81 \\approx 0{,}18\\ \\text{s}$.' }
+  ],
+  mount(host){
+    const {c, ctx, stop} = mkCanvas(host, 240);
+    const bar = el('div','ctrls'); host.appendChild(bar);
+    const DTS = [0.05, 0.02, 0.01, 0.005, 0.002, 0.0005];
+    const G = 9.81;
+    let v0 = 1, ang = 60, dti = 0, sim = null;
+
+    const sv = makeSlider(bar,{label:'Vitesse initiale v₀', min:0.5, max:20, step:0.5, value:v0, unit:' m/s', fmt:v=>v.toFixed(1)});
+    const sa = makeSlider(bar,{label:'Angle θ', min:10, max:85, step:1, value:ang, unit:'°', fmt:v=>v.toFixed(0)});
+    const sd = makeSlider(bar,{label:'Pas de temps Δt', min:0, max:DTS.length-1, step:1, value:dti, fmt:i=>DTS[i]+' s'});
+
+    const readout = el('div','readout'); host.appendChild(readout);
+    const sT = katexStat(readout,''), sTn = katexStat(readout,'hi');
+    const sD = katexStat(readout,''), sDn = katexStat(readout,'hi');
+    const sE = katexStat(readout,'');
+
+    function simulate(){
+      const th = ang*Math.PI/180, dt = DTS[dti];
+      const vx = v0*Math.cos(th), vz0 = v0*Math.sin(th);
+      const Ta = 2*vz0/G, Da = vx*Ta;
+      const pts = [[0,0]];
+      let x = 0, z = 0, vz = vz0, t = 0, Tn = NaN, Dn = NaN, steps = 0;
+      while(steps < 200000){
+        const xn = x + vx*dt, zn = z + vz*dt, vzn = vz - G*dt;
+        steps++;
+        if(zn < 0){
+          const f = z/(z - zn);            // fraction du pas où le sol est atteint
+          Tn = t + f*dt;
+          Dn = x + f*(xn - x);
+          pts.push([Dn, 0]);
+          break;
+        }
+        t += dt; x = xn; z = zn; vz = vzn;
+        pts.push([x, z]);
+      }
+      return {vx, vz0, Ta, Da, Tn, Dn, pts, dt};
+    }
+
+    function refresh(){
+      sT.update('t_{\\text{ana}} = ' + sim.Ta.toFixed(3) + '\\ \\text{s}');
+      sTn.update('t_{\\text{num}} = ' + (isNaN(sim.Tn) ? '\\text{—}' : sim.Tn.toFixed(3) + '\\ \\text{s}'));
+      sD.update('D_{\\text{ana}} = ' + sim.Da.toFixed(3) + '\\ \\text{m}');
+      sDn.update('D_{\\text{num}} = ' + (isNaN(sim.Dn) ? '\\text{—}' : sim.Dn.toFixed(3) + '\\ \\text{m}'));
+      sE.update(isNaN(sim.Dn) ? '\\text{erreur} = \\text{—}' : '\\text{erreur} = ' + ((sim.Dn - sim.Da)/sim.Da*100).toFixed(1) + '\\ \\%');
+    }
+    sv.on(x=>{v0=x; sim=simulate(); refresh();});
+    sa.on(x=>{ang=x; sim=simulate(); refresh();});
+    sd.on(i=>{dti=i; sim=simulate(); refresh();});
+    sim = simulate(); refresh();
+
+    const stopLoop = loop(()=>{
+      const w = c.clientWidth, h = c.clientHeight;
+      ctx.clearRect(0,0,w,h);
+      const padL = 40, padB = 30, padT = 24, padR = 20;
+      const Ha = sim.vz0*sim.vz0/(2*G);
+      const Dmax = Math.max(sim.Da, 1e-6), Hmax = Math.max(Ha, 1e-6);
+      const s = Math.min((w-padL-padR)/Dmax, (h-padB-padT)/Hmax);
+      const X = x => padL + x*s, Y = z => h - padB - z*s;
+
+      ctx.fillStyle = '#f0e8d8'; ctx.fillRect(0, h-padB, w, padB);
+
+      // solution analytique (pointillés gris)
+      ctx.beginPath();
+      for(let i=0;i<=120;i++){
+        const tt = sim.Ta*i/120;
+        const xx = sim.vx*tt, zz = sim.vz0*tt - 0.5*G*tt*tt;
+        i ? ctx.lineTo(X(xx), Y(zz)) : ctx.moveTo(X(xx), Y(zz));
+      }
+      ctx.strokeStyle = '#c3c8ce'; ctx.lineWidth = 2; ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+
+      // solution numérique (bleu)
+      ctx.beginPath();
+      sim.pts.forEach(([xx,zz],i) => { i ? ctx.lineTo(X(xx), Y(zz)) : ctx.moveTo(X(xx), Y(zz)); });
+      ctx.strokeStyle = C.blue; ctx.lineWidth = 2; ctx.stroke();
+      if(sim.pts.length < 300){
+        sim.pts.forEach(([xx,zz]) => dot(ctx, X(xx), Y(zz), 3, C.blue));
+      }
+      if(!isNaN(sim.Dn)) dot(ctx, X(sim.Dn), Y(0), 4, C.red);
+
+      txt(ctx, 'analytique (gris) vs Euler explicite (bleu)', 10, 6, C.ink);
+      txt(ctx, 'Δt = ' + sim.dt + ' s · ' + sim.pts.length + ' points', 10, h-20, '#8b9096');
+    });
+
+    return ()=>{ stopLoop(); stop(); };
+  }
+});
+
+/* ---------- Puissance & rendement ---------- */
+SPRINTS.push({
+  id:'power',
+  short:'Puissance & η',
+  tag:'Module 3 · Énergie',
+  title:'Puissance, unités et rendement',
+  theory:[
+    'Puissance : $P = \\dfrac{dE}{dt}$ ; pour une force, $P = \\vec{F}\\cdot\\vec{v}$.',
+    'Unité : $1\\ \\text{W} = 1\\ \\text{J/s}$. Attention : $1\\ \\text{kWh} = 3{,}6\\times 10^6\\ \\text{J}$ est une <b>énergie</b>, pas une puissance.',
+    'Rendement : $\\eta = P_{\\text{utile}}/P_{\\text{consommée}}$, avec $P_{\\text{consommée}} = P_{\\text{utile}} + P_{\\text{perdue}}$.'
+  ],
+  formulas:[
+    { label:'Puissance', tex:'P = \\frac{dW}{dt} = \\vec{F}\\cdot\\vec{v}' },
+    { label:'Rendement', tex:'\\eta = \\frac{P_{\\text{utile}}}{P_{\\text{consommée}}} = \\frac{P_u}{P_u + P_p}' }
+  ],
+  real:'Ton vélo électrique : la batterie fournit une puissance, le moteur en restitue une part, le reste part en chaleur. Et ta facture d\'électricité est en kWh, pas en kW.',
+  quiz:[
+    { q:'Un moteur fournit $2\\ \\text{kW}$ pendant 30 min. Énergie fournie ?',
+      opts:['1 kWh','60 kWh','4 kWh'], a:0,
+      why:'$E = P\\,t = 2\\ \\text{kW}\\times 0{,}5\\ \\text{h} = 1\\ \\text{kWh} = 3{,}6\\ \\text{MJ}$.' },
+    { q:'Un moteur consomme $100\\ \\text{W}$ et restitue $80\\ \\text{W}$ utiles. Rendement ?',
+      opts:['80 %','20 %','125 %'], a:0,
+      why:'$\\eta = 80/100 = 0{,}8$, soit 80 %.' }
+  ],
+  mount(host){
+    const bars = el('div','bars'); host.appendChild(bars);
+    const mkBar = (labelTex, color) => {
+      const col = el('div','barcol');
+      const val = el('div','barval','0 kW');
+      const fill = el('div','barfill'); fill.style.background = color; fill.style.height = '0%';
+      const lab = el('div','barlabel');
+      const span = el('span'); lab.appendChild(span);
+      renderTeX(span, labelTex, false);
+      col.append(val, fill, lab);
+      bars.appendChild(col);
+      return {fill, val};
+    };
+    const bC = mkBar('P_{\\text{consommée}}', '#c9d2ff');
+    const bU = mkBar('P_{\\text{utile}}', C.blue);
+    const bP = mkBar('P_{\\text{perdue}}', C.orange);
+
+    const readout = el('div','readout'); host.appendChild(readout);
+    const sPu = katexStat(readout,''), sEta = katexStat(readout,'hi'), sE = katexStat(readout,'');
+
+    const bar = el('div','ctrls'); host.appendChild(bar);
+    let F = 200, v = 5, eta = 75;
+    const sF = makeSlider(bar,{label:'Force F', min:10, max:500, step:10, value:F, unit:' N', fmt:x=>x.toFixed(0)});
+    const sv = makeSlider(bar,{label:'Vitesse v', min:0.5, max:20, step:0.5, value:v, unit:' m/s', fmt:x=>x.toFixed(1)});
+    const se = makeSlider(bar,{label:'Rendement η', min:10, max:100, step:1, value:eta, unit:' %', fmt:x=>x.toFixed(0)});
+
+    function update(){
+      const Pu = F*v, Pc = Pu/(eta/100), Pp = Pc - Pu;
+      bC.fill.style.height = '100%';
+      bU.fill.style.height = (Pu/Pc*100) + '%';
+      bP.fill.style.height = (Pp/Pc*100) + '%';
+      bC.val.textContent = (Pc/1000).toFixed(2) + ' kW';
+      bU.val.textContent = (Pu/1000).toFixed(2) + ' kW';
+      bP.val.textContent = (Pp/1000).toFixed(2) + ' kW';
+      sPu.update('P_u = F\\,v = ' + (Pu/1000).toFixed(2) + '\\ \\text{kW}');
+      sEta.update('\\eta = ' + eta.toFixed(0) + '\\ \\%');
+      sE.update('E_{1\\,\\text{h}} = P_c\\,\\Delta t = ' + (Pc/1000).toFixed(2) + '\\ \\text{kWh}');
+    }
+    sF.on(x=>{F=x; update();}); sv.on(x=>{v=x; update();}); se.on(x=>{eta=x; update();});
+    update();
+
+    return ()=>{};
+  }
+});
+
+/* ---------- Gravitation & orbites ---------- */
+SPRINTS.push({
+  id:'orbit',
+  short:'Gravitation',
+  tag:'Module 3 · Énergie',
+  title:'Gravitation : orbites et vitesse de libération',
+  theory:[
+    'Énergie potentielle de gravitation, référence à l\'infini : $E_p = -G\\dfrac{Mm}{r}$ (négative : l\'objet est lié).',
+    'Orbite circulaire : $v = \\sqrt{GM/r}$ et période $T = 2\\pi\\sqrt{r^3/(GM)}$, avec $r$ mesuré depuis le centre de la Terre.',
+    'Vitesse de libération : $E_m = 0$ à la surface, donc $v_{\\text{lib}} = \\sqrt{2GM/R}$ (≈ 11,2 km/s pour la Terre).'
+  ],
+  formulas:[
+    { label:'Vitesse de libération', tex:'v_{\\text{lib}} = \\sqrt{\\frac{2GM}{R}}' },
+    { label:'Orbite circulaire', tex:'v = \\sqrt{\\frac{GM}{r}} \\qquad T = 2\\pi\\sqrt{\\frac{r^3}{GM}}' }
+  ],
+  real:'Un satellite géostationnaire ou un satellite GPS : c\'est la même gravité que celle qui te fait tomber, mais la vitesse horizontale est assez grande pour « tomber » sans jamais toucher le sol.',
+  quiz:[
+    { q:'Pour faire passer un satellite d\'une orbite basse à une orbite haute, il faut…',
+      opts:['lui retirer de l\'énergie','lui fournir de l\'énergie','ne rien faire'], a:1,
+      why:'$E_m = -GMm/(2r)$ augmente quand $r$ augmente : il faut lui donner de l\'énergie.' },
+    { q:'Un objet lancé à la vitesse de libération de la Terre (sans frottements)…',
+      opts:['retombe toujours','s\'éloigne indéfiniment','tourne autour de la Terre'], a:1,
+      why:'$E_m = 0$ : il atteint l\'infini avec une vitesse nulle.' }
+  ],
+  mount(host){
+    const {c, ctx, stop} = mkCanvas(host, 220);
+    const bar = el('div','ctrls'); host.appendChild(bar);
+    const G = 6.674e-11, MT = 5.972e24, RT = 6.371e6, GM = G*MT;
+    let hk = 400, ang = 0;
+
+    const sh = makeSlider(bar,{label:'Altitude h', min:200, max:40000, step:10, value:hk, unit:' km', fmt:x=>x.toFixed(0)});
+    const row = el('div','row'); bar.appendChild(row);
+    const bT = btn(row,'⟳ Régler sur 4 orbites / 24 h','ghost');
+
+    const readout = el('div','readout'); host.appendChild(readout);
+    const sR = katexStat(readout,''), sV = katexStat(readout,'hi'), sTp = katexStat(readout,''), sL = katexStat(readout,'');
+
+    function refresh(){
+      const r = RT + hk*1e3;
+      const v = Math.sqrt(GM/r), Tp = 2*Math.PI*Math.sqrt(r*r*r/GM), vl = Math.sqrt(2*GM/r);
+      sR.update('r = ' + (r/1e3).toFixed(0) + '\\ \\text{km}');
+      sV.update('v_{\\text{orb}} = ' + (v/1e3).toFixed(2) + '\\ \\text{km/s}');
+      sTp.update('T = ' + (Tp/3600).toFixed(2) + '\\ \\text{h}');
+      sL.update('v_{\\text{lib}}(r) = ' + (vl/1e3).toFixed(2) + '\\ \\text{km/s}');
+    }
+    sh.on(x=>{hk=x; refresh();});
+    bT.onclick = ()=>{
+      // T = 6 h  ⇒  r = (GM T² / 4π²)^(1/3)
+      const Tt = 6*3600;
+      const rt = Math.cbrt(GM*Tt*Tt/(4*Math.PI*Math.PI));
+      hk = Math.round((rt - RT)/1e3/10)*10;
+      sh.set(hk); refresh();
+    };
+    refresh();
+
+    const stopLoop = loop(dt=>{
+      const r = RT + hk*1e3;
+      const omega = (2*Math.PI/4)*Math.pow((RT + 400e3)/r, 1.5);   // animation : 1 tour / 4 s pour une orbite basse
+      ang += omega*dt;
+      const w = c.clientWidth, h = c.clientHeight;
+      ctx.clearRect(0,0,w,h);
+      const cx = w/2, cy = h/2, maxPx = Math.min(w,h)/2 - 14, Rpx = 24;
+      const rpx = Rpx + Math.sqrt(hk/40000)*(maxPx - Rpx);
+      ctx.beginPath(); ctx.arc(cx, cy, Rpx, 0, Math.PI*2); ctx.fillStyle = '#c9e4d6'; ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, rpx, 0, Math.PI*2);
+      ctx.strokeStyle = '#c9d2ff'; ctx.lineWidth = 1.5; ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+      dot(ctx, cx + rpx*Math.cos(ang), cy + rpx*Math.sin(ang), 5, C.orange);
+      txt(ctx, 'Terre · satellite à h = ' + hk.toFixed(0) + ' km', 10, 8, C.ink);
+    });
+
+    return ()=>{ stopLoop(); stop(); };
+  }
+});
+
+/* ---------- Gaz parfaits (macro) ---------- */
+SPRINTS.push({
+  id:'gas-macro',
+  short:'Gaz parfaits',
+  tag:'Module 5 · Gaz parfaits',
+  title:'Gaz parfaits — approche macroscopique',
+  theory:[
+    'Lois expérimentales : Boyle $pV$ = cste à $T$ fixe ; Charles $V/T$ = cste à $p$ fixe ; Gay-Lussac $p/T$ = cste à $V$ fixe ; Avogadro $V/n$ = cste.',
+    'Équation d\'état des gaz parfaits : $pV = nRT$. Elle est bonne tant que $p \\ll p_c$ ou $T \\gg T_c$.',
+    'Volume molaire dans les conditions standard (20 °C, 1 bar) : $V_m = RT/p \\approx 24{,}4\\ \\text{L/mol}$.'
+  ],
+  formulas:[
+    { label:'Équation des gaz parfaits', tex:'pV = nRT \\quad\\Longleftrightarrow\\quad p = \\frac{N}{V}\\,k_B\\,T' },
+    { label:'Masse volumique', tex:'\\rho = \\frac{m}{V} = \\frac{pM}{RT}' }
+  ],
+  real:'Un pneu de vélo gonflé en plein soleil : à volume constant, la pression augmente avec la température (Gay-Lussac). Un ballon de baudruche se dégonfle au froid.',
+  quiz:[
+    { q:'À volume constant, si la température absolue double, la pression…',
+      opts:['double','est divisée par 2','ne change pas'], a:0,
+      why:'Loi de Gay-Lussac : $p/T$ constant $\\Rightarrow$ $T\\times 2 \\Rightarrow p\\times 2$.' },
+    { q:'Masse volumique du CO₂ ($M = 44\\ \\text{g/mol}$) à 20 °C et 1 bar, environ…',
+      opts:['0,66 kg/m³','1,19 kg/m³','1,81 kg/m³'], a:2,
+      why:'$\\rho = pM/(RT) = 10^5\\times 0{,}044 / (8{,}314\\times 293) \\approx 1{,}81\\ \\text{kg/m}^3$.' }
+  ],
+  mount(host){
+    const {c, ctx, stop} = mkCanvas(host, 220);
+    const bar = el('div','ctrls'); host.appendChild(bar);
+    const RG = 8.314;
+    const MOL = {air:28.97, ch4:16.04, co2:44.01};
+    let T = 293, V = 24.4, n = 1, gas = 'air', p = 1;
+
+    const sT = makeSlider(bar,{label:'Température T', min:200, max:500, step:1, value:T, unit:' K', fmt:x=>x.toFixed(0)});
+    const sV = makeSlider(bar,{label:'Volume V', min:5, max:60, step:0.5, value:V, unit:' L', fmt:x=>x.toFixed(1)});
+    const sN = makeSlider(bar,{label:'Quantité n', min:0.5, max:5, step:0.1, value:n, unit:' mol', fmt:x=>x.toFixed(1)});
+    const sG = makeSelect(bar,{label:'Gaz (pour ρ)', value:'air', options:[
+      ['air','Air — 28,97 g/mol'],['ch4','Méthane CH₄ — 16,04 g/mol'],['co2','CO₂ — 44,01 g/mol']
+    ]});
+
+    const readout = el('div','readout'); host.appendChild(readout);
+    const sP = katexStat(readout,'hi'), sRho = katexStat(readout,''), sChk = katexStat(readout,'');
+
+    function refresh(){
+      p = n*RG*T/(V/1000)/1e5;                       // pression en bar
+      const rho = p*1e5*(MOL[gas]/1000)/(RG*T);       // ρ = pM/(RT)
+      sP.update('p = ' + p.toFixed(2) + '\\ \\text{bar}');
+      sRho.update('\\rho = ' + rho.toFixed(2) + '\\ \\text{kg/m}^3');
+      sChk.update('\\frac{pV}{nT} = ' + ((p*1e5)*(V/1000)/(n*T)).toFixed(2) + '\\ \\text{J/(mol·K)}');
+    }
+    sT.on(x=>{T=x; refresh();}); sV.on(x=>{V=x; refresh();});
+    sN.on(x=>{n=x; refresh();}); sG.on(v=>{gas=v; refresh();});
+    refresh();
+
+    const dots = Array.from({length:60}, ()=>({x:Math.random(), y:Math.random()}));
+    const stopLoop = loop(()=>{
+      const w = c.clientWidth, h = c.clientHeight;
+      ctx.clearRect(0,0,w,h);
+      const base = h - 30, maxH = h - 60, bw = Math.min(160, w*0.3), cx = w*0.35;
+      const hV = maxH*Math.min(1, V/60);
+      const top = base - hV, left = cx - bw/2;
+      const k = Math.min(1, Math.max(0, (T-200)/300));
+      ctx.fillStyle = 'rgba(' + Math.round(77+147*k) + ',' + Math.round(107-22*k) + ',' + Math.round(254-169*k) + ',0.16)';
+      ctx.fillRect(left, top, bw, hV);
+      ctx.strokeStyle = '#5b6167'; ctx.lineWidth = 2; ctx.strokeRect(left, top, bw, hV);
+      ctx.fillStyle = '#5b6167'; ctx.fillRect(left - 4, top - 8, bw + 8, 8);      // piston
+      const count = Math.round(n*12);
+      for(let i=0;i<count;i++){ dot(ctx, left + dots[i].x*bw, top + dots[i].y*hV, 3, C.blue); }
+
+      const bx = w*0.7, bwP = 46, maxP = 10;
+      const hp = Math.min(1, p/maxP)*maxH;
+      ctx.fillStyle = 'rgba(232,131,58,.25)'; ctx.fillRect(bx, base - maxH, bwP, maxH);
+      ctx.fillStyle = C.orange; ctx.fillRect(bx, base - hp, bwP, hp);
+      txt(ctx, 'p = ' + p.toFixed(2) + ' bar', bx - 6, Math.max(4, base - hp - 18), C.orange);
+      txt(ctx, 'V = ' + V.toFixed(1) + ' L', left, base + 4, '#8b9096');
+      txt(ctx, 'T = ' + T.toFixed(0) + ' K', left, 6, '#8b9096');
+    });
+
+    return ()=>{ stopLoop(); stop(); };
+  }
+});
+
+/* ---------- Théorie cinétique des gaz ---------- */
+SPRINTS.push({
+  id:'gas-kin',
+  short:'Théorie cinétique',
+  tag:'Module 5 · Gaz parfaits',
+  title:'Théorie cinétique : pression et température au niveau microscopique',
+  theory:[
+    'Modèle de Maxwell : particules ponctuelles, mouvement libre entre les chocs, chocs élastiques sur les parois.',
+    'Pression cinétique : $p = \\tfrac{2}{3}\\dfrac{U}{V}$ avec $U = N\\,\\langle \\tfrac12 m v^2\\rangle$. Température : $\\tfrac32 k_B T = \\langle \\tfrac12 m v^2\\rangle$ (monoatomique).',
+    'Énergie interne avec $i$ degrés de liberté : $U = N\\,\\tfrac{i}{2}k_BT$ (i = 3 mono, 5 di, 6 poly).'
+  ],
+  formulas:[
+    { label:'Pression cinétique', tex:'p = \\frac{2}{3}\\frac{U}{V} = \\frac{N}{V}\\,k_B T' },
+    { label:'Vitesse quadratique moyenne', tex:'v_{\\text{rms}} = \\sqrt{\\langle v^2\\rangle} = \\sqrt{\\frac{3k_BT}{m}} = \\sqrt{\\frac{3RT}{M}}' },
+    { label:'Énergie interne', tex:'U = N\\,\\frac{i}{2}\\,k_BT' }
+  ],
+  real:'Les molécules d\'air dans ta chambre vont à plusieurs centaines de mètres par seconde, mais tu ne sens qu\'une pression douce : les chocs sont innombrables et dans toutes les directions.',
+  quiz:[
+    { q:'Quand la température absolue double, la vitesse quadratique moyenne…',
+      opts:['double','augmente de √2','ne change pas'], a:1,
+      why:'$v_{\\text{rms}} \\propto \\sqrt{T}$ $\\Rightarrow$ facteur $\\sqrt{2}$.' },
+    { q:'Pour une molécule diatomique, combien de degrés de liberté $i$ à température ordinaire ?',
+      opts:['3','5','6'], a:1,
+      why:'3 de translation + 2 de rotation (la vibration est négligée à température ordinaire).' }
+  ],
+  mount(host){
+    const {c, ctx, stop} = mkCanvas(host, 240);
+    const bar = el('div','ctrls'); host.appendChild(bar);
+    const KB = 1.381e-23, RG = 8.314, NA = 6.022e23, NP = 150, KPX = 0.12;
+    const MOL = {he:4.00, ar:39.95, o2:32.00};
+    const NAME = {he:'He', ar:'Ar', o2:'O₂'};
+    let T = 293, gas = 'ar';
+
+    const gauss = () => {
+      let u = 0, v = 0;
+      while(!u) u = Math.random();
+      while(!v) v = Math.random();
+      return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+    };
+    // composantes gaussiennes tirées une fois : la température change seulement l'échelle
+    const base = Array.from({length:NP}, ()=>({gx:gauss(), gy:gauss(), gz:gauss(), px:null, py:null}));
+    const sci = x => { const [m,e] = x.toExponential(2).split('e'); return m + '\\times 10^{' + (+e) + '}'; };
+    const sigma = () => Math.sqrt(KB*T/(MOL[gas]/1000/NA));   // σ = √(kT/m) pour chaque composante
+
+    const sT = makeSlider(bar,{label:'Température T', min:100, max:800, step:1, value:T, unit:' K', fmt:x=>x.toFixed(0)});
+    const sG = makeSelect(bar,{label:'Gaz', value:'ar', options:[
+      ['he','Hélium He — 4,00 g/mol'],['ar','Argon Ar — 39,95 g/mol'],['o2','Dioxygène O₂ — 32,00 g/mol']
+    ]});
+
+    const readout = el('div','readout'); host.appendChild(readout);
+    const sVr = katexStat(readout,'hi'), sVm = katexStat(readout,''), sEc = katexStat(readout,''), sMs = katexStat(readout,'');
+
+    function refresh(){
+      const Mk = MOL[gas]/1000;
+      const vr = Math.sqrt(3*RG*T/Mk), vm = Math.sqrt(8*RG*T/(Math.PI*Mk));
+      let s2 = 0;
+      base.forEach(b => { s2 += b.gx*b.gx + b.gy*b.gy + b.gz*b.gz; });
+      const meas = Math.sqrt(s2/NP)*sigma();
+      sVr.update('v_{\\text{rms}} = ' + vr.toFixed(0) + '\\ \\text{m/s}');
+      sVm.update('v_{\\text{moy}} = ' + vm.toFixed(0) + '\\ \\text{m/s}');
+      sEc.update('\\langle E_c\\rangle = \\tfrac32 k_BT = ' + sci(1.5*KB*T) + '\\ \\text{J}');
+      sMs.update('v_{\\text{rms}}\\ \\text{(échantillon)} = ' + meas.toFixed(0) + '\\ \\text{m/s}');
+    }
+    sT.on(x=>{T=x; refresh();}); sG.on(v=>{gas=v; refresh();});
+    refresh();
+
+    const stopLoop = loop(dt=>{
+      const w = c.clientWidth, h = c.clientHeight;
+      ctx.clearRect(0,0,w,h);
+      const bh = h - 40, bw = Math.min(w - 40, bh*1.6), x0 = (w - bw)/2, y0 = 22;
+      ctx.fillStyle = '#fbfcfd'; ctx.fillRect(x0, y0, bw, bh);
+      ctx.strokeStyle = '#5b6167'; ctx.lineWidth = 2; ctx.strokeRect(x0, y0, bw, bh);
+
+      const s = sigma();
+      base.forEach(b => {
+        if(b.px === null){ b.px = Math.random()*bw; b.py = Math.random()*bh; }
+        b.px += b.gx*s*KPX*dt; b.py += b.gy*s*KPX*dt;
+        if(b.px < 0){ b.px = -b.px; b.gx = -b.gx; }
+        if(b.px > bw){ b.px = 2*bw - b.px; b.gx = -b.gx; }
+        if(b.py < 0){ b.py = -b.py; b.gy = -b.gy; }
+        if(b.py > bh){ b.py = 2*bh - b.py; b.gy = -b.gy; }
+        dot(ctx, x0 + b.px, y0 + b.py, 3.2, C.blue);
+      });
+
+      txt(ctx, 'T = ' + T.toFixed(0) + ' K · ' + NAME[gas], x0, 4, C.ink);
+      txt(ctx, 'chaque point = une molécule · chocs élastiques sur les parois', x0, h - 14, '#8b9096');
+    });
+
+    return ()=>{ stopLoop(); stop(); };
+  }
+});
+
+// ordre pédagogique (suit les « nuggets » du cours)
+const ORDER = ['pos','ball','mcu','newton','fd','fdball','reflect','work','mech','power','orbit',
+               'coll','gas-macro','gas-kin','py','hdf5','pv'];
+SPRINTS.sort((a,b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
+
 /* ============================================================
    STATE
    ============================================================ */
-const KEY = 'playground_physique_v3';
+const KEY = 'playground_physique_v4';
+// anciennes sauvegardes (v3) : index numériques → identifiants stables
+const LEGACY = [['playground_physique_v3', ['pos','ball','mcu','newton','fd','reflect','work','mech','coll','py','hdf5','pv']]];
+const isValidId = id => SPRINTS.some(s => s.id === id);
 let state = { done: [] };
 try{
-  const raw = localStorage.getItem(KEY) || localStorage.getItem('playground_physique_v2') || localStorage.getItem('playground_physique_v1');
+  let raw = localStorage.getItem(KEY), legacyIds = null;
+  if(!raw){
+    for(const [k, ids] of LEGACY){
+      const r = localStorage.getItem(k);
+      if(r){ raw = r; legacyIds = ids; break; }
+    }
+  }
   if(raw){
     const p = JSON.parse(raw);
-    if(p && Array.isArray(p.done)) state = { done: p.done.filter(x => Number.isInteger(x) && x >= 0 && x < SPRINTS.length) };
+    if(p && Array.isArray(p.done)){
+      const ids = p.done.map(x => legacyIds ? legacyIds[x] : x).filter(isValidId);
+      state = { done: [...new Set(ids)] };
+    }
   }
 }catch(e){ console.warn('[playground] state parse failed', e); }
 
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
-const isUnlocked = i => i === 0 || state.done.includes(i-1);
+const isDone = i => state.done.includes(SPRINTS[i].id);
+// toutes les sprints sont accessibles, dans l'ordre que tu veux
+const isUnlocked = () => true;
 
 let current = 0;
 let cleanup = null;
@@ -1833,7 +2299,7 @@ function renderRail(){
   rail.innerHTML = '';
   SPRINTS.forEach((s,i)=>{
     const b = el('button','sidebar-item');
-    const done = state.done.includes(i);
+    const done = isDone(i);
     const locked = !isUnlocked(i);
     b.innerHTML =
       '<span class="num">' + String(i+1).padStart(2,'0') + '</span>' +
@@ -1853,13 +2319,16 @@ function renderRail(){
 function renderBilan(){
   current = SPRINTS.length;
   stage.innerHTML = '';
+  const N = SPRINTS.length;
   const card = el('div','card');
-  card.innerHTML = '<div class="eyebrow">Parcours terminé<span class="pill">12 / 12</span></div>' +
-    '<h2>🎉 Les 12 sprints sont validés</h2>' +
+  card.innerHTML = '<div class="eyebrow">Parcours terminé<span class="pill">' + N + ' / ' + N + '</span></div>' +
+    '<h2>🎉 Les ' + N + ' sprints sont validés</h2>' +
     '<ul class="theory">' +
-    '<li>Cinématique : position, vitesse, accélération, balistique, MCU.</li>' +
-    '<li>Dynamique : 3 lois de Newton, différences finies, réflexion aux bords.</li>' +
-    '<li>Énergie : travail, énergie mécanique, collisions élastiques.</li>' +
+    '<li>Cinématique : position, vitesse, accélération, balistique (y compris depuis une falaise), MCU.</li>' +
+    '<li>Dynamique : 3 lois de Newton, différences finies, tir ballistique numérique, réflexion aux bords.</li>' +
+    '<li>Énergie : travail, énergie mécanique, puissance & rendement, gravitation & orbites.</li>' +
+    '<li>Quantité de mouvement : chocs élastiques et inélastiques, centre de masse.</li>' +
+    '<li>Gaz parfaits : loi des gaz, théorie cinétique, température et pression au niveau microscopique.</li>' +
     '<li>Logiciel : classes Python, export HDF5/XDMF, ParaView.</li>' +
     '</ul>' +
     '<div class="real"><span class="tag">prochaine étape</span>Ouvre ton vrai projet Python et écris la classe <b>Atome</b> avec <code>np.array</code> pour position et vitesse.</div>';
@@ -1938,7 +2407,7 @@ function open(i){
   });
 
   finishBtn.onclick = ()=>{
-    if(!state.done.includes(i)) state.done.push(i);
+    if(!isDone(i)) state.done.push(SPRINTS[i].id);
     save();
     finishBtn.textContent = '✓ Sprint validé';
     finishBtn.disabled = true;
@@ -1981,7 +2450,7 @@ document.getElementById('resetAll').onclick = ()=>{
 /* ---------- démarrage ---------- */
 renderRail();
 let startAt = 0;
-for(let i=0;i<SPRINTS.length;i++){ if(!state.done.includes(i)){ startAt = i; break; } }
+for(let i=0;i<SPRINTS.length;i++){ if(!isDone(i)){ startAt = i; break; } }
 if(state.done.length >= SPRINTS.length) startAt = SPRINTS.length;
 open(startAt);
 </script>
