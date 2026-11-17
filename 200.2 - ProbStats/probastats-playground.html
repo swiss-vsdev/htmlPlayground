@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProbaStats — Playground de révision</title>
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+    svg: { fontCache: 'global' },
+    options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  :root {
+    --blue: #4d6bfe;
+    --blue-50: #eef1ff;
+    --blue-100: #dde3ff;
+    --text: #0d0d0d;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --surface: #ffffff;
+    --bg: #f9fafb;
+    --green: #10b981;
+    --green-50: #ecfdf5;
+    --red: #ef4444;
+    --red-50: #fef2f2;
+    --amber: #f59e0b;
+    --amber-50: #fffbeb;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-lg: 0 4px 16px rgba(0,0,0,.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+  .sidebar {
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; padding: 0 8px; }
+  .brand-icon { font-size: 28px; }
+  .brand-title { font-weight: 700; font-size: 16px; }
+  .brand-sub { font-size: 11px; color: var(--muted); }
+  .nav-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+  .nav-link {
+    display: block; padding: 8px 12px; border-radius: 8px;
+    color: var(--muted); text-decoration: none; font-size: 14px;
+    transition: all .15s;
+  }
+  .nav-link:hover { background: var(--bg); color: var(--text); }
+  .nav-link.active { background: var(--blue-50); color: var(--blue); font-weight: 600; }
+  .content { padding: 40px 48px; max-width: 960px; width: 100%; margin: 0 auto; }
+  section { margin-bottom: 56px; scroll-margin-top: 24px; }
+  h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+  h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+  .lead { color: var(--muted); font-size: 16px; margin-bottom: 28px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 24px;
+    margin-bottom: 16px; box-shadow: var(--shadow);
+  }
+  .card ul { padding-left: 20px; }
+  .card li { margin-bottom: 6px; }
+  .formula {
+    background: var(--blue-50); border-left: 3px solid var(--blue);
+    padding: 12px 16px; border-radius: 6px; margin: 10px 0;
+  }
+  .callout { background: var(--amber-50); border-left: 3px solid var(--amber); }
+  .callout-green { background: var(--green-50); border-left: 3px solid var(--green); }
+  .callout-red { background: var(--red-50); border-left: 3px solid var(--red); }
+  .hero-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px; margin-top: 32px;
+  }
+  .hero-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px; cursor: pointer;
+    transition: all .2s; text-decoration: none; color: inherit; display: block;
+  }
+  .hero-card:hover { border-color: var(--blue); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .hero-icon { font-size: 26px; margin-bottom: 8px; }
+  .hero-card h3 { margin-bottom: 4px; font-size: 14px; }
+  .hero-card p { font-size: 12px; color: var(--muted); margin: 0; }
+
+  /* Calculator */
+  .calc-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+  .calc-tab {
+    flex: 1; padding: 10px 16px; border: 1px solid var(--border);
+    background: var(--surface); border-radius: 8px; cursor: pointer;
+    font-weight: 500; color: var(--muted); font-size: 14px;
+    transition: all .15s; font-family: inherit;
+  }
+  .calc-tab:hover { color: var(--text); }
+  .calc-tab.active { background: var(--blue); color: white; border-color: var(--blue); }
+  .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin-bottom: 24px; }
+  .controls label { display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 500; color: var(--muted); }
+  .controls .val { background: var(--blue-50); color: var(--blue); padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 12px; margin-left: 4px; }
+  input[type="range"] { width: 100%; accent-color: var(--blue); height: 6px; }
+  input[type="number"] {
+    padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 14px; font-family: inherit; width: 100%;
+  }
+  input[type="number"]:focus { outline: 2px solid var(--blue-100); border-color: var(--blue); }
+  canvas { width: 100%; height: auto; background: var(--surface); border-radius: 8px; margin-bottom: 20px; display: block; }
+  .results { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .result-card { background: var(--blue-50); border-radius: 8px; padding: 12px 16px; }
+  .result-card .label { font-size: 11px; color: var(--muted); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; }
+  .result-card .value { font-size: 20px; font-weight: 700; color: var(--text); font-family: 'SF Mono', Menlo, monospace; }
+  .result-card .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* Decision tree */
+  .tree { display: flex; flex-direction: column; gap: 16px; }
+  .tree-step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .tree-q { font-weight: 600; margin-bottom: 16px; }
+  .tree-branches { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tree-branch { border-radius: 8px; padding: 12px 16px; }
+  .tree-branch.yes { background: var(--green-50); border-left: 3px solid var(--green); }
+  .tree-branch.no { background: var(--red-50); border-left: 3px solid var(--red); }
+  .tree-label { font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.04em; }
+  .tree-branch.yes .tree-label { color: var(--green); }
+  .tree-branch.no .tree-label { color: var(--red); }
+  .tree-answer { font-size: 13px; }
+  .tree-answer strong { font-size: 14px; }
+  .tree-arrow { text-align: center; font-size: 24px; color: var(--muted); }
+
+  /* Quiz */
+  .quiz-q {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 24px; margin-bottom: 16px;
+  }
+  .quiz-q .q-text { font-weight: 600; margin-bottom: 14px; }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .quiz-option {
+    padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: all .15s; font-size: 14px;
+  }
+  .quiz-option:hover { border-color: var(--blue); background: var(--blue-50); }
+  .quiz-option.selected { border-color: var(--blue); background: var(--blue-50); font-weight: 500; }
+  .quiz-option.correct { border-color: var(--green); background: var(--green-50); font-weight: 500; }
+  .quiz-option.wrong { border-color: var(--red); background: var(--red-50); }
+  .quiz-check {
+    padding: 8px 18px; border: none; background: var(--blue); color: white;
+    border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 14px;
+    font-family: inherit; transition: opacity .15s;
+  }
+  .quiz-check:hover { opacity: 0.9; }
+  .quiz-check:disabled { cursor: default; opacity: 1; background: var(--muted); }
+  .quiz-explanation {
+    margin-top: 14px; padding: 12px 16px; background: var(--bg);
+    border-radius: 8px; font-size: 13px; color: var(--text);
+    border-left: 3px solid var(--blue); display: none;
+  }
+
+  .trap-list { display: grid; gap: 12px; }
+  .trap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; border-left: 4px solid var(--amber); }
+  .trap-title { font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .trap-body { font-size: 14px; color: var(--text); }
+
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    .nav-list { flex-direction: row; flex-wrap: wrap; }
+    .content { padding: 24px 20px; }
+    .tree-branches { grid-template-columns: 1fr; }
+    h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🎲</div>
+      <div>
+        <div class="brand-title">ProbaStats</div>
+        <div class="brand-sub">Playground de révision</div>
+      </div>
+    </div>
+    <ul class="nav-list">
+      <li><a href="#accueil" class="nav-link active">Accueil</a></li>
+      <li><a href="#fondations" class="nav-link">Fondations</a></li>
+      <li><a href="#conditionnelles" class="nav-link">Conditionnelles</a></li>
+      <li><a href="#variables" class="nav-link">Variables aléatoires</a></li>
+      <li><a href="#lois" class="nav-link">Lois de probabilité</a></li>
+      <li><a href="#calculateur" class="nav-link">Calculateur</a></li>
+      <li><a href="#arbre" class="nav-link">Arbre de décision</a></li>
+      <li><a href="#quiz" class="nav-link">Quiz</a></li>
+      <li><a href="#pieges" class="nav-link">Pièges d'examen</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+
+    <!-- ACCUEIL -->
+    <section id="accueil">
+      <h1>Probabilités & Statistiques</h1>
+      <p class="lead">Fiche de révision interactive basée sur tes cours et ton examen blanc. Explore, calcule, teste-toi.</p>
+      <div class="hero-grid">
+        <a href="#fondations" class="hero-card"><div class="hero-icon">📐</div><h3>Fondations</h3><p>Axiomes, ensembles, événements</p></a>
+        <a href="#conditionnelles" class="hero-card"><div class="hero-icon">🧩</div><h3>Conditionnelles</h3><p>Bayes, indépendance, proba totale</p></a>
+        <a href="#variables" class="hero-card"><div class="hero-icon">🎲</div><h3>Variables</h3><p>Espérance, variance, densité</p></a>
+        <a href="#lois" class="hero-card"><div class="hero-icon">📊</div><h3>Lois</h3><p>Binomiale, Géométrique, Poisson</p></a>
+        <a href="#calculateur" class="hero-card"><div class="hero-icon">🖩</div><h3>Calculateur</h3><p>Explore les distributions en direct</p></a>
+        <a href="#quiz" class="hero-card"><div class="hero-icon">🎯</div><h3>Quiz</h3><p>Teste tes connaissances</p></a>
+      </div>
+    </section>
+
+    <!-- FONDATIONS -->
+    <section id="fondations">
+      <h2>1. Fondations & Axiomes</h2>
+      <div class="card">
+        <h3>Vocabulaire de base</h3>
+        <ul>
+          <li><b>Univers \(\Omega\)</b> : l'ensemble de tous les résultats possibles.</li>
+          <li><b>Événement \(A\)</b> : un sous-ensemble de \(\Omega\) (\(A \subseteq \Omega\)).</li>
+          <li><b>Réalisation</b> : un élément \(\omega \in \Omega\) effectivement obtenu.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Opérations sur les événements</h3>
+        <ul>
+          <li><b>Union</b> \(A \cup B\) — « A <i>ou</i> B » (réalisé si au moins l'un des deux l'est).</li>
+          <li><b>Intersection</b> \(A \cap B\) — « A <i>et</i> B » (réalisé si les deux le sont).</li>
+          <li><b>Complément</b> \(A^c\) — « non A » (réalisé si A ne l'est pas).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Axiomes de Kolmogorov</h3>
+        <p>Une probabilité \(P\) associe à chaque événement \(A\) un réel dans \([0, 1]\), tel que :</p>
+        <ol style="padding-left: 20px; margin-top: 8px;">
+          <li>\(0 \leq P(A) \leq 1\)</li>
+          <li>\(P(\Omega) = 1\)</li>
+          <li>Si \(A \cap B = \emptyset\), alors \(P(A \cup B) = P(A) + P(B)\)</li>
+        </ol>
+      </div>
+      <div class="card callout">
+        <h3>💡 Propriété fondamentale</h3>
+        <p style="font-size: 16px;">\[P(A^c) = 1 - P(A)\]</p>
+        <p>C'est la base de tout raisonnement « au moins un » : on calcule souvent plus facilement le complément.</p>
+      </div>
+    </section>
+
+    <!-- CONDITIONNELLES -->
+    <section id="conditionnelles">
+      <h2>2. Probabilités conditionnelles</h2>
+      <div class="card">
+        <h3>Probabilité conditionnelle</h3>
+        <p>La probabilité de \(B\) sachant \(A\) :</p>
+        <div class="formula">\[P(B \mid A) = \frac{P(A \cap B)}{P(A)}\]</div>
+        <p style="color: var(--muted); font-size: 13px; margin-top: 8px;">Valable uniquement si \(P(A) > 0\).</p>
+      </div>
+      <div class="card">
+        <h3>Indépendance</h3>
+        <p>Deux événements \(A\) et \(B\) sont indépendants si :</p>
+        <div class="formula">\[P(A \cap B) = P(A) \times P(B)\]</div>
+        <p style="margin-top: 8px;">Ce qui équivaut à \(P(B \mid A) = P(B)\) : savoir que \(A\) s'est produit ne change rien à la probabilité de \(B\).</p>
+      </div>
+      <div class="card">
+        <h3>Formule des probabilités totales</h3>
+        <p>Si \(B_1, B_2, \dots, B_n\) forment une partition de \(\Omega\) :</p>
+        <div class="formula">\[P(A) = \sum_{i=1}^{n} P(A \mid B_i) \, P(B_i)\]</div>
+        <p style="color: var(--muted); font-size: 13px;">C'est la formule qu'on utilise quand on « suit les chemins » d'un arbre pondéré.</p>
+      </div>
+      <div class="card">
+        <h3>Théorème de Bayes</h3>
+        <p>Pour « remonter » un arbre de probabilité :</p>
+        <div class="formula">\[P(B \mid A) = \frac{P(A \mid B) \, P(B)}{P(A)}\]</div>
+        <p style="color: var(--muted); font-size: 13px;">Utilisé pour les tests médicaux, la localisation de pannes, etc.</p>
+      </div>
+    </section>
+
+    <!-- VARIABLES -->
+    <section id="variables">
+      <h2>3. Variables aléatoires</h2>
+      <div class="card">
+        <h3>Espérance et variance</h3>
+        <ul>
+          <li><b>Espérance</b> \(E[X]\) : moyenne théorique pondérée par les probabilités.</li>
+          <li><b>Variance</b> \(\mathrm{Var}(X)\) : dispersion autour de l'espérance.</li>
+          <li><b>Écart-type</b> \(\sigma = \sqrt{\mathrm{Var}(X)}\) : même unité que \(X\).</li>
+        </ul>
+        <div class="formula">\[E[X] = \sum_i x_i \, p_i \qquad \mathrm{Var}(X) = E[X^2] - (E[X])^2\]</div>
+      </div>
+      <div class="card callout-green">
+        <h3>Propriétés à connaître par cœur</h3>
+        <div class="formula">
+          \[E[aX + b] = aE[X] + b\]
+          \[\mathrm{Var}(aX + b) = a^2 \, \mathrm{Var}(X)\]
+          \[\mathrm{Var}(X + Y) = \mathrm{Var}(X) + \mathrm{Var}(Y) + 2\,\mathrm{Cov}(X, Y)\]
+        </div>
+      </div>
+      <div class="card">
+        <h3>Variables continues</h3>
+        <ul>
+          <li>\(P(X = c) = 0\) pour toute valeur \(c\) (probabilité ponctuelle nulle).</li>
+          <li>On calcule sur des intervalles : \(P(a \leq X \leq b) = F(b) - F(a)\).</li>
+          <li>La densité \(f(x)\) est la dérivée de la fonction de répartition \(F(x)\).</li>
+          <li>\(\int_{-\infty}^{+\infty} f(x)\,dx = 1\).</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- LOIS -->
+    <section id="lois">
+      <h2>4. Lois de probabilité</h2>
+
+      <div class="card">
+        <h3>Loi de Bernoulli \(\mathcal{B}(1, p)\)</h3>
+        <ul>
+          <li>Une seule épreuve, deux issues (succès / échec).</li>
+          <li>\(P(X=1) = p\) et \(P(X=0) = 1-p\).</li>
+          <li>\(E[X] = p\), \(\mathrm{Var}(X) = p(1-p)\).</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Loi binomiale \(\mathcal{B}(n, p)\)</h3>
+        <p><b>Conditions :</b> \(n\) répétitions identiques et indépendantes, \(p\) constant.</p>
+        <div class="formula">\[P(X = k) = \binom{n}{k} \, p^k \, (1-p)^{n-k}\]</div>
+        <p><b>Espérance :</b> \(E[X] = np\) &nbsp;•&nbsp; <b>Variance :</b> \(\mathrm{Var}(X) = np(1-p)\).</p>
+        <div class="formula">
+          \[P(X \ge k) = 1 - P(X \le k-1)\]
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Loi géométrique \(\mathcal{G}(p)\) <span style="color: var(--amber); font-size: 12px; font-weight: 600;">⚠️ piège d'examen</span></h3>
+        <p>Modélise le nombre d'<b>échecs</b> avant le premier succès.</p>
+        <div class="formula">\[P(X = k) = (1-p)^k \, p \qquad k = 0, 1, 2, \dots\]</div>
+        <p><b>Espérance (échecs) :</b> \(E[X] = \dfrac{1-p}{p}\) &nbsp;•&nbsp; <b>Variance :</b> \(\mathrm{Var}(X) = \dfrac{1-p}{p^2}\).</p>
+        <div class="callout" style="margin-top: 12px;">
+          <b>⚠️ Attention :</b> si on demande le nombre moyen de <i>tests</i> (ou d'essais), il faut ajouter 1 : \(E[\text{tests}] = \dfrac{1}{p}\).
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Loi de Poisson \(\mathcal{P}(\lambda)\)</h3>
+        <p>Modélise le comptage d'événements rares et indépendants sur une durée / un espace.</p>
+        <div class="formula">\[P(X = k) = \frac{\lambda^k e^{-\lambda}}{k!}\]</div>
+        <p><b>Espérance :</b> \(E[X] = \lambda\) &nbsp;•&nbsp; <b>Variance :</b> \(\mathrm{Var}(X) = \lambda\).</p>
+      </div>
+    </section>
+
+    <!-- CALCULATEUR -->
+    <section id="calculateur">
+      <h2>5. Calculateur interactif</h2>
+      <p class="lead" style="font-size: 14px;">Joue avec les paramètres et observe les distributions en temps réel.</p>
+      <div class="calc-tabs">
+        <button class="calc-tab active" data-target="binom">Loi Binomiale</button>
+        <button class="calc-tab" data-target="geom">Loi Géométrique</button>
+      </div>
+
+      <!-- Binomiale -->
+      <div class="calc-panel" id="panel-binom">
+        <div class="controls">
+          <label>n — nombre d'essais <span class="val" id="nVal">10</span>
+            <input type="range" id="nSlider" min="1" max="40" value="10">
+          </label>
+          <label>p — probabilité de succès <span class="val" id="pVal">0.50</span>
+            <input type="range" id="pSlider" min="0.01" max="0.99" step="0.01" value="0.5">
+          </label>
+          <label>k — valeur observée
+            <input type="number" id="kInput" min="0" max="10" value="5">
+          </label>
+        </div>
+        <canvas id="binomChart" width="800" height="300"></canvas>
+        <div class="results" id="binomResults"></div>
+      </div>
+
+      <!-- Géométrique -->
+      <div class="calc-panel" id="panel-geom" style="display:none;">
+        <div class="controls">
+          <label>p — probabilité de succès <span class="val" id="gpVal">0.30</span>
+            <input type="range" id="gpSlider" min="0.05" max="0.95" step="0.01" value="0.3">
+          </label>
+          <label>k — nombre d'échecs avant le succès
+            <input type="number" id="gkInput" min="0" max="30" value="3">
+          </label>
+        </div>
+        <canvas id="geomChart" width="800" height="300"></canvas>
+        <div class="results" id="geomResults"></div>
+      </div>
+    </section>
+
+    <!-- ARBRE DE DÉCISION -->
+    <section id="arbre">
+      <h2>6. Arbre de décision — quelle loi choisir ?</h2>
+      <div class="tree">
+        <div class="tree-step">
+          <div class="tree-q">Étape 1 — Le phénomène est-il continu ? (temps, distance, poids…)</div>
+          <div class="tree-branches">
+            <div class="tree-branch yes">
+              <div class="tree-label">Oui</div>
+              <div class="tree-answer"><strong>Loi continue</strong><br>Densité \(f(x)\), répartition \(F(x)\). Ex. : Loi Normale \(\mathcal{N}(\mu, \sigma^2)\).</div>
+            </div>
+            <div class="tree-branch no">
+              <div class="tree-label">Non</div>
+              <div class="tree-answer">→ Passer à l'étape 2.</div>
+            </div>
+          </div>
+        </div>
+        <div class="tree-arrow">↓</div>
+        <div class="tree-step">
+          <div class="tree-q">Étape 2 — Compte-t-on des événements rares sur une durée / un espace ?</div>
+          <div class="tree-branches">
+            <div class="tree-branch yes">
+              <div class="tree-label">Oui</div>
+              <div class="tree-answer"><strong>Loi de Poisson \(\mathcal{P}(\lambda)\)</strong><br>Comptage de requêtes, d'appels, de pannes.</div>
+            </div>
+            <div class="tree-branch no">
+              <div class="tree-label">Non</div>
+              <div class="tree-answer">→ Passer à l'étape 3.</div>
+            </div>
+          </div>
+        </div>
+        <div class="tree-arrow">↓</div>
+        <div class="tree-step">
+          <div class="tree-q">Étape 3 — Répète-t-on une épreuve à 2 issues (succès / échec) de façon identique et indépendante ?</div>
+          <div class="tree-branches">
+            <div class="tree-branch yes">
+              <div class="tree-label">Oui</div>
+              <div class="tree-answer">→ Passer à l'étape 4.</div>
+            </div>
+            <div class="tree-branch no">
+              <div class="tree-label">Non</div>
+              <div class="tree-answer">Revoir le modèle : la loi binomiale ne s'applique pas directement.</div>
+            </div>
+          </div>
+        </div>
+        <div class="tree-arrow">↓</div>
+        <div class="tree-step">
+          <div class="tree-q">Étape 4 — Que compte-t-on ?</div>
+          <div class="tree-branches">
+            <div class="tree-branch yes">
+              <div class="tree-label">Nombre de succès sur n essais</div>
+              <div class="tree-answer"><strong>Loi binomiale \(\mathcal{B}(n, p)\)</strong></div>
+            </div>
+            <div class="tree-branch no">
+              <div class="tree-label">Attendre le 1er succès</div>
+              <div class="tree-answer"><strong>Loi géométrique \(\mathcal{G}(p)\)</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section id="quiz">
+      <h2>7. Quiz — teste-toi</h2>
+      <p class="lead" style="font-size: 14px;">Questions inspirées de l'examen blanc. Clique sur une réponse puis « Vérifier ».</p>
+      <div id="quizContainer"></div>
+    </section>
+
+    <!-- PIÈGES -->
+    <section id="pieges">
+      <h2>8. Pièges classiques d'examen</h2>
+      <div class="trap-list">
+        <div class="trap">
+          <div class="trap-title">⚠️ Géométrique vs Binomiale</div>
+          <div class="trap-body">La <b>binomiale</b> compte le nombre de succès sur \(n\) essais <i>fixés à l'avance</i>. La <b>géométrique</b> attend le premier succès (nombre d'essais aléatoire). Lire attentivement l'énoncé.</div>
+        </div>
+        <div class="trap">
+          <div class="trap-title">⚠️ « Au moins un… »</div>
+          <div class="trap-body">Utiliser le complément : \(P(\text{au moins un}) = 1 - P(\text{aucun})\). Ex. : au moins une sauvegarde réussit sur 10 → \(1 - (1-p)^{10}\).</div>
+        </div>
+        <div class="trap">
+          <div class="trap-title">⚠️ Espérance de la géométrique</div>
+          <div class="trap-body">\(E[X] = (1-p)/p\) si \(X\) = nombre d'<i>échecs</i>. Si on demande le nombre moyen de <i>tests</i>, ajouter 1 : \(E[\text{tests}] = 1/p\).</div>
+        </div>
+        <div class="trap">
+          <div class="trap-title">⚠️ Indépendance</div>
+          <div class="trap-body">Ne pas confondre \(P(A \cap B) = P(A) P(B)\) (indépendance) avec \(P(A \cap B) = 0\) (incompatibilité). Deux événements incompatibles ne sont <i>pas</i> indépendants (sauf si l'un est de probabilité nulle).</div>
+        </div>
+        <div class="trap">
+          <div class="trap-title">⚠️ Variable continue</div>
+          <div class="trap-body">\(P(X = c) = 0\). Ne jamais écrire \(P(X \le c) = P(X < c) + P(X = c)\) en continu : les deux premières sont égales.</div>
+        </div>
+        <div class="trap">
+          <div class="trap-title">⚠️ Formule de Bayes</div>
+          <div class="trap-body">Bien identifier \(P(A \mid B)\) (ce qu'on cherche) et \(P(B \mid A)\) (ce qu'on connaît). Souvent on inverse sans s'en rendre compte.</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ---------- Navigation active ---------- */
+  const sections = document.querySelectorAll('section');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  /* ---------- Tabs calculateur ---------- */
+  document.querySelectorAll('.calc-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.calc-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.target;
+      document.getElementById('panel-binom').style.display = target === 'binom' ? 'block' : 'none';
+      document.getElementById('panel-geom').style.display = target === 'geom' ? 'block' : 'none';
+      // Redessiner après affichage
+      if (target === 'binom') requestAnimationFrame(updateBinom);
+      else requestAnimationFrame(updateGeom);
+    });
+  });
+
+  /* ---------- Utilitaires ---------- */
+  function comb(n, k) {
+    if (k < 0 || k > n) return 0;
+    k = Math.min(k, n - k);
+    let res = 1;
+    for (let i = 0; i < k; i++) res = res * (n - i) / (i + 1);
+    return res;
+  }
+  function binomPmf(n, p, k) {
+    if (k < 0 || k > n) return 0;
+    return comb(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
+  }
+  function binomCdf(n, p, k) {
+    let s = 0;
+    for (let i = 0; i <= k; i++) s += binomPmf(n, p, i);
+    return s;
+  }
+
+  /* ---------- Dessin graphique ---------- */
+  function drawDistribution(canvas, probs, highlight) {
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.clientWidth || 800;
+    const H = 300;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    if (!probs.length) return;
+    const padL = 52, padR = 16, padT = 24, padB = 36;
+    const plotW = W - padL - padR;
+    const plotH = H - padT - padB;
+    const maxV = Math.max.apply(null, probs.concat([1e-9]));
+    const step = plotW / probs.length;
+    const barW = Math.max(2, Math.min(step * 0.75, 40));
+
+    // Lignes de grille horizontales
+    ctx.strokeStyle = '#f3f4f6';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const y = padT + plotH * (i / 4);
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y); ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = '#d1d5db';
+    ctx.beginPath();
+    ctx.moveTo(padL, padT);
+    ctx.lineTo(padL, padT + plotH);
+    ctx.lineTo(padL + plotW, padT + plotH);
+    ctx.stroke();
+
+    // Labels Y
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '11px -apple-system, system-ui, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i <= 4; i++) {
+      const y = padT + plotH * (i / 4);
+      const v = maxV * (1 - i / 4);
+      ctx.fillText(v < 0.01 && v > 0 ? v.toFixed(4) : v.toFixed(2), padL - 8, y);
+    }
+
+    // Barres
+    probs.forEach(function(p, i) {
+      const x = padL + step * i + (step - barW) / 2;
+      const h = Math.max(0, (p / maxV) * plotH);
+      const y = padT + plotH - h;
+      const isHi = i === highlight;
+      ctx.fillStyle = isHi ? '#4d6bfe' : '#c7d2fe';
+      const r = Math.min(4, barW / 2, h);
+      ctx.beginPath();
+      ctx.moveTo(x, y + r);
+      ctx.arcTo(x, y, x + barW, y, r);
+      ctx.arcTo(x + barW, y, x + barW, y + h, r);
+      ctx.lineTo(x + barW, y + h);
+      ctx.lineTo(x, y + h);
+      ctx.closePath();
+      ctx.fill();
+
+      // Labels X
+      const stepLabel = probs.length <= 20 ? 1 : Math.ceil(probs.length / 12);
+      if (i % stepLabel === 0) {
+        ctx.fillStyle = isHi ? '#4d6bfe' : '#9ca3af';
+        ctx.font = (isHi ? 'bold ' : '') + '11px -apple-system, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(String(i), padL + step * i + step / 2, padT + plotH + 10);
+      }
+
+      // Valeur sur la barre survolée
+      if (isHi && h > 0) {
+        ctx.fillStyle = '#4d6bfe';
+        ctx.font = 'bold 11px -apple-system, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(p.toFixed(4), x + barW / 2, y - 4);
+      }
+    });
+  }
+
+  /* ---------- Binomiale ---------- */
+  const nSlider = document.getElementById('nSlider');
+  const pSlider = document.getElementById('pSlider');
+  const kInput  = document.getElementById('kInput');
+  const nVal    = document.getElementById('nVal');
+  const pVal    = document.getElementById('pVal');
+  const binomChart = document.getElementById('binomChart');
+  const binomResults = document.getElementById('binomResults');
+
+  function updateBinom() {
+    const n = parseInt(nSlider.value, 10);
+    const p = parseFloat(pSlider.value);
+    let k = parseInt(kInput.value, 10);
+    if (isNaN(k)) k = 0;
+    k = Math.max(0, Math.min(n, k));
+    kInput.value = k;
+    kInput.max = n;
+
+    nVal.textContent = n;
+    pVal.textContent = p.toFixed(2);
+
+    const probs = [];
+    for (let i = 0; i <= n; i++) probs.push(binomPmf(n, p, i));
+    drawDistribution(binomChart, probs, k);
+
+    const pk = binomPmf(n, p, k);
+    const pLe = binomCdf(n, p, k);
+    const pGe = 1 - binomCdf(n, p, k - 1);
+    const E = n * p;
+    const V = n * p * (1 - p);
+
+    binomResults.innerHTML =
+      '<div class="result-card"><div class="label">P(X = ' + k + ')</div><div class="value">' + pk.toFixed(4) + '</div><div class="sub">' + (pk * 100).toFixed(2) + ' %</div></div>' +
+      '<div class="result-card"><div class="label">P(X ≤ ' + k + ')</div><div class="value">' + pLe.toFixed(4) + '</div><div class="sub">cumulée</div></div>' +
+      '<div class="result-card"><div class="label">P(X ≥ ' + k + ')</div><div class="value">' + pGe.toFixed(4) + '</div><div class="sub">1 − P(X ≤ ' + (k - 1) + ')</div></div>' +
+      '<div class="result-card"><div class="label">E(X) = np</div><div class="value">' + E.toFixed(3) + '</div><div class="sub">espérance</div></div>' +
+      '<div class="result-card"><div class="label">Var(X) = np(1−p)</div><div class="value">' + V.toFixed(3) + '</div><div class="sub">σ = ' + Math.sqrt(V).toFixed(3) + '</div></div>';
+  }
+
+  /* ---------- Géométrique ---------- */
+  const gpSlider = document.getElementById('gpSlider');
+  const gkInput  = document.getElementById('gkInput');
+  const gpVal    = document.getElementById('gpVal');
+  const geomChart = document.getElementById('geomChart');
+  const geomResults = document.getElementById('geomResults');
+
+  function updateGeom() {
+    const p = parseFloat(gpSlider.value);
+    let k = parseInt(gkInput.value, 10);
+    if (isNaN(k) || k < 0) k = 0;
+    kInput.value = k; // pas utilisé, mais évite erreur si switch
+    gkInput.value = k;
+
+    gpVal.textContent = p.toFixed(2);
+
+    const maxK = Math.max(15, Math.ceil(5 / p));
+    const probs = [];
+    for (let i = 0; i <= maxK; i++) probs.push(Math.pow(1 - p, i) * p);
+    const hi = Math.min(k, maxK);
+    drawDistribution(geomChart, probs, hi);
+
+    const pk = Math.pow(1 - p, k) * p;
+    const pGe = Math.pow(1 - p, k); // P(X ≥ k) = (1-p)^k
+    const E = (1 - p) / p;
+    const V = (1 - p) / (p * p);
+    const Etest = 1 / p;
+
+    geomResults.innerHTML =
+      '<div class="result-card"><div class="label">P(X = ' + k + ')</div><div class="value">' + pk.toFixed(4) + '</div><div class="sub">(1−p)^' + k + ' · p</div></div>' +
+      '<div class="result-card"><div class="label">P(X ≥ ' + k + ')</div><div class="value">' + pGe.toFixed(4) + '</div><div class="sub">(1−p)^' + k + '</div></div>' +
+      '<div class="result-card"><div class="label">E(X) échecs</div><div class="value">' + E.toFixed(3) + '</div><div class="sub">(1−p)/p</div></div>' +
+      '<div class="result-card"><div class="label">Var(X)</div><div class="value">' + V.toFixed(3) + '</div><div class="sub">(1−p)/p²</div></div>' +
+      '<div class="result-card" style="background: var(--amber-50);"><div class="label">E[tests] = 1/p</div><div class="value">' + Etest.toFixed(3) + '</div><div class="sub">⚠️ nb d\'essais total</div></div>';
+  }
+
+  nSlider.addEventListener('input', updateBinom);
+  pSlider.addEventListener('input', updateBinom);
+  kInput.addEventListener('input', updateBinom);
+  gpSlider.addEventListener('input', updateGeom);
+  gkInput.addEventListener('input', updateGeom);
+
+  /* ---------- Quiz ---------- */
+  const quizData = [
+    {
+      q: "Un examen comporte 10 questions à choix multiples (4 réponses possibles, 1 seule bonne). Un étudiant répond au hasard. Soit X le nombre de bonnes réponses. Quelle est la loi de X ?",
+      options: [
+        "Loi de Poisson 𝒫(λ)",
+        "Loi binomiale ℬ(10, 0.25)",
+        "Loi géométrique 𝒢(0.25)",
+        "Loi de Bernoulli ℬ(1, 0.25)"
+      ],
+      correct: 1,
+      exp: "On répète 10 fois la même épreuve (répondre à une question) de façon indépendante, avec 2 issues (bonne/mauvaise réponse) et p = 1/4 constant. → Binomiale ℬ(10, 0.25)."
+    },
+    {
+      q: "Si X suit une loi binomiale ℬ(10, 0.25), que vaut E(X) ?",
+      options: ["0.25", "2.5", "10", "7.5"],
+      correct: 1,
+      exp: "E(X) = n × p = 10 × 0.25 = 2.5. En moyenne, l'étudiant aura 2.5 bonnes réponses."
+    },
+    {
+      q: "Si X ~ ℬ(10, 0.25), que vaut Var(X) ?",
+      options: ["1.875", "2.5", "7.5", "0.25"],
+      correct: 0,
+      exp: "Var(X) = np(1−p) = 10 × 0.25 × 0.75 = 1.875."
+    },
+    {
+      q: "Un joueur lance une pièce biaisée (p = 0.3 de faire face) jusqu'à obtenir face. Quelle est la probabilité qu'il ait besoin de plus de 5 lancers ?",
+      options: ["0.3^5", "0.7^5", "0.7^4 × 0.3", "1 − 0.3^5"],
+      correct: 1,
+      exp: "« Plus de 5 lancers » = au moins 5 échecs. P(X ≥ 5) = (1−p)^5 = 0.7^5. C'est la queue de la loi géométrique."
+    },
+    {
+      q: "Dans un test de dépistage, une personne est testée positive. Quelle formule permet de calculer P(malade | positif) ?",
+      options: [
+        "P(positif | malade) × P(malade)",
+        "P(positif | malade) × P(malade) / P(positif)",
+        "P(malade) + P(positif)",
+        "P(positif) − P(malade)"
+      ],
+      correct: 1,
+      exp: "C'est le théorème de Bayes : P(M|+) = P(+|M)·P(M) / P(+). On « remonte » l'arbre de probabilité."
+    },
+    {
+      q: "Pour une variable aléatoire continue X, que vaut P(X = c) pour une valeur c donnée ?",
+      options: ["1", "0.5", "0", "Cela dépend de c"],
+      correct: 2,
+      exp: "Pour une variable continue, la probabilité d'une valeur exacte est toujours nulle. On calcule des probabilités sur des intervalles : P(a ≤ X ≤ b) = F(b) − F(a)."
+    }
+  ];
+
+  function renderQuiz() {
+    const container = document.getElementById('quizContainer');
+    container.innerHTML = quizData.map(function(q, qi) {
+      const opts = q.options.map(function(opt, oi) {
+        return '<div class="quiz-option" data-opt="' + oi + '">' + opt + '</div>';
+      }).join('');
+      return '<div class="quiz-q" data-q="' + qi + '">' +
+        '<div class="q-text">' + (qi + 1) + '. ' + q.q + '</div>' +
+        '<div class="quiz-options">' + opts + '</div>' +
+        '<button class="quiz-check" data-q="' + qi + '">Vérifier</button>' +
+        '<div class="quiz-explanation">' + q.exp + '</div>' +
+        '</div>';
+    }).join('');
+
+    container.querySelectorAll('.quiz-option').forEach(function(opt) {
+      opt.addEventListener('click', function() {
+        const parent = opt.closest('.quiz-q');
+        if (parent.querySelector('.quiz-check').disabled) return;
+        parent.querySelectorAll('.quiz-option').forEach(function(o) { o.classList.remove('selected'); });
+        opt.classList.add('selected');
+      });
+    });
+
+    container.querySelectorAll('.quiz-check').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const qi = parseInt(btn.dataset.q, 10);
+        const q = quizData[qi];
+        const parent = btn.closest('.quiz-q');
+        const selected = parent.querySelector('.quiz-option.selected');
+        if (!selected) {
+          btn.textContent = 'Choisis une réponse !';
+          setTimeout(function() { btn.textContent = 'Vérifier'; }, 1200);
+          return;
+        }
+        const chosen = parseInt(selected.dataset.opt, 10);
+        parent.querySelectorAll('.quiz-option').forEach(function(o, i) {
+          if (i === q.correct) o.classList.add('correct');
+          else if (i === chosen) o.classList.add('wrong');
+        });
+        parent.querySelector('.quiz-explanation').style.display = 'block';
+        btn.disabled = true;
+        btn.textContent = chosen === q.correct ? '✓ Correct' : '✗ Raté';
+      });
+    });
+  }
+
+  /* ---------- Initialisation ---------- */
+  function init() {
+    renderQuiz();
+    updateBinom();
+    requestAnimationFrame(function() {
+      updateBinom();
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  // Re-dessiner au redimensionnement
+  let resizeTimer;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function() {
+      if (document.getElementById('panel-binom').style.display !== 'none') updateBinom();
+      if (document.getElementById('panel-geom').style.display !== 'none') updateGeom();
+    }, 150);
+  });
+})();
+</script>
+</body>
+</html>
